@@ -1483,8 +1483,10 @@ Dim i As Long
     
     If CharMap(RowMap(CR).StartChar).X > X Then
         getCharAtCursor = RowMap(CR).StartChar
-    ElseIf CharMap(RowMap(CR).StartChar + RowMap(CR).NumChars - 1).X Then
+        Exit Function
+    ElseIf CharMap(RowMap(CR).StartChar + RowMap(CR).NumChars - 1).X < X Then
         getCharAtCursor = EOR
+        Exit Function
     End If
     
     'TS = CharMap(RowMap(CR).StartChar).X
@@ -1516,6 +1518,8 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Sing
     tmpSwapSel = m_CursorPos
     m_CursorPos = getCharAtCursor(CLng(m_lMouseDownX), CLng(m_lMouseDownY))
     m_lMouseDownPos = m_CursorPos
+    
+    Debug.Print m_byteText(m_CursorPos); m_CursorPos
     
     If (Shift And 1) Then
         If m_CursorPos <= tmpSwapSel Then
@@ -1558,7 +1562,7 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Sing
         
         If CharMap(m_CursorPos).X >= m_lUsercontrolWidth Then
             m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolWidth)
-        ElseIf CharMap(m_CursorPos).X < m_lUsercontrolLeft Then
+        ElseIf CharMap(m_CursorPos).X <= m_lUsercontrolLeft Then
             m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolLeft)
         End If
         
@@ -1568,7 +1572,7 @@ End Sub
 
 Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     m_lMouseDown = m_lMouseDown Xor Button
-    Debug.Print m_lMouseDown
+    'Debug.Print m_lMouseDown
     If Not m_bStarting Then Redraw
 End Sub
 
@@ -1654,6 +1658,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     
     Select Case KeyCode
         Case vbKeyDown, vbKeyUp
+            If m_lMouseDown <> lNone Then Exit Sub
             m_CursorPos = getNextCharUpDown(KeyCode = vbKeyUp, m_SelUpDownTheSame)
             m_SelStart = m_CursorPos
             m_SelEnd = m_CursorPos
@@ -1661,6 +1666,8 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
             m_SelUpDownTheSame = True
         
         Case vbKeyRight
+            If m_lMouseDown <> lNone Then Exit Sub
+            
             If (Shift And 2) Then
                 tmpCursor = getNextWordFromCursor()
                 If (Shift And 1) Then
@@ -1705,9 +1712,9 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
             End If
 
         Case vbKeyLeft
-
+            If m_lMouseDown <> lNone Then Exit Sub
+            
             If (Shift And 2) Then
-
                 tmpCursor = getPreviousWordFromCursor()
                 If (Shift And 1) Then
 
@@ -1848,8 +1855,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     End If
     
     If mustRedraw Then Redraw
-
-
+    
     updateCaretPos
     DoEvents
 End Sub
