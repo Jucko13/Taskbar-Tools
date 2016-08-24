@@ -216,7 +216,7 @@ Public m_lScrollLeftMax As Long
 Public m_lScrollTop As Long
 Public m_lScrollTopMax As Long
 
-Private m_timer As clsTimer
+'Private m_timer As clsTimer
 
 Public Event Changed()
 
@@ -357,6 +357,10 @@ Public Property Let SelBold(bValue As Boolean)
     If Not m_bStarting Then Redraw
 End Property
 
+Public Property Get SelStart() As Long
+    SelStart = m_SelStart
+End Property
+
 Public Property Let SelStart(LonValue As Long)
 'm_SelCurrent.lStart = LonValue
 'm_SelCurrent.lLength = 0
@@ -372,6 +376,10 @@ Public Property Let SelLength(LonValue As Long)
     If Not m_bStarting Then Redraw
 End Property
 
+Public Property Get SelLength() As Long
+    SelStart = m_SelEnd - m_SelStart
+End Property
+
 Public Property Let MarkupText(StrValue As String)
     m_StrMarkupText = StrValue
 
@@ -379,32 +387,28 @@ Public Property Let MarkupText(StrValue As String)
 End Property
 
 
-Public Function ByteArrayToString(bytArray() As Byte) As String
+Public Function ByteArrayToString(ByRef bytArray() As Byte) As String
     Dim sAns As String
-    Dim iPos As String
+    Dim iPos As Long
     
-    sAns = StrConv(bytArray, vbUnicode)
-    iPos = InStr(sAns, Chr(0))
-    If iPos > 0 Then sAns = Left(sAns, iPos - 1)
-    
+    sAns = Left$(StrConv(bytArray, vbUnicode), UBound(bytArray))
     ByteArrayToString = sAns
     
 End Function
 
 Public Property Get Text() As String
     Text = ByteArrayToString(m_byteText)
+    
 End Property
 
 
-'Public Property Get Text() As String
-'    Text = m_StrText
-'End Property
-'
-'Public Property Let Text(ByVal StrValue As String)
-'    m_StrText = StrValue
-'    PropertyChanged "Text"
-'    If Not m_bStarting Then Redraw
-'End Property
+Public Property Let Text(ByVal StrValue As String)
+    clear
+    AddCharAtCursor StrValue
+    PropertyChanged "Text"
+    If Not m_bStarting Then Redraw
+End Property
+
 
 
 Public Property Get Font() As StdFont
@@ -488,7 +492,7 @@ End Sub
 Private Sub UserControl_Initialize()
     m_bStarting = True
 
-    Set m_timer = New clsTimer
+    'Set m_timer = New clsTimer
 
     'Dim lrand As Long
     Dim newChar As String
@@ -499,64 +503,64 @@ Private Sub UserControl_Initialize()
     Dim constString As String
     Const randomMarkup As Boolean = True
     
-
-    For i = 0 To 5
-        constString = constString & "Deze Textbox is gemaakt door Ricardo de Roode!                HierNogEvenEenLangWoord" & vbCrLf    '& vbCrLf
-    Next i
-
-
-    If randomMarkup Then
-        For i = 1 To Len(constString)
-            newChar = ""
-            '{\c FFFF00 hoi {\c FF00FF hallo dit is magenta gekleurde text} hoi}
-            If Mid$(constString, i, 1) <> " " And Mid$(constString, i, 1) <> vbCr And Mid$(constString, i, 1) <> vbLf Then
-                newChar = "{\c " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
-                newChar = newChar & "{\fb " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
-                newChar = newChar & "{\m " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
-                'newChar = newChar & "{\m FF00FF "
-                newChar = newChar & "{\fs " & Fix(Rnd * 16 + 8) & " "
-                'newChar = newChar & "{\i "
-
-                '            Select Case Round(Rnd * 3)
-                '                Case 0
-                '                    newChar = newChar & "{\i "
-                '                Case 1
-                '                    newChar = newChar & "{\b "
-                '                Case 2
-                '                    newChar = newChar & "{\u "
-                '                Case 3
-                '                    newChar = newChar & "{\s "
-                '            End Select
-
-                Select Case Mid$(constString, i, 1)
-                    Case "}", "{", "\"
-                        newChar = newChar & "\" & Mid$(constString, i, 1)
-
-                    Case Else
-                        newChar = newChar & Mid$(constString, i, 1)
-                End Select
-
-                'SnewChar = newChar & "}"
-                newChar = newChar & "}"
-                'newChar = newChar & "}"
-                newChar = newChar & "}"
-                newChar = newChar & "}"
-                newChar = newChar & "}"
-
-                m_StrMarkupText = m_StrMarkupText & newChar
-            Else
-                m_StrMarkupText = m_StrMarkupText & Mid$(constString, i, 1)
-
-            End If
-
-
-
-
-        Next i
-    Else
-        m_StrMarkupText = constString
-
-    End If
+'
+'    For i = 0 To 5
+'        constString = constString & "Deze Textbox is gemaakt door Ricardo de Roode!                HierNogEvenEenLangWoord" & vbCrLf    '& vbCrLf
+'    Next i
+'
+'
+'    If randomMarkup Then
+'        For i = 1 To Len(constString)
+'            newChar = ""
+'            '{\c FFFF00 hoi {\c FF00FF hallo dit is magenta gekleurde text} hoi}
+'            If Mid$(constString, i, 1) <> " " And Mid$(constString, i, 1) <> vbCr And Mid$(constString, i, 1) <> vbLf Then
+'                newChar = "{\c " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
+'                newChar = newChar & "{\fb " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
+'                newChar = newChar & "{\m " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
+'                'newChar = newChar & "{\m FF00FF "
+'                newChar = newChar & "{\fs " & Fix(Rnd * 16 + 8) & " "
+'                'newChar = newChar & "{\i "
+'
+'                '            Select Case Round(Rnd * 3)
+'                '                Case 0
+'                '                    newChar = newChar & "{\i "
+'                '                Case 1
+'                '                    newChar = newChar & "{\b "
+'                '                Case 2
+'                '                    newChar = newChar & "{\u "
+'                '                Case 3
+'                '                    newChar = newChar & "{\s "
+'                '            End Select
+'
+'                Select Case Mid$(constString, i, 1)
+'                    Case "}", "{", "\"
+'                        newChar = newChar & "\" & Mid$(constString, i, 1)
+'
+'                    Case Else
+'                        newChar = newChar & Mid$(constString, i, 1)
+'                End Select
+'
+'                'SnewChar = newChar & "}"
+'                newChar = newChar & "}"
+'                'newChar = newChar & "}"
+'                newChar = newChar & "}"
+'                newChar = newChar & "}"
+'                newChar = newChar & "}"
+'
+'                m_StrMarkupText = m_StrMarkupText & newChar
+'            Else
+'                m_StrMarkupText = m_StrMarkupText & Mid$(constString, i, 1)
+'
+'            End If
+'
+'
+'
+'
+'        Next i
+'    Else
+'        m_StrMarkupText = constString
+'
+'    End If
 
     SelStart = 0
     SelLength = 0
@@ -816,7 +820,7 @@ StartOfFunction:
     For RL = 0 To TL    ' - 1
         TTW = TTW + CharMap(RL).W
         If TTW > UW And RL > 0 Then Exit For
-        If CharMap(RL).H > RH Then RH = CharMap(RL).H
+        If CharMap(RL).H - CharMap(RL).d > RH Then RH = CharMap(RL).H - CharMap(RL).d
         If CharMap(RL).d > RD Then RD = CharMap(RL).d
     Next RL
 
@@ -833,7 +837,7 @@ StartOfFunction:
 
     UserControl.DrawStyle = 5
 
-    m_timer.tStart
+    'm_timer.tStart
 
     For CC = 0 To TL    ' - 1
         'Debug.Assert (CC <> TL)
@@ -912,7 +916,7 @@ MakeNewRule:
                             TTW = TTW + CharMap(RL).W
                             
                             If m_byteText(RL) = 10 Then Exit For
-                            If CharMap(RL).H > RH Then RH = CharMap(RL).H
+                            If CharMap(RL).H - CharMap(RL).d > RH Then RH = CharMap(RL).H - CharMap(RL).d
                             If CharMap(RL).d > RD Then RD = CharMap(RL).d
                             If TTW > MTW Then MTW = TTW
                         Next RL
@@ -1113,7 +1117,7 @@ DoneRefreshing:
 
     UserControl.Refresh
 
-    DoEvents
+    'DoEvents
     m_bRefreshing = False
     'If m_bRefreshedWhileBusy Then
     '    m_bRefreshedWhileBusy = False
