@@ -171,7 +171,7 @@ Private m_lMouseDownY As Long
 Private m_lMouseDownPos As Long
 Private m_lMouseDownPrevious As Long
 
-Private m_CursorPos As Long
+Public m_CursorPos As Long
 Private m_SelStart As Long
 Private m_SelEnd As Long
 Private m_SelUpDownTheSame As Boolean
@@ -222,6 +222,7 @@ Public m_lScrollTopMax As Long
 'Private m_timer As clsTimer
 
 Public Event Changed()
+Public Event SelectionChanged()
 
 Private m_lUsercontrolHeight As Long
 Private m_lUsercontrolWidth As Long
@@ -421,10 +422,13 @@ End Property
 
 
 Public Property Let Text(ByVal StrValue As String)
-    clear
+    Clear
     AddCharAtCursor StrValue
+    
     PropertyChanged "Text"
     If Not m_bStarting Then Redraw
+    
+    updateCaretPos
 End Property
 
 
@@ -502,6 +506,21 @@ Sub RedrawResume()
     Redraw
 End Sub
 
+
+Private Sub UserControl_DblClick()
+    Dim word As Long
+    
+    word = MarkupS(m_CursorPos).lPartOfWord
+    
+    If word <> -1 Then
+        m_SelStart = WordMap(word).s
+        m_SelEnd = WordMap(word).s + WordMap(word).l
+        If m_SelEnd > UBound(CharMap) Then m_SelEnd = UBound(CharMap)
+        m_CursorPos = m_SelEnd
+        If Not m_bStarting Then Redraw
+        updateCaretPos
+    End If
+End Sub
 
 Private Sub UserControl_GotFocus()
     updateCaretPos
@@ -819,10 +838,11 @@ StartOfFunction:
     RD = 0
 
     'm_timer.tStart
-
-    For CC = 0 To TL    ' - 1
-        'Debug.Assert (CC <> TL)
-
+    'On Error Resume Next
+    
+    For CC = 0 To TL
+        'Debug.Print m_byteText(CC);
+        
         If cBold <> MarkupS(CC).lBold Then
             cBold = MarkupS(CC).lBold
             UserControl.FontBold = cBold
@@ -1136,7 +1156,7 @@ Sub ReCalculateWords()
 
     For TL = 0 To UBound(m_byteText)
 
-        If TL < UBound(m_byteText) And (m_byteText(TL) = 32 Or m_byteText(TL) = 10 Or m_byteText(TL) = 45) Then    ' a space  Or m_byteText(TL) = 13
+        If TL < UBound(m_byteText) And (m_byteText(TL) = 32 Or m_byteText(TL) = 10 Or m_byteText(TL) = 45 Or m_byteText(TL) = 40 Or m_byteText(TL) = 41) Then      ' a space  Or m_byteText(TL) = 13
             If WL > 0 Then
                 WordMap(WC).H = WH
                 WordMap(WC).W = WW
@@ -1231,10 +1251,10 @@ End Sub
 'End Sub
 
 
-Function InstrByte(lStart As Long, ByRef lBytes() As Byte, lSearch As Byte) As Long
+Function InstrByte(lstart As Long, ByRef lBytes() As Byte, lSearch As Byte) As Long
     Dim i As Long
 
-    For i = lStart To UBound(lBytes)
+    For i = lstart To UBound(lBytes)
         If lBytes(i) = lSearch Then
             InstrByte = i
             Exit Function
@@ -1242,20 +1262,20 @@ Function InstrByte(lStart As Long, ByRef lBytes() As Byte, lSearch As Byte) As L
     Next i
 End Function
 
-Function RGBByte(lStart As Long, ByRef lBytes() As Byte) As Long
+Function RGBByte(lstart As Long, ByRef lBytes() As Byte) As Long
     Dim i As Long
     Dim c(0 To 8) As Byte
 
     For i = 0 To 5
-        Select Case lBytes(lStart + i)
+        Select Case lBytes(lstart + i)
             Case 48 To 57
-                c(i) = (lBytes(lStart + i) - 48) And 255
+                c(i) = (lBytes(lstart + i) - 48) And 255
 
             Case 65 To 70
-                c(i) = (lBytes(lStart + i) - 55) And 255
+                c(i) = (lBytes(lstart + i) - 55) And 255
 
             Case 97 To 102
-                c(i) = (lBytes(lStart + i) - 85) And 255
+                c(i) = (lBytes(lstart + i) - 85) And 255
         End Select
     Next i
 
@@ -1263,7 +1283,7 @@ Function RGBByte(lStart As Long, ByRef lBytes() As Byte) As Long
 End Function
 
 
-Public Sub clear()
+Public Sub Clear()
     m_SelStart = 0
     m_SelEnd = UBound(CharMap)
     AddCharAtCursor
@@ -1297,15 +1317,20 @@ Function AddCharAtCursor(Optional sChar As String = "") As Boolean
         ReDim Preserve MarkupS(0 To -1)
         
     ElseIf lLengthDifference > 0 Then
+        For i = 0 To UBound(m_byteText)
+            Debug.Print m_byteText(i);
+        Next i
+        Debug.Print ""
+        
         ReDim Preserve CharMap(0 To UBound(CharMap) + lLengthDifference)
         ReDim Preserve m_byteText(0 To UBound(m_byteText) + lLengthDifference)
         ReDim Preserve MarkupS(0 To UBound(MarkupS) + lLengthDifference)
+        
+        CopyMemory CharMap(m_SelEnd + lLengthDifference), CharMap(m_SelEnd), CursorToEnd * LenB(CharMap(0))
+        CopyMemory m_byteText(m_SelEnd + lLengthDifference), m_byteText(m_SelEnd), CursorToEnd
+        CopyMemory MarkupS(m_SelEnd + lLengthDifference), MarkupS(m_SelEnd), CursorToEnd * LenB(MarkupS(0))
 
-        CopyMemory CharMap(m_SelStart + lLengthDifference), CharMap(m_SelStart), CursorToEnd * LenB(CharMap(0))
-        CopyMemory m_byteText(m_SelStart + lLengthDifference), m_byteText(m_SelStart), CursorToEnd
-        CopyMemory MarkupS(m_SelStart + lLengthDifference), MarkupS(m_SelStart), CursorToEnd * LenB(MarkupS(0))
-
-
+        'Debug.Print m_byteText(UBound(m_byteText))
 
     ElseIf lLengthDifference < 0 Then
 
@@ -1328,7 +1353,7 @@ Function AddCharAtCursor(Optional sChar As String = "") As Boolean
 
         'End If
         If m_SelStart + i - 2 >= 0 Then
-            MarkupS(m_SelStart + i - 1) = MarkupS(m_SelStart + i - 2)
+            MarkupS((m_SelStart + i - 1)) = MarkupS((m_SelStart + i - 2))
         Else
             With MarkupS(m_SelStart + i - 1)
                 .lStrikeThrough = m_StdFont.Strikethrough
@@ -1363,7 +1388,7 @@ Function AddCharAtCursor(Optional sChar As String = "") As Boolean
 End Function
 
 
-Sub CheckCharSize(lStart As Long, lLength As Long)
+Sub CheckCharSize(lstart As Long, lLength As Long)
     Dim i As Long
 
     Dim cForeColor As Long
@@ -1398,7 +1423,7 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
     GetTextMetrics UserControl.hdc, cTextMetric
     cDescendHeight = cTextMetric.tmDescent
 
-    For i = lStart To lStart + lLength - 1
+    For i = lstart To lstart + lLength
         With MarkupS(i)
             If .lFontSize <> cFontSize Then
                 cFontSize = .lFontSize
@@ -1506,8 +1531,10 @@ Dim i As Long
     Next i
 End Function
 
+
 Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpSwapSel As Long
+    Dim mustRedraw As Boolean
     
     m_lMouseDown = m_lMouseDown Or Button
     m_lMouseDownX = X ' - m_lScrollLeft
@@ -1519,7 +1546,9 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Sing
     m_CursorPos = getCharAtCursor(CLng(m_lMouseDownX), CLng(m_lMouseDownY))
     m_lMouseDownPos = m_CursorPos
     
-    Debug.Print m_byteText(m_CursorPos); m_CursorPos
+    'Debug.Print m_byteText(m_CursorPos); m_CursorPos
+    
+    getSelectionChanged True
     
     If (Shift And 1) Then
         If m_CursorPos <= tmpSwapSel Then
@@ -1534,22 +1563,29 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Sing
         m_SelEnd = m_CursorPos
     End If
     
+    If getSelectionChanged Then
+        RaiseEvent SelectionChanged
+        mustRedraw = True
+    End If
+    
     updateCaretPos
     
-    If Not m_bStarting Then Redraw
+    If Not m_bStarting And mustRedraw Then Redraw
 End Sub
 
 
 Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpSwapSel As Long
+    Dim mustRedraw As Boolean
     
     m_lMouseX = X ' - m_lScrollLeft
     m_lMouseY = Y ' - m_lScrollTop
     
     If m_lMouseDown <> lNone Then
+        getSelectionChanged True
+        
         m_CursorPos = getCharAtCursor(CLng(m_lMouseX), CLng(m_lMouseY))
         tmpSwapSel = m_lMouseDownPos 'getCharAtCursor(CLng(m_lMouseDownX), CLng(m_lMouseDownY))
-        
         
         If m_CursorPos <= tmpSwapSel Then
             m_SelStart = m_CursorPos
@@ -1560,18 +1596,25 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Sing
         End If
         updateCaretPos
         
-        If CharMap(m_CursorPos).X >= m_lUsercontrolWidth Then
-            m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolWidth)
-        ElseIf CharMap(m_CursorPos).X <= m_lUsercontrolLeft Then
-            m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolLeft)
+        If getSelectionChanged Then
+            mustRedraw = True
+            RaiseEvent SelectionChanged
         End If
         
-        If Not m_bStarting Then Redraw
+        If CharMap(m_CursorPos).X >= m_lUsercontrolWidth Then
+            m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolWidth)
+            mustRedraw = True
+        ElseIf CharMap(m_CursorPos).X <= m_lUsercontrolLeft Then
+            m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolLeft)
+            mustRedraw = True
+        End If
+        
+        If Not m_bStarting And mustRedraw Then Redraw
     End If
 End Sub
 
 Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    m_lMouseDown = m_lMouseDown Xor Button
+    m_lMouseDown = m_lMouseDown And Not Button
     'Debug.Print m_lMouseDown
     If Not m_bStarting Then Redraw
 End Sub
@@ -1644,6 +1687,15 @@ Function getSelectionChanged(Optional init As Boolean = False) As Boolean
     End If
 End Function
 
+Private Sub UserControl_KeyPress(KeyAscii As Integer)
+    If (KeyAscii >= 32 And KeyAscii <= 126) Or (KeyAscii >= 128 And KeyAscii <= 255) Then
+        AddCharAtCursor Chr(KeyAscii)
+        updateCaretPos
+        If Not m_bStarting Then Redraw
+    End If
+End Sub
+
+
 Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
 
     Dim i As Long
@@ -1654,7 +1706,6 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     Dim tmpCursorUpDown As Boolean
     
     getSelectionChanged True
-    
     
     Select Case KeyCode
         Case vbKeyDown, vbKeyUp
@@ -1759,17 +1810,17 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
             End If
 
         Case vbKeyA To vbKeyZ
-            If (Shift And 1) Then
-                mustRedraw = AddCharAtCursor(UCase(Chr(KeyCode)))
-            ElseIf Shift = 0 Then
-                mustRedraw = AddCharAtCursor(LCase(Chr(KeyCode)))
-            ElseIf (Shift And 2) Then
+            'If (Shift And 1) Then
+            '    'mustRedraw = AddCharAtCursor(UCase(Chr(KeyCode)))
+            'ElseIf Shift = 0 Then
+            '    'mustRedraw = AddCharAtCursor(LCase(Chr(KeyCode)))
+            If (Shift And 2) Then
                 Select Case KeyCode
                     Case vbKeyC, vbKeyX
 
                         tmpString = GetSelectionText()
                         If LenB(tmpString) > 0 Then
-                            Clipboard.clear
+                            Clipboard.Clear
                             Clipboard.SetText tmpString
                         Else
                             Exit Sub
@@ -1781,24 +1832,29 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
 
                     Case vbKeyV
                         mustRedraw = AddCharAtCursor(Clipboard.GetText)
-                        
+                    
+                    Case vbKeyA
+                        m_SelStart = 0
+                        m_SelEnd = UBound(CharMap)
+                        m_CursorPos = m_SelEnd
+                        mustRedraw = True
                 End Select
 
             End If
 
-        Case vbKey0 To vbKey9
-            If (Shift And 1) Then
-            
-            ElseIf Shift = 0 Then
-                mustRedraw = AddCharAtCursor(Chr(KeyCode))
-            End If
+        'Case vbKey0 To vbKey9
+            'If (Shift And 1) Then
+            '
+            'ElseIf Shift = 0 Then
+            '    mustRedraw = AddCharAtCursor(Chr(KeyCode))
+            'End If
 
 
-        Case vbKeySpace
-            mustRedraw = AddCharAtCursor(" ")
+        'Case vbKeySpace
+        '    mustRedraw = AddCharAtCursor(" ")
 
         Case vbKeyReturn
-            mustRedraw = AddCharAtCursor(vbCrLf)
+            If m_bMultiLine Then mustRedraw = AddCharAtCursor(vbCrLf)
 
         Case vbKeyBack
             If m_SelStart = m_SelEnd Then
@@ -1812,7 +1868,6 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
             mustRedraw = AddCharAtCursor()
 
         Case vbKeyDelete
-
             If m_SelEnd >= UBound(m_byteText) Then
                 Exit Sub
             End If
@@ -1957,10 +2012,10 @@ End Function
 
 
 
-Function getNextChar(lStart As Long) As Long
+Function getNextChar(lstart As Long) As Long
     Dim i As Long
 
-    getNextChar = lStart
+    getNextChar = lstart
 
     For i = getNextChar To UBound(CharMap)
         If m_byteText(i) <> 10 Then    'm_byteText(i) <> 13 And
@@ -1971,10 +2026,10 @@ Function getNextChar(lStart As Long) As Long
 End Function
 
 
-Function getPreviousChar(lStart As Long) As Long
+Function getPreviousChar(lstart As Long) As Long
     Dim i As Long
 
-    getPreviousChar = lStart
+    getPreviousChar = lstart
 
     For i = getPreviousChar To 0 Step -1
         If m_byteText(i) <> 10 Then    'm_byteText(i) <> 13 And
@@ -2021,18 +2076,18 @@ Private Sub Usercontrol_Resize()
 End Sub
 
 
-Function SizeByte(ByRef lStart As Long, ByRef lBytes() As Byte) As Long
+Function SizeByte(ByRef lstart As Long, ByRef lBytes() As Byte) As Long
     Dim c(0 To 10) As Long
     Dim lCount As Long
     Dim i As Long
 
     For i = 0 To 10
-        Select Case lBytes(lStart + i)
+        Select Case lBytes(lstart + i)
             Case 32
                 Exit For
 
             Case 48 To 57
-                c(lCount) = lBytes(lStart + i) - 48
+                c(lCount) = lBytes(lstart + i) - 48
         End Select
 
         lCount = lCount + 1
@@ -2043,7 +2098,7 @@ Function SizeByte(ByRef lStart As Long, ByRef lBytes() As Byte) As Long
     For i = 0 To lCount - 1
         SizeByte = SizeByte + c(i) * (10 ^ (lCount - i - 1))
     Next i
-    lStart = lCount
+    lstart = lCount
 End Function
 
 
@@ -2436,13 +2491,13 @@ End Function
 
 
 
-Function GetMidText(sString As String, sSearch As String, sSearch2 As String, Optional lStart As Long = 1) As String
+Function GetMidText(sString As String, sSearch As String, sSearch2 As String, Optional lstart As Long = 1) As String
     Dim tmp1 As Long
     Dim tmp2 As Long
 
-    If lStart < 1 Then Exit Function
+    If lstart < 1 Then Exit Function
 
-    tmp1 = InStr(lStart, sString, sSearch)
+    tmp1 = InStr(lstart, sString, sSearch)
     If tmp1 = 0 Then Exit Function
     tmp1 = tmp1 + Len(sSearch)
 
