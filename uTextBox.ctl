@@ -223,6 +223,7 @@ Public m_lScrollTopMax As Long
 
 Public Event Changed()
 Public Event SelectionChanged()
+Public Event KeyPress(KeyAscii As Integer)
 
 Private m_lUsercontrolHeight As Long
 Private m_lUsercontrolWidth As Long
@@ -712,9 +713,7 @@ End Sub
 
 
 Sub Redraw()
-StartOfFunction:
     If m_bRefreshing Then
-        'm_bRefreshedWhileBusy = True
         Exit Sub
     End If
     
@@ -727,31 +726,27 @@ StartOfFunction:
 
 
     Dim i As Long
-    'Dim FR As Long 'For Row
     Dim CC As Long    'Char Count
     Dim TL As Long    'text length
-    'Dim CMS As String 'current mid string
-    'Dim CMA As Long 'current mid ascii code
-
-    'Dim TH As Long 'text height
+    
     Dim TW As Long    'text width
     Dim LNW As Long    'line number width
     Dim LNR As Long    'line number right
     Dim TextOffsetX As Long
     Dim TextOffsetY As Long
     Dim NRC As Long    'Number Row Count
-    'Dim RNRC As Long 'Real Number Row Count
+
     Dim UW As Long    'usercontrol width without scrollbars
     Dim UWS As Long    'usercontrol width
     Dim UH As Long    'usercontrol height without scrollbars
     Dim UHS As Long    'usercontrol height
     Dim RH As Long    'row height
     Dim RD As Long    'row d height
-    'Dim RUH As Long 'row under height
+
     Dim RL As Long    'row loop
     Dim TTW As Long    'temp text width
     Dim MTW As Long   'max text width
-    'Dim WW As Long 'word width
+
     Dim NLNR As Boolean    'Next Loop goto NextRow
 
     'currentStyle values
@@ -765,8 +760,6 @@ StartOfFunction:
     Dim cLine As Long
     Dim TSP As Long    'text spacing
     Dim POWC As Long    'part of word checked
-
-    'UserControl.AutoRedraw = True
 
     UserControl.Cls
 
@@ -906,6 +899,7 @@ MakeNewRule:
                     RD = 0
                     
                     If WordWrap Then
+                        POWC = MarkupS(CC).lPartOfWord
                         For RL = POWC To WordCount
                             TTW = TTW + WordMap(RL).W
                             If TTW > UW And RL > POWC Then Exit For
@@ -926,7 +920,7 @@ MakeNewRule:
                         If m_bMultiLine Then
                             TextOffsetY = RH 'TSP + RH
                         Else
-                            TextOffsetY = (UH - TSP) / 2 + RH / 2
+                            TextOffsetY = (UH - TSP) / 2 + RH / 2 + 1
                         End If
                         
                         'RowMap(0).StartY = TextOffsetY    '+ RH
@@ -1041,7 +1035,7 @@ MakeNewRule:
                 pts(1).Y = pts(0).Y
 
                 pts(2).X = pts(1).X
-                pts(2).Y = TextOffsetY - RH
+                pts(2).Y = TextOffsetY - RH + IIf(m_bMultiLine, CharMap(CC).d, 0)
 
                 pts(3).X = TextOffsetX
                 pts(3).Y = pts(2).Y
@@ -1049,7 +1043,6 @@ MakeNewRule:
                 UserControl.DrawMode = 6 '6
                 Polygon UserControl.hdc, pts(0), 4
                 UserControl.DrawMode = 13
-
             End If
 
         
@@ -1060,10 +1053,7 @@ MakeNewRule:
         CharMap(CC).X = TextOffsetX
         CharMap(CC).Y = TextOffsetY
         
-        
-        
         RowMap(NRC).NumChars = RowMap(NRC).NumChars + 1
-
 
         TextOffsetX = TextOffsetX + CharMap(CC).W
 
@@ -1146,17 +1136,20 @@ Sub ReCalculateWords()
     Dim WH As Long    'word height
     Dim WW As Long    'word width
     Dim WL As Long    'word length
-
+    Dim BT As Long    'ByteText
+    Dim UB As Long    'ubound bytetext
     Dim TL As Long    'text length
     If m_bMarkupCalculating Then Exit Sub
     m_bMarkupCalculating = True
 
     On Error GoTo endff
     ReDim WordMap(0 To UBound(m_byteText) + 2)
-
-    For TL = 0 To UBound(m_byteText)
-
-        If TL < UBound(m_byteText) And (m_byteText(TL) = 32 Or m_byteText(TL) = 10 Or m_byteText(TL) = 45 Or m_byteText(TL) = 40 Or m_byteText(TL) = 41) Then      ' a space  Or m_byteText(TL) = 13
+    
+    UB = UBound(m_byteText)
+    For TL = 0 To UB
+        BT = m_byteText(TL)
+        
+        If TL < UB And (BT = 32 Or BT = 10 Or BT = 45 Or BT = 40 Or BT = 41 Or BT = 44) Then      ' a space  Or m_byteText(TL) = 13
             If WL > 0 Then
                 WordMap(WC).H = WH
                 WordMap(WC).W = WW
@@ -1317,11 +1310,6 @@ Function AddCharAtCursor(Optional sChar As String = "") As Boolean
         ReDim Preserve MarkupS(0 To -1)
         
     ElseIf lLengthDifference > 0 Then
-        For i = 0 To UBound(m_byteText)
-            Debug.Print m_byteText(i);
-        Next i
-        Debug.Print ""
-        
         ReDim Preserve CharMap(0 To UBound(CharMap) + lLengthDifference)
         ReDim Preserve m_byteText(0 To UBound(m_byteText) + lLengthDifference)
         ReDim Preserve MarkupS(0 To UBound(MarkupS) + lLengthDifference)
@@ -1371,7 +1359,6 @@ Function AddCharAtCursor(Optional sChar As String = "") As Boolean
 
     CheckCharSize m_SelStart, lInsertLength
 
-
     m_SelStart = m_SelStart + lInsertLength
     m_SelEnd = m_SelStart
     m_CursorPos = m_SelStart
@@ -1384,7 +1371,6 @@ Function AddCharAtCursor(Optional sChar As String = "") As Boolean
 
     AddCharAtCursor = True
     RaiseEvent Changed
-    
 End Function
 
 
@@ -1531,6 +1517,10 @@ Dim i As Long
     Next i
 End Function
 
+
+Private Sub UserControl_LostFocus()
+    DestroyCaret
+End Sub
 
 Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpSwapSel As Long
@@ -1688,10 +1678,14 @@ Function getSelectionChanged(Optional init As Boolean = False) As Boolean
 End Function
 
 Private Sub UserControl_KeyPress(KeyAscii As Integer)
+    RaiseEvent KeyPress(KeyAscii)
+    
     If (KeyAscii >= 32 And KeyAscii <= 126) Or (KeyAscii >= 128 And KeyAscii <= 255) Then
         AddCharAtCursor Chr(KeyAscii)
-        updateCaretPos
         If Not m_bStarting Then Redraw
+        
+        updateCaretPos
+        
     End If
 End Sub
 
@@ -1912,7 +1906,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     If mustRedraw Then Redraw
     
     updateCaretPos
-    DoEvents
+    'DoEvents
 End Sub
 
 
