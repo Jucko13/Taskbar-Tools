@@ -1,6 +1,8 @@
 VERSION 5.00
 Begin VB.UserControl uTextBox 
+   Appearance      =   0  'Flat
    AutoRedraw      =   -1  'True
+   BackColor       =   &H80000005&
    ClientHeight    =   3600
    ClientLeft      =   0
    ClientTop       =   0
@@ -197,6 +199,7 @@ Private m_bMarkupCalculating As Boolean
 Private m_bWordsCalculated As Boolean
 Private m_bWordsCalculating As Boolean
 
+Private m_bMultiLine As Boolean
 Private m_bRowLines As Boolean
 Private m_OleRowLineColor As OLE_COLOR
 Private m_OleLineNumberBackground As OLE_COLOR
@@ -246,7 +249,11 @@ Public Sub setCharBold(char As Long, bValue As Boolean)
 End Sub
 
 Public Sub setCharForeColor(char As Long, OleValue As OLE_COLOR)
-    MarkupS(char).lForeColor = OleValue
+    MarkupS(char).lForeColor = IIf(OleValue >= 0, OleValue, -1)
+End Sub
+
+Public Sub setCharBackColor(char As Long, OleValue As OLE_COLOR)
+    MarkupS(char).lMarking = IIf(OleValue >= 0, OleValue, -1)
 End Sub
 
 
@@ -274,6 +281,17 @@ Public Property Let RowNumberOnEveryLine(ByVal bValue As Boolean)
     If Not m_bStarting Then Redraw
 End Property
 
+
+
+Public Property Get MultiLine() As Boolean
+    MultiLine = m_bMultiLine
+End Property
+
+Public Property Let MultiLine(ByVal bValue As Boolean)
+    m_bMultiLine = bValue
+    PropertyChanged "MultiLine"
+    If Not m_bStarting Then Redraw
+End Property
 
 
 Public Property Get LineNumberBackground() As OLE_COLOR
@@ -588,11 +606,6 @@ Sub DrawScrollBars(ByVal UW As Long, ByVal UH As Long, ByVal UHS As Long, ByVal 
     d2 = d1 * 1.73205
     d3 = d1 * 3
     
-    'UserControl.FillStyle = vbFSSolid
-    'UserControl.ForeColor = m_OleForeColor
-    'UserControl.DrawMode = 13
-    'UserControl.BackColor = m_OleBackgroundColor
-    
     If m_sScrollBars = lHorizontal Or m_sScrollBars = lBoth Then
         
         pts(0).X = UW - UWS
@@ -606,15 +619,10 @@ Sub DrawScrollBars(ByVal UW As Long, ByVal UH As Long, ByVal UHS As Long, ByVal 
 
         pts(3).X = UW - UWS
         pts(3).Y = UH
-        'UserControl.FillColor = vbRed
-        
+
         Polygon UserControl.hdc, pts(0), 4
             
-            
-        'UserControl.Line (UW - UWS, 0)-(UW - UWS, UH), m_OleForeColor
-
         UserControl.Line (UW - UWS, UH - UHS)-(UW, UH - UHS), m_OleForeColor     'bottom
-
         UserControl.Line (UW - UWS, UHS - 1)-(UW, UHS - 1), m_OleForeColor    'top
         
         'triangle bottom
@@ -643,10 +651,7 @@ Sub DrawScrollBars(ByVal UW As Long, ByVal UH As Long, ByVal UHS As Long, ByVal 
             UserControl.Line (Fix(UW - UWS - UWS / 2 - d2), Fix(UH - UHS / 2 - d3))-(Fix(UW - UWS - UWS / 2 - d2), Fix(UH - UHS / 2 + d3)) ' |
             UserControl.Line (Fix(UW - UWS - UWS / 2 - d2), Fix(UH - UHS / 2 - d3))-(Fix(UW - UWS - UWS / 2 + d2), Fix(UH - UHS / 2 + 1)) '/
             UserControl.Line (Fix(UW - UWS - UWS / 2 - d2), Fix(UH - UHS / 2 + d3))-(Fix(UW - UWS - UWS / 2 + d2), Fix(UH - UHS / 2 - 1))  '\
-            
-            
-
-                
+               
         Else
             UserControl.Line (UW - UWS, UH - UHS)-(UW - UWS, UH), m_OleForeColor
             UserControl.Line (0, UH - UHS)-(UW, UH - UHS), m_OleForeColor
@@ -673,7 +678,6 @@ Sub DrawScrollBars(ByVal UW As Long, ByVal UH As Long, ByVal UHS As Long, ByVal 
     
             pts(3).X = pts(2).X
             pts(3).Y = pts(0).Y
-            'UserControl.FillColor = vbRed
             
             Polygon UserControl.hdc, pts(0), 4
         End If
@@ -757,11 +761,11 @@ StartOfFunction:
     UserControl.FontBold = m_StdFont.Bold
 
     UserControl.FillStyle = vbFSSolid
-    'UserControl.DrawMode = 15
+    UserControl.DrawStyle = 5
     UserControl.DrawMode = 13
 
     SetTextAlign UserControl.hdc, 24
-
+    
     'TH = TextHeight("W")
     TW = TextWidth("9999")
     TSP = 6
@@ -808,34 +812,11 @@ StartOfFunction:
     
     TextOffsetX = TextOffsetX - m_lScrollLeft
     
-    TextOffsetY = TSP
-
-
-
     ReDim pts(0 To 3)
     ReDim RowMap(0 To 200)
     TTW = LNW
     RH = 0
     RD = 0
-    For RL = 0 To TL    ' - 1
-        TTW = TTW + CharMap(RL).W
-        If TTW > UW And RL > 0 Then Exit For
-        If CharMap(RL).H - CharMap(RL).d > RH Then RH = CharMap(RL).H - CharMap(RL).d
-        If CharMap(RL).d > RD Then RD = CharMap(RL).d
-    Next RL
-
-    TextOffsetY = RH 'TSP + RH
-
-    RowMap(0).StartY = TextOffsetY    '+ RH
-
-
-    If m_bRowLines Then
-        UserControl.DrawStyle = 0
-        UserControl.Line (LNW, TextOffsetY)-(UW, TextOffsetY), m_OleRowLineColor
-        'UserControl.Line (TSP, TextOffsetY)-(LNR, TextOffsetY), m_OleRowLineColor
-    End If
-
-    UserControl.DrawStyle = 5
 
     'm_timer.tStart
 
@@ -872,14 +853,15 @@ StartOfFunction:
         End If
 
 
-        If NLNR = True Then
+        If NLNR = True Or CC = 0 Then
             GoTo MakeNewRule
         End If
+        
 checkNextChar:
-
+        
         Select Case m_byteText(CC)
             Case 13
-                NLNR = True
+                If m_bMultiLine Then NLNR = True
             Case 10
                 CharMap(CC).X = TextOffsetX
                 CharMap(CC).Y = TextOffsetY
@@ -899,8 +881,6 @@ checkNextChar:
                 If m_bWordWrap And TextOffsetX + WordMap(POWC).W > UW And POWC > 0 Then
 MakeNewRule:
                     TextOffsetX = LNW - m_lScrollLeft
-                    TextOffsetY = TextOffsetY + RH
-                    
                     TTW = TextOffsetX
                     RH = 0
                     RD = 0
@@ -922,20 +902,35 @@ MakeNewRule:
                         Next RL
                     End If
                     
+                    If CC = 0 Then
+                        If m_bMultiLine Then
+                            TextOffsetY = RH 'TSP + RH
+                        Else
+                            TextOffsetY = (UH - TSP) / 2 + RH / 2
+                        End If
+                        
+                        'RowMap(0).StartY = TextOffsetY    '+ RH
+                        'GoTo checkNextChar
+                    Else
+                        TextOffsetY = TextOffsetY + RH
+                    End If
+                    
                     If m_bRowLines Then
                         If TextOffsetY < UH Then
                             UserControl.DrawStyle = 0
                             UserControl.Line (LNW, TextOffsetY)-(UW, TextOffsetY), m_OleRowLineColor
+                            UserControl.DrawStyle = 5
                         End If
                     End If
                     
-                    If m_bRowNumberOnEveryLine Or NLNR Then
-                        NRC = NRC + 1
+                    If m_bRowNumberOnEveryLine Or NLNR Or CC = 0 Then
+                        If CC <> 0 Then NRC = NRC + 1
                         RowMap(NRC).StartY = TextOffsetY
                         RowMap(NRC).StartChar = CC
                     End If
-
-                    UserControl.DrawStyle = 5
+                    
+                    
+                    
                     If NLNR = True Then
                         NLNR = False
                         GoTo checkNextChar
@@ -1031,7 +1026,7 @@ MakeNewRule:
                 pts(3).X = TextOffsetX
                 pts(3).Y = pts(2).Y
                 
-                UserControl.DrawMode = 6
+                UserControl.DrawMode = 6 '6
                 Polygon UserControl.hdc, pts(0), 4
                 UserControl.DrawMode = 13
 
@@ -1100,7 +1095,7 @@ DoneRefreshing:
     End If
     
     m_lScrollLeftMax = m_lScrollLeft + (MTW - UW)
-    If m_lScrollLeft > m_lScrollLeftMax Then m_lScrollLeft = m_lScrollLeftMax
+    If m_lScrollLeftMax > 0 And m_lScrollLeft > m_lScrollLeftMax Then m_lScrollLeft = m_lScrollLeftMax
 
     If m_sScrollBars <> lNone Then
         DrawScrollBars UW, UH, UHS, UWS, TSP
@@ -1843,7 +1838,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     If CharMap(m_CursorPos).X >= m_lUsercontrolWidth Then
         m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolWidth)
         mustRedraw = True
-    ElseIf CharMap(m_CursorPos).X < m_lUsercontrolLeft Then
+    ElseIf CharMap(m_CursorPos).X <= m_lUsercontrolLeft Then
         m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolLeft)
         mustRedraw = True
     End If
@@ -1851,8 +1846,6 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     If getSelectionChanged() And tmpCursorUpDown = False Then
         m_SelUpDownTheSame = False
     End If
-    
-    
     
     If mustRedraw Then Redraw
 
@@ -2476,6 +2469,7 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "RowLineColor", m_OleRowLineColor, &HEEEEEE
         .WriteProperty "RowNumberOnEveryLine", m_bRowNumberOnEveryLine, False
         .WriteProperty "WordWrap", m_bWordWrap, False
+        .WriteProperty "MultiLine", m_bMultiLine, False
         .WriteProperty "ScrollBars", m_sScrollBars, ScrollBarStyle.lNone
     End With
 End Sub
@@ -2496,6 +2490,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         m_OleRowLineColor = .ReadProperty("RowLineColor", &HEEEEEE)
         m_bRowNumberOnEveryLine = .ReadProperty("RowNumberOnEveryLine", False)
         m_bWordWrap = .ReadProperty("WordWrap", False)
+        m_bMultiLine = .ReadProperty("MultiLine", False)
         m_sScrollBars = .ReadProperty("ScrollBars", ScrollBarStyle.lNone)
         
     End With
