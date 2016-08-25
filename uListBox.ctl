@@ -73,6 +73,7 @@ End Type
 
 Public Event ItemChange(ItemIndex As Long)
 Public Event DblClick()
+Public Event ItemAdded(ItemIndex As Long)
 
 'Private WithEvents m_picMenu As PictureBox
 'Private WithEvents m_tmrFocus As Timer
@@ -415,11 +416,13 @@ Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optiona
     End If
 
     m_LonItemCount = m_LonItemCount + 1
-
+    
+    RaiseEvent ItemAdded(AddItem)
+    
     If m_bStarting = False Then
         Redraw
     End If
-
+    
 End Function
 
 Public Sub RemoveItem(Index As Long)

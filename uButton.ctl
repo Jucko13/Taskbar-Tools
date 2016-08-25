@@ -67,6 +67,8 @@ Private m_OleFocusColorDisabled As OLE_COLOR
 Private m_bBorder As Boolean
 Private m_ButButtonAnimation As ButtonOnClick
 Private m_StdPicture As StdPicture
+Private m_StdPictureMouseOver As StdPicture
+Private m_bAlignPictureInCorner As Boolean
 Private m_MouMousePointer As MousePointerConstants
 Private m_bRefreshing As Boolean
 Private m_StdFont As stdole.StdFont
@@ -135,6 +137,18 @@ Public Property Let ForeColor(ByVal OleValue As OLE_COLOR)
     PropertyChanged "ForeColor"
     If Not m_bStarting Then Redraw
 End Property
+
+
+Public Property Get AlignPictureInCorner() As Boolean
+    AlignPictureInCorner = m_bAlignPictureInCorner
+End Property
+
+Public Property Let AlignPictureInCorner(ByVal bValue As Boolean)
+    m_bAlignPictureInCorner = bValue
+    PropertyChanged "AlignPictureInCorner"
+    If Not m_bStarting Then Redraw
+End Property
+
 
 Public Property Get BackgroundColor() As OLE_COLOR
     BackgroundColor = m_OleBackgroundColor
@@ -289,6 +303,18 @@ Public Property Let MousePointer(ByVal MouValue As MousePointerConstants)
 End Property
 
 
+Public Property Get PictureMouseOver() As StdPicture
+    Set PictureMouseOver = m_StdPictureMouseOver
+End Property
+
+Public Property Set PictureMouseOver(ByVal StdValue As StdPicture)
+    Set m_StdPictureMouseOver = StdValue
+
+    PropertyChanged "PictureMouseOver"
+    If Not m_bStarting Then Redraw
+End Property
+
+
 Public Property Get Picture() As StdPicture
     Set Picture = m_StdPicture
 End Property
@@ -338,7 +364,7 @@ Private Sub m_tmrMouseOver_Timer()
     GetCursorPos m_PoiMousePosition
     Dim tmpX As Long
     Dim tmpY As Long
-    If WindowFromPoint(m_PoiMousePosition.x, m_PoiMousePosition.y) <> UserControl.hwnd Then
+    If WindowFromPoint(m_PoiMousePosition.x, m_PoiMousePosition.y) <> UserControl.hWnd Then
         m_tmrMouseOver.Enabled = False
         m_bMouseOver = False
         Redraw
@@ -409,6 +435,7 @@ Sub Redraw()
     Dim i As Long
     Dim j As Long
     Dim K As Long
+    Dim t_StdPicture As StdPicture
     
     
     Set UserControl.Font = m_StdFont
@@ -416,10 +443,12 @@ Sub Redraw()
     UserControl.AutoRedraw = True
     UserControl.Cls
 
-    If Not m_bMouseOver Then
-        UserControl.BackColor = IIf(m_bEnabled, m_OleBackgroundColor, m_OleBackgroundColorDisabled)
-    Else
+    If m_bMouseOver Then
         UserControl.BackColor = IIf(m_bEnabled, m_OleMouseOverBackgroundColor, m_OleMouseOverBackgroundColorDisabled)
+        Set t_StdPicture = m_StdPictureMouseOver
+    Else
+        UserControl.BackColor = IIf(m_bEnabled, m_OleBackgroundColor, m_OleBackgroundColorDisabled)
+        Set t_StdPicture = m_StdPicture
     End If
 
     If m_bButtonDown Then
@@ -461,13 +490,21 @@ Sub Redraw()
         UserControl.DrawStyle = vbSolid
     End If
 
-    If Not m_StdPicture Is Nothing Then
-        m_StdPicture.Render UserControl.hdc, _
-                      Round(UserControl.ScaleWidth / 2 - ScaleX(m_StdPicture.Width, vbTwips, vbPixels) / 2) + tmpTextOffset, _
-                      Round(UserControl.ScaleHeight / 2 - (ScaleY(m_StdPicture.Height, vbTwips, vbPixels) + tmpTextHeight) / 2) + tmpTextOffset, _
-                      ScaleX(m_StdPicture.Width, vbTwips, vbPixels), ScaleY(m_StdPicture.Height, vbTwips, vbPixels), 0, 0, m_StdPicture.Width, m_StdPicture.Height, 0
+    If Not t_StdPicture Is Nothing Then
+        If m_bAlignPictureInCorner Then
+            t_StdPicture.Render UserControl.hdc, 0, 0, UserControl.ScaleWidth, UserControl.ScaleHeight, _
+            0, m_StdPicture.Height, t_StdPicture.Width, -t_StdPicture.Height, 0
+            
+        Else
+            t_StdPicture.Render UserControl.hdc, _
+                          Round(UserControl.ScaleWidth / 2 - ScaleX(t_StdPicture.Width, vbTwips, vbPixels) / 2) + tmpTextOffset, _
+                          Round(UserControl.ScaleHeight / 2 - (ScaleY(t_StdPicture.Height, vbTwips, vbPixels) + tmpTextHeight) / 2) + tmpTextOffset, _
+                          ScaleX(t_StdPicture.Width, vbTwips, vbPixels), ScaleY(t_StdPicture.Height, vbTwips, vbPixels), 0, 0, t_StdPicture.Width, t_StdPicture.Height, 0
+            
+        End If
+        
         tmpX = Fix(UserControl.ScaleWidth / 2 - tmpTextWidth / 2) + tmpTextOffset
-        tmpY = Fix((UserControl.ScaleHeight / 2 - (m_StdPicture.Height + tmpTextHeight) / 2)) + m_StdPicture.Height + tmpTextOffset
+        tmpY = Fix((UserControl.ScaleHeight / 2 - (t_StdPicture.Height + tmpTextHeight) / 2)) + t_StdPicture.Height + tmpTextOffset
     End If
     
     tmpCaptionSplit = Split(m_strCaption, vbCrLf)
@@ -589,6 +626,8 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         Set m_StdFont = .ReadProperty("Font", Ambient.Font)
         m_bCaptionBorder = .ReadProperty("CaptionBorder", False)
         Set m_StdPicture = .ReadProperty("Picture", Nothing)
+        Set m_StdPictureMouseOver = .ReadProperty("PictureMouseOver", Nothing)
+        m_bAlignPictureInCorner = .ReadProperty("AlignPictureInCorner", False)
         
         m_intCaptionOffsetLeft = .ReadProperty("CaptionOffsetLeft", 0)
         m_intCaptionOffsetTop = .ReadProperty("CaptionOffsetTop", 0)
@@ -624,6 +663,9 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "Border", m_bBorder, True
         .WriteProperty "BorderAnimation", m_ButButtonAnimation, [Move Border In]
         .WriteProperty "Picture", m_StdPicture, Nothing
+        .WriteProperty "PictureMouseOver", m_StdPictureMouseOver, Nothing
+        .WriteProperty "AlignPictureInCorner", m_bAlignPictureInCorner, False
+        
         .WriteProperty "MousePointer", m_MouMousePointer, 0
         .WriteProperty "Font", m_StdFont, Ambient.Font
         .WriteProperty "CaptionBorder", m_bCaptionBorder, False
