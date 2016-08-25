@@ -899,7 +899,10 @@ MakeNewRule:
                     RD = 0
                     
                     If WordWrap Then
-                        POWC = MarkupS(CC).lPartOfWord
+                        If CC = 0 Then
+                            POWC = 0
+                        End If
+                        
                         For RL = POWC To WordCount
                             TTW = TTW + WordMap(RL).W
                             If TTW > UW And RL > POWC Then Exit For
