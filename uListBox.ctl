@@ -18,15 +18,15 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-Private Declare Function GetWindowRect Lib "user32" (ByVal hwnd As Long, lpRect As RECT) As Long
+Private Declare Function GetWindowRect Lib "user32" (ByVal hWnd As Long, lpRect As RECT) As Long
 Private Declare Function CreatePen& Lib "gdi32" (ByVal nPenStyle As Long, ByVal nWidth As Long, ByVal crColor As Long)
 Private Declare Function GetForegroundWindow Lib "user32.dll" () As Long
 
 
 Private Declare Function GetLastError Lib "kernel32" () As Long
 
-Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long) As Long
-Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long) As Long
+Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
 Private Const WS_EX_APPWINDOW As Long = &H40000
 Private Const GWL_EXSTYLE As Long = (-20)
 Private Const SW_HIDE As Long = 0
@@ -93,6 +93,7 @@ Private m_bPicButtonDown As Boolean
 Private m_bGotFocus As Boolean
 Private m_OleSelectionBorderColor As OLE_COLOR
 Private m_OleSelectionBackgroundColor As OLE_COLOR
+Private m_OleSelectionForeColor As OLE_COLOR
 Private m_PoiMouse As POINTAPI
 
 Private m_bRefreshingMenu As Boolean
@@ -285,6 +286,16 @@ End Property
 
 Public Property Let SelectionBackgroundColor(ByVal OleValue As OLE_COLOR)
     m_OleSelectionBackgroundColor = OleValue
+    If Not m_bStarting Then Redraw
+End Property
+
+
+Public Property Get SelectionForeColor() As OLE_COLOR
+    SelectionForeColor = m_OleSelectionForeColor
+End Property
+
+Public Property Let SelectionForeColor(ByVal OleValue As OLE_COLOR)
+    m_OleSelectionForeColor = OleValue
     If Not m_bStarting Then Redraw
 End Property
 
@@ -495,6 +506,9 @@ Sub CheckScrollButtons(Button As Integer, Shift As Integer, x As Single, y As Si
     End If
 End Sub
 
+Public Property Get hWnd() As Long
+    hWnd = UserControl.hWnd
+End Property
 
 Private Sub UserControl_DblClick()
     UserControl_MouseDown 1, 0, CInt(m_PoiMenuMouse.x), CInt(m_PoiMenuMouse.y)
@@ -871,17 +885,23 @@ Sub Redraw()
         If m_LonListIndex = m_LonItemAtTop + i Then
             UserControl.FillColor = IIf(Items(m_LonItemAtTop + i).ItemColor = -1, m_OleSelectionBackgroundColor, Items(m_LonItemAtTop + i).ItemColor)
             UserControl.ForeColor = m_OleSelectionBorderColor
+            
+            Polygon UserControl.hdc, pts(0), 4
+
+            UserControl.ForeColor = m_OleSelectionForeColor
         Else
             UserControl.FillColor = IIf(Items(m_LonItemAtTop + i).ItemColor = -1, m_OleBackgroundColor, Items(m_LonItemAtTop + i).ItemColor)
             UserControl.ForeColor = UserControl.FillColor
+            
+            Polygon UserControl.hdc, pts(0), 4
+
+            UserControl.ForeColor = m_OleForeColor
         End If
 
-        Polygon UserControl.hdc, pts(0), 4
-
-        UserControl.ForeColor = m_OleForeColor
+        
 
         tmpTextHeight = UserControl.TextHeight(Items(m_LonItemAtTop + i).Text)
-        tmpSplit = Split(Items(m_LonItemAtTop + i).Text, vbCrLf)
+        tmpSplit = Split(Items(m_LonItemAtTop + i).Text, vbTab)
 
         'm_tTabStops
 
@@ -890,12 +910,13 @@ Sub Redraw()
         'If tmpTextHeight <= m_LonItemHeight Then
             For tmpSplitLength = 0 To UBound(tmpSplit)
 
-                If InStr(1, tmpSplit(tmpSplitLength), vbTab) > 0 And m_tTabStops(0).xPos > -1 Then
-                    tmpTabSplit = Split(tmpSplit(tmpSplitLength), vbTab)
+                If InStr(1, tmpSplit(tmpSplitLength), vbCrLf) > 0 And m_tTabStops(tmpSplitLength).xPos > -1 Then
+                    tmpTabSplit = Split(tmpSplit(tmpSplitLength), vbCrLf)
+                    
                     For tmpTabSplitLength = 0 To UBound(tmpTabSplit)
                         If tmpTabSplitLength > 20 Then Exit For
 
-                        Select Case m_tTabStops(tmpTabSplitLength).Alignment
+                        Select Case m_tTabStops(tmpSplitLength).Alignment
                             Case AlignmentConstants.vbLeftJustify
                                 tmpLeft = 3 + m_tTabStops(tmpTabSplitLength).xPos
 
@@ -903,7 +924,7 @@ Sub Redraw()
                                 tmpLeft = m_tTabStops(tmpTabSplitLength).xPos - UserControl.TextWidth(tmpTabSplit(tmpTabSplitLength)) / 2 + 2
 
                             Case AlignmentConstants.vbRightJustify
-                                tmpLeft = m_tTabStops(tmpTabSplitLength).xPos - UserControl.TextWidth(tmpTabSplit(tmpTabSplitLength))
+                                tmpLeft = m_tTabStops(tmpSplitLength).xPos - UserControl.TextWidth(tmpTabSplit(tmpTabSplitLength))
                         End Select
 
                         'tmpLeft = m_tTabStops(tmpTabSplitLength).xPos + 3
@@ -1188,6 +1209,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         MousePointer = .ReadProperty("MousePointer", 0)
         m_OleSelectionBackgroundColor = .ReadProperty("SelectionBackgroundColor", &H0)
         m_OleSelectionBorderColor = .ReadProperty("SelectionBorderColor", &H0)
+        m_OleSelectionForeColor = .ReadProperty("SelectionForeColor", &H0)
         m_LonItemHeight = .ReadProperty("ItemHeight", 25)
         m_LonItemsVisible = .ReadProperty("VisibleItems", 5)
         m_LonScrollBarWidth = .ReadProperty("ScrollBarWidth", 20)
@@ -1211,6 +1233,7 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "MousePointer", m_MouMousePointer, 0
         .WriteProperty "SelectionBackgroundColor", m_OleSelectionBackgroundColor, &H0
         .WriteProperty "SelectionBorderColor", m_OleSelectionBorderColor, &H0
+        .WriteProperty "SelectionForeColor", m_OleSelectionForeColor, &H0
         .WriteProperty "ItemHeight", m_LonItemHeight, 25
         .WriteProperty "VisibleItems", m_LonItemsVisible, 5
         .WriteProperty "ScrollBarWidth", m_LonScrollBarWidth, 20
