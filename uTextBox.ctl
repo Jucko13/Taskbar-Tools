@@ -240,6 +240,10 @@ Private Declare Function DestroyCaret Lib "user32" () As Long
 
 
 
+Public Function getWordFromChar(char As Long) As Long
+    getWordFromChar = MarkupS(char).lPartOfWord
+End Function
+
 
 
 Public Sub setCharItallic(char As Long, bValue As Boolean)
@@ -257,6 +261,26 @@ End Sub
 Public Sub setCharBackColor(char As Long, OleValue As OLE_COLOR)
     MarkupS(char).lMarking = IIf(OleValue >= 0, OleValue, -1)
 End Sub
+
+
+Public Function getCharItallic(char As Long) As Boolean
+    getCharItallic = MarkupS(char).lItalic
+End Function
+
+Public Function getCharBold(char As Long) As Boolean
+    getCharBold = MarkupS(char).lBold
+End Function
+
+Public Function getCharForeColor(char As Long) As OLE_COLOR
+    getCharForeColor = MarkupS(char).lForeColor
+End Function
+
+Public Function getCharBackColor(char As Long) As OLE_COLOR
+   getCharBackColor = MarkupS(char).lMarking
+End Function
+
+
+
 
 
 Sub updateCaretPos()
@@ -382,18 +406,36 @@ Public Property Get SelStart() As Long
 End Property
 
 Public Property Let SelStart(LonValue As Long)
-'m_SelCurrent.lStart = LonValue
-'m_SelCurrent.lLength = 0
-
+    If LonValue < 0 Or LonValue > UBound(CharMap) Then Exit Property
+    
+    m_SelStart = LonValue
+    m_SelEnd = m_SelStart
+    m_CursorPos = m_SelStart
+     
     If Not m_bStarting Then Redraw
+    
+    updateCaretPos
 End Property
 
 Public Property Let SelLength(LonValue As Long)
-    If LonValue < 0 Then Exit Property
-
-    'm_SelCurrent.lLength = LonValue
-
+    Dim tmpswap As Long
+    
+    m_SelEnd = m_SelStart + LonValue
+    
+    If m_SelEnd > UBound(CharMap) Then m_SelEnd = UBound(CharMap)
+    If m_SelEnd < 0 Then m_SelEnd = 0
+    
+    If m_SelEnd < m_SelStart Then
+        tmpswap = m_SelEnd
+        m_SelEnd = m_SelStart
+        m_SelStart = tmpswap
+    End If
+    
+    m_CursorPos = m_SelEnd
+    
     If Not m_bStarting Then Redraw
+    
+    updateCaretPos
 End Property
 
 Public Property Get SelLength() As Long
@@ -431,7 +473,6 @@ Public Property Let Text(ByVal StrValue As String)
     
     updateCaretPos
 End Property
-
 
 
 Public Property Get Font() As StdFont
@@ -505,6 +546,8 @@ End Sub
 Sub RedrawResume()
     m_bStarting = False
     Redraw
+    
+    updateCaretPos
 End Sub
 
 
@@ -1700,7 +1743,7 @@ End Sub
 Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
 
     Dim i As Long
-    Dim tmpSwap As Long
+    Dim tmpswap As Long
     Dim mustRedraw As Boolean
     Dim tmpCursor As Long
     Dim tmpString As String
@@ -1883,9 +1926,9 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
 
 
     If m_SelEnd < m_SelStart Then    'swap the 2 if the start is bigger than the end
-        tmpSwap = m_SelEnd
+        tmpswap = m_SelEnd
         m_SelEnd = m_SelStart
-        m_SelStart = tmpSwap
+        m_SelStart = tmpswap
     End If
 
     If m_SelEnd < 0 Then m_SelEnd = 0
