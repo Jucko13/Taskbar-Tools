@@ -647,8 +647,6 @@ Private Sub UserControl_Initialize()
 '
 '    End If
 
-    SelStart = 0
-    SelLength = 0
 
     m_OleRowLineColor = &HEEEEEE
     m_bRowLines = False
