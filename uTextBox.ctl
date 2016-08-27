@@ -199,8 +199,12 @@ Private m_bMarkupCalculating As Boolean
 Private m_bWordsCalculated As Boolean
 Private m_bWordsCalculating As Boolean
 
+Private m_bHideCursor As Boolean
+
 Private m_bMultiLine As Boolean
 Private m_bRowLines As Boolean
+Private m_bAutoResize As Boolean
+
 Private m_OleRowLineColor As OLE_COLOR
 Private m_OleLineNumberBackground As OLE_COLOR
 Private m_bRowNumberOnEveryLine As Boolean
@@ -284,6 +288,8 @@ End Function
 
 
 Sub updateCaretPos()
+    If m_bHideCursor Then Exit Sub
+    
     CreateCaret UserControl.hWnd, 0, 2, CharMap(m_CursorPos).H
 
     setCaretPos CharMap(m_CursorPos).x - 1, CharMap(m_CursorPos).y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d
@@ -296,6 +302,18 @@ Private Sub GetTextSize(pstrText As String, ByRef charsize As WH)
 End Sub
 
 
+Public Property Get AutoResize() As Boolean
+    AutoResize = m_bAutoResize
+End Property
+
+Public Property Let AutoResize(ByVal bValue As Boolean)
+    m_bAutoResize = bValue
+    PropertyChanged "AutoResize"
+    If Not m_bStarting Then Redraw
+End Property
+
+
+
 
 Public Property Get RowNumberOnEveryLine() As Boolean
     RowNumberOnEveryLine = m_bRowNumberOnEveryLine
@@ -305,6 +323,19 @@ Public Property Let RowNumberOnEveryLine(ByVal bValue As Boolean)
     m_bRowNumberOnEveryLine = bValue
     PropertyChanged "RowNumberOnEveryLine"
     If Not m_bStarting Then Redraw
+End Property
+
+
+Public Property Get HideCursor() As Boolean
+    HideCursor = m_bHideCursor
+End Property
+
+Public Property Let HideCursor(ByVal bValue As Boolean)
+    m_bHideCursor = bValue
+    PropertyChanged "HideCursor"
+    If Not m_bStarting Then Redraw
+    
+    updateCaretPos
 End Property
 
 
@@ -550,6 +581,9 @@ Sub RedrawResume()
     updateCaretPos
 End Sub
 
+Function hWnd() As Long
+    hWnd = UserControl.hWnd
+End Function
 
 Private Sub UserControl_DblClick()
     Dim word As Long
@@ -1159,6 +1193,13 @@ DoneRefreshing:
         DrawScrollBars UW, UH, UHS, UWS, TSP
     End If
     
+    If m_bAutoResize Then
+        'If m_lScrollLeftMax <> 0 Then
+            UserControl.Width = ScaleX(MTW + TSP, vbPixels, vbTwips)
+        'End If
+    End If
+    
+    
     If m_bBorder Then
         UserControl.Line (0, 0)-(0, UserControl.ScaleHeight), m_OleBorderColor
         UserControl.Line (0, 0)-(UserControl.ScaleWidth, 0), m_OleBorderColor
@@ -1292,10 +1333,10 @@ End Sub
 'End Sub
 
 
-Function InstrByte(lstart As Long, ByRef lBytes() As Byte, lSearch As Byte) As Long
+Function InstrByte(lStart As Long, ByRef lBytes() As Byte, lSearch As Byte) As Long
     Dim i As Long
 
-    For i = lstart To UBound(lBytes)
+    For i = lStart To UBound(lBytes)
         If lBytes(i) = lSearch Then
             InstrByte = i
             Exit Function
@@ -1303,20 +1344,20 @@ Function InstrByte(lstart As Long, ByRef lBytes() As Byte, lSearch As Byte) As L
     Next i
 End Function
 
-Function RGBByte(lstart As Long, ByRef lBytes() As Byte) As Long
+Function RGBByte(lStart As Long, ByRef lBytes() As Byte) As Long
     Dim i As Long
     Dim c(0 To 8) As Byte
 
     For i = 0 To 5
-        Select Case lBytes(lstart + i)
+        Select Case lBytes(lStart + i)
             Case 48 To 57
-                c(i) = (lBytes(lstart + i) - 48) And 255
+                c(i) = (lBytes(lStart + i) - 48) And 255
 
             Case 65 To 70
-                c(i) = (lBytes(lstart + i) - 55) And 255
+                c(i) = (lBytes(lStart + i) - 55) And 255
 
             Case 97 To 102
-                c(i) = (lBytes(lstart + i) - 85) And 255
+                c(i) = (lBytes(lStart + i) - 85) And 255
         End Select
     Next i
 
@@ -1326,13 +1367,16 @@ End Function
 
 Public Sub Clear()
     m_SelStart = 0
-    m_SelEnd = UBound(CharMap)
-    AddCharAtCursor
-    updateCaretPos
+    m_SelEnd = UBound(m_byteText)
+    m_CursorPos = m_SelEnd
+    
+    AddCharAtCursor , True
+    
+    'Redraw
 End Sub
 
 
-Function AddCharAtCursor(Optional sChar As String = "") As Boolean
+Function AddCharAtCursor(Optional sChar As String = "", Optional noevents As Boolean = False) As Boolean
     Dim lLength As Long
     Dim i As Long
 
@@ -1352,12 +1396,7 @@ Function AddCharAtCursor(Optional sChar As String = "") As Boolean
 
     CursorToEnd = UBound(CharMap) - m_SelEnd + 1
     
-    If m_SelStart = 0 And m_SelEnd = UBound(CharMap) + 1 Then
-        ReDim Preserve CharMap(0 To -1)
-        ReDim Preserve m_byteText(0 To -1)
-        ReDim Preserve MarkupS(0 To -1)
-        
-    ElseIf lLengthDifference > 0 Then
+    If lLengthDifference > 0 Then
         ReDim Preserve CharMap(0 To UBound(CharMap) + lLengthDifference)
         ReDim Preserve m_byteText(0 To UBound(m_byteText) + lLengthDifference)
         ReDim Preserve MarkupS(0 To UBound(MarkupS) + lLengthDifference)
@@ -1418,11 +1457,11 @@ Function AddCharAtCursor(Optional sChar As String = "") As Boolean
     'UserControl_KeyDown vbKeyRight, 0
 
     AddCharAtCursor = True
-    RaiseEvent Changed
+    If Not noevents Then RaiseEvent Changed
 End Function
 
 
-Sub CheckCharSize(lstart As Long, lLength As Long)
+Sub CheckCharSize(lStart As Long, lLength As Long)
     Dim i As Long
 
     Dim cForeColor As Long
@@ -1457,7 +1496,7 @@ Sub CheckCharSize(lstart As Long, lLength As Long)
     GetTextMetrics UserControl.hdc, cTextMetric
     cDescendHeight = cTextMetric.tmDescent
 
-    For i = lstart To lstart + lLength
+    For i = lStart To lStart + lLength
         With MarkupS(i)
             If .lFontSize <> cFontSize Then
                 cFontSize = .lFontSize
@@ -2054,10 +2093,10 @@ End Function
 
 
 
-Function getNextChar(lstart As Long) As Long
+Function getNextChar(lStart As Long) As Long
     Dim i As Long
 
-    getNextChar = lstart
+    getNextChar = lStart
 
     For i = getNextChar To UBound(CharMap)
         If m_byteText(i) <> 10 Then    'm_byteText(i) <> 13 And
@@ -2068,10 +2107,10 @@ Function getNextChar(lstart As Long) As Long
 End Function
 
 
-Function getPreviousChar(lstart As Long) As Long
+Function getPreviousChar(lStart As Long) As Long
     Dim i As Long
 
-    getPreviousChar = lstart
+    getPreviousChar = lStart
 
     For i = getPreviousChar To 0 Step -1
         If m_byteText(i) <> 10 Then    'm_byteText(i) <> 13 And
@@ -2118,18 +2157,18 @@ Private Sub Usercontrol_Resize()
 End Sub
 
 
-Function SizeByte(ByRef lstart As Long, ByRef lBytes() As Byte) As Long
+Function SizeByte(ByRef lStart As Long, ByRef lBytes() As Byte) As Long
     Dim c(0 To 10) As Long
     Dim lCount As Long
     Dim i As Long
 
     For i = 0 To 10
-        Select Case lBytes(lstart + i)
+        Select Case lBytes(lStart + i)
             Case 32
                 Exit For
 
             Case 48 To 57
-                c(lCount) = lBytes(lstart + i) - 48
+                c(lCount) = lBytes(lStart + i) - 48
         End Select
 
         lCount = lCount + 1
@@ -2140,7 +2179,7 @@ Function SizeByte(ByRef lstart As Long, ByRef lBytes() As Byte) As Long
     For i = 0 To lCount - 1
         SizeByte = SizeByte + c(i) * (10 ^ (lCount - i - 1))
     Next i
-    lstart = lCount
+    lStart = lCount
 End Function
 
 
@@ -2479,18 +2518,7 @@ DoNotCheck:
         MarkupS(NTC).lLine = cLine
 
 
-
         NTC = NTC + 1
-
-        '        TS = TS & MS
-        '        TTL = TTL + 1
-        '        If TTL > 15 Then
-        '            m_StrText = m_StrText & TS
-        '            TS = vbNullString
-        '            TTL = 0
-        '        End If
-
-        'Debug.Print m_byteText(NTC - 1)
 
 
 NextChar:
@@ -2533,13 +2561,13 @@ End Function
 
 
 
-Function GetMidText(sString As String, sSearch As String, sSearch2 As String, Optional lstart As Long = 1) As String
+Function GetMidText(sString As String, sSearch As String, sSearch2 As String, Optional lStart As Long = 1) As String
     Dim tmp1 As Long
     Dim tmp2 As Long
 
-    If lstart < 1 Then Exit Function
+    If lStart < 1 Then Exit Function
 
-    tmp1 = InStr(lstart, sString, sSearch)
+    tmp1 = InStr(lStart, sString, sSearch)
     If tmp1 = 0 Then Exit Function
     tmp1 = tmp1 + Len(sSearch)
 
@@ -2573,6 +2601,8 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "RowNumberOnEveryLine", m_bRowNumberOnEveryLine, False
         .WriteProperty "WordWrap", m_bWordWrap, False
         .WriteProperty "MultiLine", m_bMultiLine, False
+        .WriteProperty "HideCursor", m_bHideCursor, False
+        .WriteProperty "AutoResize", m_bAutoResize, False
         .WriteProperty "ScrollBars", m_sScrollBars, ScrollBarStyle.lNone
     End With
 End Sub
@@ -2594,6 +2624,8 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         m_bRowNumberOnEveryLine = .ReadProperty("RowNumberOnEveryLine", False)
         m_bWordWrap = .ReadProperty("WordWrap", False)
         m_bMultiLine = .ReadProperty("MultiLine", False)
+        m_bHideCursor = .ReadProperty("HideCursor", False)
+        m_bAutoResize = .ReadProperty("AutoResize", False)
         m_sScrollBars = .ReadProperty("ScrollBars", ScrollBarStyle.lNone)
         
     End With

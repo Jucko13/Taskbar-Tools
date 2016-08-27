@@ -399,14 +399,6 @@ Private Sub UserControl_Initialize()
     
     Set m_tmrMouseOver = UserControl.Controls.Add("VB.Timer", "m_tmrMouseOver")
 
-
-    '    Set cImage = New c32bppDIB
-    '    cImage.isGDIplusEnabled = True
-    '    If cImage.isGDIplusEnabled Then
-    '        m_GDItoken = cImage.CreateGDIplusToken()
-    '        cImage.gdiToken = m_GDItoken
-    '    End If
-
     Set m_StdFont = UserControl.Font
 
     m_bCaptionBorder = False
