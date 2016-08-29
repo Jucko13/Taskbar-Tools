@@ -10,7 +10,7 @@ Begin VB.UserControl uTextBox
    ClipControls    =   0   'False
    BeginProperty Font 
       Name            =   "Tahoma"
-      Size            =   8.25
+      Size            =   8.5
       Charset         =   0
       Weight          =   400
       Underline       =   0   'False
@@ -18,9 +18,9 @@ Begin VB.UserControl uTextBox
       Strikethrough   =   0   'False
    EndProperty
    MaskColor       =   &H00FFFFFF&
-   ScaleHeight     =   240
+   ScaleHeight     =   360
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   320
+   ScaleWidth      =   480
 End
 Attribute VB_Name = "uTextBox"
 Attribute VB_GlobalNameSpace = False
@@ -228,11 +228,14 @@ Public m_lScrollTopMax As Long
 Public Event Changed()
 Public Event SelectionChanged()
 Public Event KeyPress(KeyAscii As Integer)
+Public Event KeyDown(ByRef KeyCode As Integer, ByRef Shift As Integer)
 
 Private m_lUsercontrolHeight As Long
 Private m_lUsercontrolWidth As Long
 Private m_lUsercontrolLeft As Long
 Private m_lUsercontrolTop As Long
+
+Private m_bBlockNextKeyPress As Boolean 'for things like ctrl+space autocomplete
 
 Private Declare Function GetTextExtentPoint32 Lib "gdi32" Alias "GetTextExtentPoint32A" (ByVal hdc As Long, ByVal lpsz As String, ByVal cbString As Long, lpSize As WH) As Long
 Private Declare Function SetTextAlign Lib "gdi32.dll" (ByVal hdc As Long, ByVal wFlags As Long) As Long
@@ -248,6 +251,13 @@ Public Function getWordFromChar(char As Long) As Long
     getWordFromChar = MarkupS(char).lPartOfWord
 End Function
 
+Public Function getWordLength(word As Long) As Long
+    getWordLength = WordMap(word).l
+End Function
+
+Public Function getWordStart(word As Long) As Long
+    getWordStart = WordMap(word).s
+End Function
 
 
 Public Sub setCharItallic(char As Long, bValue As Boolean)
@@ -284,10 +294,11 @@ Public Function getCharBackColor(char As Long) As OLE_COLOR
 End Function
 
 
-
-
-
 Sub updateCaretPos()
+    If Not Screen.ActiveControl Is Nothing Then
+        If Not UserControl.Extender Is Screen.ActiveControl Then Exit Sub
+    End If
+    
     If m_bHideCursor Then Exit Sub
     
     CreateCaret UserControl.hWnd, 0, 2, CharMap(m_CursorPos).H
@@ -1766,6 +1777,10 @@ End Function
 
 Private Sub UserControl_KeyPress(KeyAscii As Integer)
     RaiseEvent KeyPress(KeyAscii)
+    If m_bBlockNextKeyPress Then
+        m_bBlockNextKeyPress = False
+        Exit Sub
+    End If
     
     If (KeyAscii >= 32 And KeyAscii <= 126) Or (KeyAscii >= 128 And KeyAscii <= 255) Then
         AddCharAtCursor Chr(KeyAscii)
@@ -1787,6 +1802,10 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     Dim tmpCursorUpDown As Boolean
     
     getSelectionChanged True
+    
+    RaiseEvent KeyDown(KeyCode, Shift)
+    
+    If KeyCode = 0 And Shift = 0 Then m_bBlockNextKeyPress = True
     
     Select Case KeyCode
         Case vbKeyDown, vbKeyUp
