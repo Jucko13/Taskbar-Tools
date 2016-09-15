@@ -10,7 +10,7 @@ Begin VB.UserControl uTextBox
    ClipControls    =   0   'False
    BeginProperty Font 
       Name            =   "Tahoma"
-      Size            =   8.5
+      Size            =   8.25
       Charset         =   0
       Weight          =   400
       Underline       =   0   'False
@@ -18,9 +18,10 @@ Begin VB.UserControl uTextBox
       Strikethrough   =   0   'False
    EndProperty
    MaskColor       =   &H00FFFFFF&
-   ScaleHeight     =   360
+   MousePointer    =   3  'I-Beam
+   ScaleHeight     =   240
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   480
+   ScaleWidth      =   320
 End
 Attribute VB_Name = "uTextBox"
 Attribute VB_GlobalNameSpace = False
