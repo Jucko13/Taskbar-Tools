@@ -585,9 +585,9 @@ Sub RedrawPause()
     m_bStarting = True
 End Sub
 
-Sub RedrawResume()
+Sub RedrawResume(Optional bDoNotRedraw As Boolean = False)
     m_bStarting = False
-    Redraw
+    If Not bDoNotRedraw Then Redraw
     
     updateCaretPos
 End Sub
@@ -2200,6 +2200,25 @@ Function SizeByte(ByRef lStart As Long, ByRef lBytes() As Byte) As Long
     Next i
     lStart = lCount
 End Function
+
+Sub ReplaceWord(newText As String, Optional wordNr As Long = -2)
+    If wordNr = -2 Then
+        wordNr = getWordFromChar(m_CursorPos)
+    End If
+    
+    If wordNr < 0 Then Exit Sub
+    
+    m_SelStart = WordMap(wordNr).s
+    m_SelEnd = m_SelStart + WordMap(wordNr).l
+    
+    If m_SelEnd > UBound(CharMap) Then m_SelEnd = UBound(CharMap)
+    
+    m_CursorPos = m_SelEnd
+    
+    AddCharAtCursor newText
+    
+    If Not m_bStarting Then Redraw
+End Sub
 
 
 Sub ReCalculateMarkup()

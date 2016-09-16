@@ -7,9 +7,9 @@ Begin VB.UserControl uListBox
    ClientWidth     =   1500
    FillStyle       =   0  'Solid
    MousePointer    =   1  'Arrow
-   ScaleHeight     =   100
+   ScaleHeight     =   150
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   100
+   ScaleWidth      =   150
 End
 Attribute VB_Name = "uListBox"
 Attribute VB_GlobalNameSpace = False
@@ -199,6 +199,11 @@ Public Property Let ListIndex(Index As Long)
     m_LonListIndex = Index
     m_StrText = Items(m_LonListIndex).Text
     RaiseEvent ItemChange(m_LonListIndex)
+    
+    If m_LonItemsVisible + m_LonItemAtTop < m_LonListIndex + 1 Then m_LonItemAtTop = m_LonListIndex - m_LonItemsVisible + 1
+    
+    If m_LonListIndex < m_LonItemAtTop Then m_LonItemAtTop = m_LonListIndex
+    
     If Not m_bStarting Then Redraw
 End Property
 
