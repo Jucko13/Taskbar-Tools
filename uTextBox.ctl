@@ -134,7 +134,7 @@ Private Type WHSL
     W As Long
     H As Long
     s As Long
-    l As Long
+    L As Long
 End Type
 
 Private Type NSS
@@ -253,7 +253,7 @@ Public Function getWordFromChar(char As Long) As Long
 End Function
 
 Public Function getWordLength(word As Long) As Long
-    getWordLength = WordMap(word).l
+    getWordLength = WordMap(word).L
 End Function
 
 Public Function getWordStart(word As Long) As Long
@@ -608,7 +608,7 @@ Private Sub UserControl_DblClick()
         
     If word <> -1 Then
         m_SelStart = WordMap(word).s
-        m_SelEnd = WordMap(word).s + WordMap(word).l
+        m_SelEnd = WordMap(word).s + WordMap(word).L
         If m_SelEnd > UBound(CharMap) Then m_SelEnd = UBound(CharMap)
         m_CursorPos = m_SelEnd
         If Not m_bStarting Then Redraw
@@ -972,8 +972,9 @@ checkNextChar:
                 GoTo NextChar
             Case 32
                 'If TL = CC Then GoTo NextChar
-                If m_bWordWrap And TextOffsetX + CharMap(cc).W > UW Then GoTo NextChar  'TextOffsetX = LNW Or
-
+                'If m_bWordWrap And TextOffsetX + CharMap(cc).W > UW Then
+                '    GoTo NextChar  'TextOffsetX = LNW Or
+                'End If
         End Select
         
 
@@ -1000,7 +1001,7 @@ MakeNewRule:
                             If WordMap(RL).H > RH Then RH = WordMap(RL).H
                         Next RL
                     Else
-                        For RL = cc + 1 To UBound(m_byteText)
+                        For RL = cc To UBound(m_byteText)
                             TTW = TTW + CharMap(RL).W
                             
                             If m_byteText(RL) = 10 Then Exit For
@@ -1254,7 +1255,7 @@ Sub ReCalculateWords()
             If WL >= 0 Then
                 WordMap(WC).H = WH
                 WordMap(WC).W = WW
-                WordMap(WC).l = WL
+                WordMap(WC).L = WL
                 'If m_byteText(TL) <> 10 Then
                 WC = WC + 1
                 'End If
@@ -1279,7 +1280,7 @@ Sub ReCalculateWords()
 
     WordMap(WC).H = WH
     WordMap(WC).W = WW
-    WordMap(WC).l = WL
+    WordMap(WC).L = WL
 
     WordCount = WC
 endff:
@@ -1475,7 +1476,8 @@ End Function
 
 Sub CheckCharSize(lStart As Long, lLength As Long)
     Dim i As Long
-
+    Dim uSize As Long
+    
     Dim cForeColor As Long
     Dim cUnderline As Boolean
     Dim cItalic As Boolean
@@ -1486,7 +1488,7 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
     Dim cLine As Long
     Dim cDescendHeight As Long
     Dim cTextMetric As TEXTMETRIC
-
+    
     UserControl.Font = m_StdFont
     UserControl.ForeColor = m_OleForeColor
     UserControl.BackColor = m_OleBackgroundColor
@@ -1507,7 +1509,9 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
 
     GetTextMetrics UserControl.hdc, cTextMetric
     cDescendHeight = cTextMetric.tmDescent
-
+    
+    'uSize = UBound(MarkupS)
+    
     For i = lStart To lStart + lLength
         With MarkupS(i)
             If .lFontSize <> cFontSize Then
@@ -2063,7 +2067,7 @@ Function getNextWordFromCursor() As Long
     Else
         WordPart = WordPart + 1
         If WordPart > WordCount Then
-            getNextWordFromCursor = WordMap(WordCount).s + WordMap(WordCount).l
+            getNextWordFromCursor = WordMap(WordCount).s + WordMap(WordCount).L
         Else
             getNextWordFromCursor = WordMap(WordPart).s
             For i = WordMap(WordPart).s To UBound(CharMap)
@@ -2210,7 +2214,7 @@ Sub ReplaceWord(newText As String, Optional wordNr As Long = -2)
     If wordNr < 0 Then Exit Sub
     
     m_SelStart = WordMap(wordNr).s
-    m_SelEnd = m_SelStart + WordMap(wordNr).l
+    m_SelEnd = m_SelStart + WordMap(wordNr).L
     
     If m_SelEnd > UBound(CharMap) Then m_SelEnd = UBound(CharMap)
     
