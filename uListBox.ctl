@@ -7,9 +7,9 @@ Begin VB.UserControl uListBox
    ClientWidth     =   1500
    FillStyle       =   0  'Solid
    MousePointer    =   1  'Arrow
-   ScaleHeight     =   150
+   ScaleHeight     =   100
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   150
+   ScaleWidth      =   100
 End
 Attribute VB_Name = "uListBox"
 Attribute VB_GlobalNameSpace = False
