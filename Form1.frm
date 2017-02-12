@@ -81,7 +81,6 @@ Begin VB.Form frmMain
       Top             =   1010
    End
    Begin VB.Timer tmrComports 
-      Enabled         =   0   'False
       Interval        =   1000
       Left            =   495
       Top             =   3090
@@ -1111,61 +1110,61 @@ Sub SetProgramColor(lBackColor As Long, lFontColor As Long)
     Next i
 
 
-    Dim l As Control
+    Dim L As Control
 
-    For Each l In frmProgramTools.Controls
-        If Left$(l.Name, 2) = "No" Then GoTo Next_frmProgramTools:
-        Select Case TypeName(l)
+    For Each L In frmProgramTools.Controls
+        If Left$(L.Name, 2) = "No" Then GoTo Next_frmProgramTools:
+        Select Case TypeName(L)
             Case "uFrame", "uDropDown"
-                l.BackgroundColor = lBackColor
-                l.ForeColor = lFontColor
-                If TypeName(l) = "uDropDown" Then
-                    l.SelectionBackgroundColor = lBackColor
+                L.BackgroundColor = lBackColor
+                L.ForeColor = lFontColor
+                If TypeName(L) = "uDropDown" Then
+                    L.SelectionBackgroundColor = lBackColor
                 End If
             Case "uCheckBox", "uOptionBox"
-                l.BackgroundColor = lBackColor
-                l.ForeColor = lFontColor
-                l.CheckBackgroundColor = lBackColor
-                l.CheckBorderColor = lFontColor
-                l.CheckSelectionColor = lFontColor
+                L.BackgroundColor = lBackColor
+                L.ForeColor = lFontColor
+                L.CheckBackgroundColor = lBackColor
+                L.CheckBorderColor = lFontColor
+                L.CheckSelectionColor = lFontColor
             
             Case "uLoadBar"
-                l.BackgroundColor = lBackColor
+                L.BackgroundColor = lBackColor
                 
             Case "Label"
-                l.BackColor = lBackColor
-                l.ForeColor = lFontColor
+                L.BackColor = lBackColor
+                L.ForeColor = lFontColor
 
             Case "Line"
-                l.BorderColor = lFontColor
+                L.BorderColor = lFontColor
 
             Case "uButton"
-                l.BackgroundColor = lBackColor
-                l.ForeColor = lFontColor
-                l.FocusColor = lBackColor
+                L.BackgroundColor = lBackColor
+                L.ForeColor = lFontColor
+                L.FocusColor = lBackColor
 
             Case "PictureBox"
-                l.BackColor = lBackColor
+                L.BackColor = lBackColor
 
         End Select
 Next_frmProgramTools:
     Next
 
 
-    For Each l In frmSettings.Controls
-        Select Case TypeName(l)
+    For Each L In frmSettings.Controls
+        Select Case TypeName(L)
             Case "uFrame", "uDropDown"
-                l.BackgroundColor = lBackColor
-                l.ForeColor = lFontColor
-                If TypeName(l) = "uDropDown" Then
-                    l.SelectionBackgroundColor = lBackColor
+                L.BackgroundColor = lBackColor
+                L.ForeColor = lFontColor
+                If TypeName(L) = "uDropDown" Then
+                    L.SelectionBackgroundColor = lBackColor
                 End If
             Case "Label"
-                l.BackColor = lBackColor
-                l.ForeColor = lFontColor
+                L.BackColor = lBackColor
+                L.ForeColor = lFontColor
             Case "uButton"
-                l.BackgroundColor = lBackColor
-                l.ForeColor = lFontColor
+                L.BackgroundColor = lBackColor
+                L.ForeColor = lFontColor
         End Select
     Next
 
