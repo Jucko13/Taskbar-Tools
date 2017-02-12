@@ -18,6 +18,7 @@ Begin VB.UserControl uTextBox
       Strikethrough   =   0   'False
    EndProperty
    MaskColor       =   &H00FFFFFF&
+   MousePointer    =   3  'I-Beam
    ScaleHeight     =   240
    ScaleMode       =   3  'Pixel
    ScaleWidth      =   320
@@ -133,7 +134,7 @@ Private Type WHSL
     W As Long
     H As Long
     s As Long
-    l As Long
+    L As Long
 End Type
 
 Private Type NSS
@@ -228,11 +229,14 @@ Public m_lScrollTopMax As Long
 Public Event Changed()
 Public Event SelectionChanged()
 Public Event KeyPress(KeyAscii As Integer)
+Public Event KeyDown(ByRef KeyCode As Integer, ByRef Shift As Integer)
 
 Private m_lUsercontrolHeight As Long
 Private m_lUsercontrolWidth As Long
 Private m_lUsercontrolLeft As Long
 Private m_lUsercontrolTop As Long
+
+Private m_bBlockNextKeyPress As Boolean 'for things like ctrl+space autocomplete
 
 Private Declare Function GetTextExtentPoint32 Lib "gdi32" Alias "GetTextExtentPoint32A" (ByVal hdc As Long, ByVal lpsz As String, ByVal cbString As Long, lpSize As WH) As Long
 Private Declare Function SetTextAlign Lib "gdi32.dll" (ByVal hdc As Long, ByVal wFlags As Long) As Long
@@ -248,6 +252,13 @@ Public Function getWordFromChar(char As Long) As Long
     getWordFromChar = MarkupS(char).lPartOfWord
 End Function
 
+Public Function getWordLength(word As Long) As Long
+    getWordLength = WordMap(word).L
+End Function
+
+Public Function getWordStart(word As Long) As Long
+    getWordStart = WordMap(word).s
+End Function
 
 
 Public Sub setCharItallic(char As Long, bValue As Boolean)
@@ -284,10 +295,11 @@ Public Function getCharBackColor(char As Long) As OLE_COLOR
 End Function
 
 
-
-
-
 Sub updateCaretPos()
+    If Not Screen.ActiveControl Is Nothing Then
+        If Not UserControl.Extender Is Screen.ActiveControl Then Exit Sub
+    End If
+    
     If m_bHideCursor Then Exit Sub
     
     CreateCaret UserControl.hWnd, 0, 2, CharMap(m_CursorPos).H
@@ -574,9 +586,9 @@ Sub RedrawPause()
     m_bStarting = True
 End Sub
 
-Sub RedrawResume()
+Sub RedrawResume(Optional bDoNotRedraw As Boolean = False)
     m_bStarting = False
-    Redraw
+    If Not bDoNotRedraw Then Redraw
     
     updateCaretPos
 End Sub
@@ -596,7 +608,7 @@ Private Sub UserControl_DblClick()
         
     If word <> -1 Then
         m_SelStart = WordMap(word).s
-        m_SelEnd = WordMap(word).s + WordMap(word).l
+        m_SelEnd = WordMap(word).s + WordMap(word).L
         If m_SelEnd > UBound(CharMap) Then m_SelEnd = UBound(CharMap)
         m_CursorPos = m_SelEnd
         If Not m_bStarting Then Redraw
@@ -960,8 +972,9 @@ checkNextChar:
                 GoTo NextChar
             Case 32
                 'If TL = CC Then GoTo NextChar
-                If m_bWordWrap And TextOffsetX + CharMap(cc).W > UW Then GoTo NextChar  'TextOffsetX = LNW Or
-
+                'If m_bWordWrap And TextOffsetX + CharMap(cc).W > UW Then
+                '    GoTo NextChar  'TextOffsetX = LNW Or
+                'End If
         End Select
         
 
@@ -988,7 +1001,7 @@ MakeNewRule:
                             If WordMap(RL).H > RH Then RH = WordMap(RL).H
                         Next RL
                     Else
-                        For RL = cc + 1 To UBound(m_byteText)
+                        For RL = cc To UBound(m_byteText)
                             TTW = TTW + CharMap(RL).W
                             
                             If m_byteText(RL) = 10 Then Exit For
@@ -1242,7 +1255,7 @@ Sub ReCalculateWords()
             If WL >= 0 Then
                 WordMap(WC).H = WH
                 WordMap(WC).W = WW
-                WordMap(WC).l = WL
+                WordMap(WC).L = WL
                 'If m_byteText(TL) <> 10 Then
                 WC = WC + 1
                 'End If
@@ -1267,7 +1280,7 @@ Sub ReCalculateWords()
 
     WordMap(WC).H = WH
     WordMap(WC).W = WW
-    WordMap(WC).l = WL
+    WordMap(WC).L = WL
 
     WordCount = WC
 endff:
@@ -1463,7 +1476,8 @@ End Function
 
 Sub CheckCharSize(lStart As Long, lLength As Long)
     Dim i As Long
-
+    Dim uSize As Long
+    
     Dim cForeColor As Long
     Dim cUnderline As Boolean
     Dim cItalic As Boolean
@@ -1474,7 +1488,7 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
     Dim cLine As Long
     Dim cDescendHeight As Long
     Dim cTextMetric As TEXTMETRIC
-
+    
     UserControl.Font = m_StdFont
     UserControl.ForeColor = m_OleForeColor
     UserControl.BackColor = m_OleBackgroundColor
@@ -1495,7 +1509,9 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
 
     GetTextMetrics UserControl.hdc, cTextMetric
     cDescendHeight = cTextMetric.tmDescent
-
+    
+    'uSize = UBound(MarkupS)
+    
     For i = lStart To lStart + lLength
         With MarkupS(i)
             If .lFontSize <> cFontSize Then
@@ -1766,6 +1782,10 @@ End Function
 
 Private Sub UserControl_KeyPress(KeyAscii As Integer)
     RaiseEvent KeyPress(KeyAscii)
+    If m_bBlockNextKeyPress Then
+        m_bBlockNextKeyPress = False
+        Exit Sub
+    End If
     
     If (KeyAscii >= 32 And KeyAscii <= 126) Or (KeyAscii >= 128 And KeyAscii <= 255) Then
         AddCharAtCursor Chr(KeyAscii)
@@ -1787,6 +1807,10 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     Dim tmpCursorUpDown As Boolean
     
     getSelectionChanged True
+    
+    RaiseEvent KeyDown(KeyCode, Shift)
+    
+    If KeyCode = 0 And Shift = 0 Then m_bBlockNextKeyPress = True
     
     Select Case KeyCode
         Case vbKeyDown, vbKeyUp
@@ -2043,7 +2067,7 @@ Function getNextWordFromCursor() As Long
     Else
         WordPart = WordPart + 1
         If WordPart > WordCount Then
-            getNextWordFromCursor = WordMap(WordCount).s + WordMap(WordCount).l
+            getNextWordFromCursor = WordMap(WordCount).s + WordMap(WordCount).L
         Else
             getNextWordFromCursor = WordMap(WordPart).s
             For i = WordMap(WordPart).s To UBound(CharMap)
@@ -2181,6 +2205,25 @@ Function SizeByte(ByRef lStart As Long, ByRef lBytes() As Byte) As Long
     Next i
     lStart = lCount
 End Function
+
+Sub ReplaceWord(newText As String, Optional wordNr As Long = -2)
+    If wordNr = -2 Then
+        wordNr = getWordFromChar(m_CursorPos)
+    End If
+    
+    If wordNr < 0 Then Exit Sub
+    
+    m_SelStart = WordMap(wordNr).s
+    m_SelEnd = m_SelStart + WordMap(wordNr).L
+    
+    If m_SelEnd > UBound(CharMap) Then m_SelEnd = UBound(CharMap)
+    
+    m_CursorPos = m_SelEnd
+    
+    AddCharAtCursor newText
+    
+    If Not m_bStarting Then Redraw
+End Sub
 
 
 Sub ReCalculateMarkup()

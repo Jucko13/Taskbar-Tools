@@ -198,8 +198,19 @@ End Property
 Public Property Let ListIndex(Index As Long)
     If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
     m_LonListIndex = Index
+    
+    If m_LonListIndex < m_LonItemAtTop Then m_LonItemAtTop = m_LonListIndex
+    
+    If m_LonListIndex > m_LonItemAtTop + m_LonItemsVisible - 1 Then m_LonItemAtTop = m_LonListIndex - m_LonItemsVisible + 1
+    
+    
     m_StrText = Items(m_LonListIndex).Text
     RaiseEvent ItemChange(m_LonListIndex)
+    
+    If m_LonItemsVisible + m_LonItemAtTop < m_LonListIndex + 1 Then m_LonItemAtTop = m_LonListIndex - m_LonItemsVisible + 1
+    
+    If m_LonListIndex < m_LonItemAtTop Then m_LonItemAtTop = m_LonListIndex
+    
     If Not m_bStarting Then Redraw
 End Property
 
