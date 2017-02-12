@@ -66,7 +66,8 @@ End Type
 Private Type Item
     Text As String
     ItemData As Long
-    ItemColor As OLE_COLOR
+    ItemBackColor As OLE_COLOR
+    ItemForeColor As OLE_COLOR
     TextAlignment As AlignmentConstants
 End Type
 
@@ -239,16 +240,30 @@ Public Property Let ItemAlignment(Index As Long, ByVal AliValue As AlignmentCons
 End Property
 
 
-Public Property Get ItemColor(Index As Long) As OLE_COLOR
+Public Property Get ItemBackColor(Index As Long) As OLE_COLOR
     If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemColor = Items(Index).ItemColor
+    ItemBackColor = Items(Index).ItemBackColor
 End Property
 
-Public Property Let ItemColor(Index As Long, ByVal OleValue As OLE_COLOR)
+Public Property Let ItemBackColor(Index As Long, ByVal OleValue As OLE_COLOR)
     If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(Index).ItemColor = OleValue
+    Items(Index).ItemBackColor = OleValue
     If Not m_bStarting Then Redraw
 End Property
+
+
+
+Public Property Get ItemForeColor(Index As Long) As OLE_COLOR
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemForeColor = Items(Index).ItemForeColor
+End Property
+
+Public Property Let ItemForeColor(Index As Long, ByVal OleValue As OLE_COLOR)
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(Index).ItemForeColor = OleValue
+    If Not m_bStarting Then Redraw
+End Property
+
 
 
 Public Property Get ItemsVisible() As Long
@@ -380,14 +395,15 @@ Sub RedrawResume()
     Redraw
 End Sub
 
-Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optional Index As Long = -1, Optional lItemColor As OLE_COLOR = -1, Optional lAlignment As AlignmentConstants = vbLeftJustify) As Long
+Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optional Index As Long = -1, Optional lItemBackColor As OLE_COLOR = -1, Optional lItemForeColor As OLE_COLOR = -1, Optional lAlignment As AlignmentConstants = vbLeftJustify) As Long
 
     If Index = -1 Then
         ReDim Preserve Items(0 To m_LonItemCount) As Item
         With Items(m_LonItemCount)
             .Text = sText
             .ItemData = lItemData
-            .ItemColor = lItemColor
+            .ItemBackColor = lItemBackColor
+            .ItemForeColor = lItemForeColor
             .TextAlignment = lAlignment
         End With
 
@@ -408,7 +424,8 @@ Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optiona
             With Items(Index)
                 .Text = sText
                 .ItemData = lItemData
-                .ItemColor = lItemColor
+                .ItemBackColor = lItemBackColor
+                .ItemForeColor = lItemForeColor
                 .TextAlignment = lAlignment
             End With
         End If
@@ -752,7 +769,7 @@ End Sub
 '    pts(3).X = UserControl.ScaleWidth - m_LonScrollBarWidth - 2: pts(3).Y = 3
 '    UserControl.ForeColor = m_OleSelectionBorderColor
 '    If m_LonListIndex > -1 Then
-'        UserControl.FillColor = IIf(Items(m_LonListIndex).ItemColor <> -1, Items(m_LonListIndex).ItemColor, m_OleSelectionBackgroundColor)
+'        UserControl.FillColor = IIf(Items(m_LonListIndex).ItemBackColor <> -1, Items(m_LonListIndex).ItemBackColor, m_OleSelectionBackgroundColor)
 '    Else
 '        UserControl.FillColor = m_OleSelectionBackgroundColor
 '    End If
@@ -886,19 +903,19 @@ Sub Redraw()
         End If
 
         If m_LonListIndex = m_LonItemAtTop + i Then
-            UserControl.FillColor = IIf(Items(m_LonItemAtTop + i).ItemColor = -1, m_OleSelectionBackgroundColor, Items(m_LonItemAtTop + i).ItemColor)
+            UserControl.FillColor = IIf(Items(m_LonItemAtTop + i).ItemBackColor = -1, m_OleSelectionBackgroundColor, Items(m_LonItemAtTop + i).ItemBackColor)
             UserControl.ForeColor = m_OleSelectionBorderColor
             
             Polygon UserControl.hdc, pts(0), 4
 
-            UserControl.ForeColor = m_OleSelectionForeColor
+            UserControl.ForeColor = IIf(Items(m_LonItemAtTop + i).ItemForeColor = -1, m_OleSelectionForeColor, Items(m_LonItemAtTop + i).ItemForeColor)
         Else
-            UserControl.FillColor = IIf(Items(m_LonItemAtTop + i).ItemColor = -1, m_OleBackgroundColor, Items(m_LonItemAtTop + i).ItemColor)
+            UserControl.FillColor = IIf(Items(m_LonItemAtTop + i).ItemBackColor = -1, m_OleBackgroundColor, Items(m_LonItemAtTop + i).ItemBackColor)
             UserControl.ForeColor = UserControl.FillColor
             
             Polygon UserControl.hdc, pts(0), 4
 
-            UserControl.ForeColor = m_OleForeColor
+            UserControl.ForeColor = IIf(Items(m_LonItemAtTop + i).ItemForeColor = -1, m_OleForeColor, Items(m_LonItemAtTop + i).ItemForeColor)
         End If
 
         
@@ -913,7 +930,7 @@ Sub Redraw()
         'If tmpTextHeight <= m_LonItemHeight Then
             For tmpSplitLength = 0 To UBound(tmpSplit)
 
-                If InStr(1, tmpSplit(tmpSplitLength), vbCrLf) > 0 And m_tTabStops(tmpSplitLength).xPos > -1 Then
+                'If InStr(1, tmpSplit(tmpSplitLength), vbCrLf) > 0 And m_tTabStops(tmpSplitLength).xPos > -1 Then
                     tmpTabSplit = Split(tmpSplit(tmpSplitLength), vbCrLf)
                     
                     For tmpTabSplitLength = 0 To UBound(tmpTabSplit)
@@ -921,10 +938,10 @@ Sub Redraw()
 
                         Select Case m_tTabStops(tmpSplitLength).Alignment
                             Case AlignmentConstants.vbLeftJustify
-                                tmpLeft = 3 + m_tTabStops(tmpTabSplitLength).xPos
+                                tmpLeft = 3 + m_tTabStops(tmpSplitLength).xPos
 
                             Case AlignmentConstants.vbCenter
-                                tmpLeft = m_tTabStops(tmpTabSplitLength).xPos - UserControl.TextWidth(tmpTabSplit(tmpTabSplitLength)) / 2 + 2
+                                tmpLeft = m_tTabStops(tmpSplitLength).xPos - UserControl.TextWidth(tmpTabSplit(tmpTabSplitLength)) / 2 + 2
 
                             Case AlignmentConstants.vbRightJustify
                                 tmpLeft = m_tTabStops(tmpSplitLength).xPos - UserControl.TextWidth(tmpTabSplit(tmpTabSplitLength))
@@ -935,31 +952,31 @@ Sub Redraw()
                         'tmpTabSplit (tmpTabSplitLength)
 
                         UserControl.CurrentX = tmpLeft
-                        UserControl.CurrentY = tmpPrintTop + m_LonItemHeight / 2 + (tmpTextHeight / (UBound(tmpSplit) + 1) * (tmpSplitLength - ((UBound(tmpSplit) + 1) / 2))) + 1
+                        UserControl.CurrentY = tmpPrintTop + m_LonItemHeight / 2 + (tmpTextHeight / (UBound(tmpTabSplit) + 1) * (tmpTabSplitLength - ((UBound(tmpTabSplit) + 1) / 2))) + 1
 
                         UserControl.Print tmpTabSplit(tmpTabSplitLength)
 
                     Next tmpTabSplitLength
 
-                Else
-                    tmpShortText = ShortenText(tmpSplit(tmpSplitLength), UserControl.ScaleWidth - tmpScrollbarWidth - 5)
-
-                    Select Case Items(m_LonItemAtTop + i).TextAlignment
-                        Case AlignmentConstants.vbLeftJustify
-                            tmpLeft = 3
-
-                        Case AlignmentConstants.vbCenter
-                            tmpLeft = (UserControl.ScaleWidth - m_LonScrollBarWidth - 5) / 2 - UserControl.TextWidth(tmpShortText) / 2 + 2
-
-                        Case AlignmentConstants.vbRightJustify
-                            tmpLeft = (UserControl.ScaleWidth - m_LonScrollBarWidth - 2) - UserControl.TextWidth(tmpShortText)
-                    End Select
-
-                    UserControl.CurrentX = tmpLeft
-                    UserControl.CurrentY = tmpPrintTop + m_LonItemHeight / 2 + (tmpTextHeight / (UBound(tmpSplit) + 1) * (tmpSplitLength - ((UBound(tmpSplit) + 1) / 2))) + 1
-
-                    UserControl.Print tmpShortText
-                End If
+'                Else
+'                    tmpShortText = ShortenText(tmpSplit(tmpSplitLength), UserControl.ScaleWidth - tmpScrollbarWidth - 5)
+'
+'                    Select Case Items(m_LonItemAtTop + i).TextAlignment
+'                        Case AlignmentConstants.vbLeftJustify
+'                            tmpLeft = 3
+'
+'                        Case AlignmentConstants.vbCenter
+'                            tmpLeft = (UserControl.ScaleWidth - m_LonScrollBarWidth - 5) / 2 - UserControl.TextWidth(tmpShortText) / 2 + 2
+'
+'                        Case AlignmentConstants.vbRightJustify
+'                            tmpLeft = (UserControl.ScaleWidth - m_LonScrollBarWidth - 2) - UserControl.TextWidth(tmpShortText)
+'                    End Select
+'
+'                    UserControl.CurrentX = tmpLeft
+'                    UserControl.CurrentY = tmpPrintTop + m_LonItemHeight / 2 + (tmpTextHeight / (UBound(tmpSplit) + 1) * (tmpSplitLength - ((UBound(tmpSplit) + 1) / 2))) + 1
+'
+'                    UserControl.Print tmpShortText
+'                End If
 
 
             Next tmpSplitLength

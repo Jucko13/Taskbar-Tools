@@ -622,64 +622,64 @@ Private Sub UserControl_Initialize()
     Dim constString As String
     Const randomMarkup As Boolean = True
     
-'
-'    For i = 0 To 5
-'        constString = constString & "Deze Textbox is gemaakt door Ricardo de Roode!                HierNogEvenEenLangWoord" & vbCrLf    '& vbCrLf
-'    Next i
-'
-'
-'    If randomMarkup Then
-'        For i = 1 To Len(constString)
-'            newChar = ""
-'            '{\c FFFF00 hoi {\c FF00FF hallo dit is magenta gekleurde text} hoi}
-'            If Mid$(constString, i, 1) <> " " And Mid$(constString, i, 1) <> vbCr And Mid$(constString, i, 1) <> vbLf Then
-'                newChar = "{\c " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
-'                newChar = newChar & "{\fb " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
-'                newChar = newChar & "{\m " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
-'                'newChar = newChar & "{\m FF00FF "
-'                newChar = newChar & "{\fs " & Fix(Rnd * 16 + 8) & " "
-'                'newChar = newChar & "{\i "
-'
-'                '            Select Case Round(Rnd * 3)
-'                '                Case 0
-'                '                    newChar = newChar & "{\i "
-'                '                Case 1
-'                '                    newChar = newChar & "{\b "
-'                '                Case 2
-'                '                    newChar = newChar & "{\u "
-'                '                Case 3
-'                '                    newChar = newChar & "{\s "
-'                '            End Select
-'
-'                Select Case Mid$(constString, i, 1)
-'                    Case "}", "{", "\"
-'                        newChar = newChar & "\" & Mid$(constString, i, 1)
-'
-'                    Case Else
-'                        newChar = newChar & Mid$(constString, i, 1)
-'                End Select
-'
-'                'SnewChar = newChar & "}"
-'                newChar = newChar & "}"
-'                'newChar = newChar & "}"
-'                newChar = newChar & "}"
-'                newChar = newChar & "}"
-'                newChar = newChar & "}"
-'
-'                m_StrMarkupText = m_StrMarkupText & newChar
-'            Else
-'                m_StrMarkupText = m_StrMarkupText & Mid$(constString, i, 1)
-'
-'            End If
-'
-'
-'
-'
-'        Next i
-'    Else
-'        m_StrMarkupText = constString
-'
-'    End If
+
+    For i = 0 To 5
+        constString = constString & "This textbox is made by Ricardo de Roode HereIsAVeryLongWord." & vbCrLf    '& vbCrLf
+    Next i
+
+
+    If randomMarkup Then
+        For i = 1 To Len(constString)
+            newChar = ""
+            '{\c FFFF00 hoi {\c FF00FF hallo dit is magenta gekleurde text} hoi}
+            If Mid$(constString, i, 1) <> " " And Mid$(constString, i, 1) <> vbCr And Mid$(constString, i, 1) <> vbLf Then
+                newChar = "{\c " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
+                newChar = newChar & "{\fb " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
+                newChar = newChar & "{\m " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
+                'newChar = newChar & "{\m FF00FF "
+                newChar = newChar & "{\fs " & Fix(Rnd * 16 + 8) & " "
+                'newChar = newChar & "{\i "
+
+                '            Select Case Round(Rnd * 3)
+                '                Case 0
+                '                    newChar = newChar & "{\i "
+                '                Case 1
+                '                    newChar = newChar & "{\b "
+                '                Case 2
+                '                    newChar = newChar & "{\u "
+                '                Case 3
+                '                    newChar = newChar & "{\s "
+                '            End Select
+
+                Select Case Mid$(constString, i, 1)
+                    Case "}", "{", "\"
+                        newChar = newChar & "\" & Mid$(constString, i, 1)
+
+                    Case Else
+                        newChar = newChar & Mid$(constString, i, 1)
+                End Select
+
+                'SnewChar = newChar & "}"
+                newChar = newChar & "}"
+                'newChar = newChar & "}"
+                newChar = newChar & "}"
+                newChar = newChar & "}"
+                newChar = newChar & "}"
+
+                m_StrMarkupText = m_StrMarkupText & newChar
+            Else
+                m_StrMarkupText = m_StrMarkupText & Mid$(constString, i, 1)
+
+            End If
+
+
+
+
+        Next i
+    Else
+        m_StrMarkupText = constString
+
+    End If
 
 
     m_OleRowLineColor = &HEEEEEE

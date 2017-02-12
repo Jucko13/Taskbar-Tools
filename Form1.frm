@@ -417,20 +417,20 @@ Private ProgramParentLeft As Long
 Private ShowMode As Boolean
 
 
-Private Declare Function GetWindowRect Lib "user32" (ByVal hwnd As Long, lpRect As RECT) As Boolean
+Private Declare Function GetWindowRect Lib "user32" (ByVal hWnd As Long, lpRect As RECT) As Boolean
 Private Declare Function GetSysColor Lib "user32" (ByVal nIndex As Long) As Long
 
-Private Declare Function SetForegroundWindow Lib "user32" (ByVal hwnd As Long) As Long
+Private Declare Function SetForegroundWindow Lib "user32" (ByVal hWnd As Long) As Long
 Private Declare Function FindWindow Lib "user32" Alias "FindWindowA" (ByVal lpClassName As String, ByVal lpWindowName As String) As Long
-Private Declare Function GetWindowThreadProcessId Lib "user32" (ByVal hwnd As Long, lpdwProcessId As Long) As Long
-Private Declare Function IsIconic Lib "user32" (ByVal hwnd As Long) As Long
-Private Declare Function ShowWindow Lib "user32" (ByVal hwnd As Long, ByVal nCmdShow As Long) As Long
+Private Declare Function GetWindowThreadProcessId Lib "user32" (ByVal hWnd As Long, lpdwProcessId As Long) As Long
+Private Declare Function IsIconic Lib "user32" (ByVal hWnd As Long) As Long
+Private Declare Function ShowWindow Lib "user32" (ByVal hWnd As Long, ByVal nCmdShow As Long) As Long
 Private Declare Function AttachThreadInput Lib "user32" (ByVal idAttach As Long, ByVal idAttachTo As Long, ByVal fAttach As Long) As Long
 Private Declare Function GetForegroundWindow Lib "user32" () As Long
 
 Private Declare Function GetKeyboardState Lib "user32.dll" (pbKeyState As Byte) As Long
 
-Private Declare Function MoveWindow Lib "user32.dll" (ByVal hwnd As Long, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal bRepaint As Long) As Long
+Private Declare Function MoveWindow Lib "user32.dll" (ByVal hWnd As Long, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal bRepaint As Long) As Long
 
 Private KeyFired(0 To 255) As Byte
 Private KeyStates(0 To 255) As Byte
@@ -464,7 +464,7 @@ Public Sub Wait(ByVal dblMilliseconds As Double)
 End Sub
 
 
-Private Sub cmdPrograms_Click(Button As Integer, X As Single, Y As Single)
+Private Sub cmdPrograms_Click(Button As Integer, x As Single, y As Single)
     CloseWindows
 
     If allSettings(ActiveSetting).sButtonText(2) = "" Then
@@ -486,7 +486,7 @@ Private Sub cmdPrograms_Click(Button As Integer, X As Single, Y As Single)
     End If
 End Sub
 
-Private Sub cmdGames_Click(Button As Integer, X As Single, Y As Single)
+Private Sub cmdGames_Click(Button As Integer, x As Single, y As Single)
     CloseWindows
     If allSettings(ActiveSetting).sButtonText(1) = "" Then
         frmGames.Visible = False
@@ -507,7 +507,7 @@ Private Sub cmdGames_Click(Button As Integer, X As Single, Y As Single)
 
 End Sub
 
-Private Sub cmdSettings_Click(Button As Integer, X As Single, Y As Single)
+Private Sub cmdSettings_Click(Button As Integer, x As Single, y As Single)
     CloseWindows
 
     If allSettings(ActiveSetting).sButtonText(0) = "" Then
@@ -523,7 +523,7 @@ Private Sub cmdSettings_Click(Button As Integer, X As Single, Y As Single)
         frmSettings.Width = 6000 'Me.Width
 
         frmSettings.Visible = True
-        SetTopMostWindow frmSettings.hwnd, True
+        SetTopMostWindow frmSettings.hWnd, True
     Else
         ExecuteButton 0
 
@@ -572,7 +572,7 @@ Sub ExecuteButton(lIndex As Long)
         lFolder = Replace(allSettings(ActiveSetting).sActionFolder(lIndex), "{TEXT}", txtSearch.Text)
         lParameters = Replace(allSettings(ActiveSetting).sActionParameters(lIndex), "{TEXT}", txtSearch.Text)
 
-        ShellExecute Me.hwnd, "OPEN", lPath, lParameters, lFolder, vbNormalFocus
+        ShellExecute Me.hWnd, "OPEN", lPath, lParameters, lFolder, vbNormalFocus
     End If
 
 
@@ -787,16 +787,16 @@ Private Sub tmrCheckHotKey_Timer()
 
             If ShowMode Then
                 Me.Hide
-                SetParent Me.hwnd, ParentOrigional
+                SetParent Me.hWnd, ParentOrigional
 
-                SetWindowPos Me.hwnd, -1, (ProgramLeft2 / Screen.TwipsPerPixelX), (ProgramTop / Screen.TwipsPerPixelY), 0, 0, SWP_NOSIZE Or SWP_SHOWWINDOW
+                SetWindowPos Me.hWnd, -1, (ProgramLeft2 / Screen.TwipsPerPixelX), (ProgramTop / Screen.TwipsPerPixelY), 0, 0, SWP_NOSIZE Or SWP_SHOWWINDOW
                 'ShowWindow Me.hwnd, 1
                 'Me.SetFocus
                 'txtSearch.SetFocus
             Else
-                SetParent Me.hwnd, ParentTaskBar
+                SetParent Me.hWnd, ParentTaskBar
 
-                SetWindowPos Me.hwnd, 0, (ProgramLeft / Screen.TwipsPerPixelX), (ProgramTop / Screen.TwipsPerPixelY), 0, 0, SWP_NOSIZE Or SWP_SHOWWINDOW
+                SetWindowPos Me.hWnd, 0, (ProgramLeft / Screen.TwipsPerPixelX), (ProgramTop / Screen.TwipsPerPixelY), 0, 0, SWP_NOSIZE Or SWP_SHOWWINDOW
             End If
         ElseIf (KeyStates(vbKeyF12) And &H80) = 0 Then
             KeyFired(KEY_CONTROL_F12) = False
@@ -809,7 +809,7 @@ Private Sub tmrCheckHotKey_Timer()
             Dim lngRetVal As Long
 
             CurrentForegroundThreadID = GetWindowThreadProcessId(GetForegroundWindow(), ByVal 0&)
-            NewForegroundThreadID = GetWindowThreadProcessId(Me.hwnd, ByVal 0&)
+            NewForegroundThreadID = GetWindowThreadProcessId(Me.hWnd, ByVal 0&)
 
             'AttachThreadInput is used to ensure SetForegroundWindow will work
             'even if our application isn't currently the foreground window
@@ -818,7 +818,7 @@ Private Sub tmrCheckHotKey_Timer()
             lngRetVal = SetForegroundWindow(MyAppHWnd)
             Call AttachThreadInput(CurrentForegroundThreadID, NewForegroundThreadID, False)
 
-            SetForegroundWindow Me.hwnd
+            SetForegroundWindow Me.hWnd
         ElseIf (KeyStates(vbKeyF9) And &H80) = 0 Then
             KeyFired(KEY_CONTROL_F9) = False
         End If
@@ -880,7 +880,7 @@ Private Sub Form_Load()
     i = 0
 
     Do
-        ParentOrigional = GetParent(Me.hwnd)
+        ParentOrigional = GetParent(Me.hWnd)
         ParentTaskBar = FindWindow("Shell_TrayWnd", vbNullString)
         EnumChildWindows ParentTaskBar, AddressOf EnumChildProc, lParam
 
@@ -909,7 +909,7 @@ Private Sub Form_Load()
 
     Me.Top = ProgramTop
     Me.Left = ProgramLeft
-    SetParent Me.hwnd, ParentTaskBar
+    SetParent Me.hWnd, ParentTaskBar
 
     Set CpuUsage = New clsCPUUsageNT
     CpuUsage.Initialize
@@ -926,7 +926,7 @@ Private Sub Form_Load()
     tmrComports.Enabled = True
 End Sub
 
-Private Sub cmdExtra_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub cmdExtra_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
     Exit Sub
     'If X <= 5 Then
     '    Dragging = True
@@ -934,10 +934,10 @@ Private Sub cmdExtra_MouseDown(Button As Integer, Shift As Integer, X As Single,
     'End If
 End Sub
 
-Private Sub cmdExtra_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub cmdExtra_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
     Exit Sub
     If Dragging Then
-        SetWindowPos Me.hwnd, 0, Me.Left / Screen.TwipsPerPixelX - ProgramParentLeft + (X - DragX), ProgramTop / Screen.TwipsPerPixelY, 0, 0, &H20 Or &H1 Or &H40
+        SetWindowPos Me.hWnd, 0, Me.Left / Screen.TwipsPerPixelX - ProgramParentLeft + (x - DragX), ProgramTop / Screen.TwipsPerPixelY, 0, 0, &H20 Or &H1 Or &H40
 
         If ShowMode Then
             ProgramLeft2 = Me.Left
@@ -958,7 +958,7 @@ Private Sub cmdExtra_MouseMove(Button As Integer, Shift As Integer, X As Single,
             frmProgramTools.Left = Me.Left
         End If
     Else
-        If X <= 5 Then
+        If x <= 5 Then
             cmdExtra.MousePointer = 9
         Else
             cmdExtra.MousePointer = 0
@@ -966,7 +966,7 @@ Private Sub cmdExtra_MouseMove(Button As Integer, Shift As Integer, X As Single,
     End If
 End Sub
 
-Private Sub cmdExtra_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub cmdExtra_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
     'Exit Sub
     'cmdExtra.MousePointer = 0
     'If Dragging = True Then
@@ -1142,6 +1142,7 @@ Sub SetProgramColor(lBackColor As Long, lFontColor As Long)
             Case "uButton"
                 l.BackgroundColor = lBackColor
                 l.ForeColor = lFontColor
+                l.FocusColor = lBackColor
 
             Case "PictureBox"
                 l.BackColor = lBackColor
@@ -1174,11 +1175,11 @@ End Sub
 
 
 Private Sub tmrComports_Timer()
-    Dim tmpStr() As Long
+    Dim tmpstr() As Long
     On Error Resume Next
 
     If frmProgramTools.uCommRefresh.Value = u_Checked Then
-        tmpStr = EnumSerialPorts
+        tmpstr = EnumSerialPorts
 
         Dim i As Long
 
@@ -1188,9 +1189,9 @@ Private Sub tmrComports_Timer()
             uCommPort.ItemColor(i) = -1 'ButtonColors(allSettings(ActiveSetting).sButtonColor)
         Next i
 
-        For i = 0 To UBound(tmpStr)
-            If tmpStr(i) > 0 Then
-                uCommPort.ItemColor(tmpStr(i) - 1) = vbGreen
+        For i = 0 To UBound(tmpstr)
+            If tmpstr(i) > 0 Then
+                uCommPort.ItemColor(tmpstr(i) - 1) = vbGreen
             End If
         Next i
 
@@ -1204,7 +1205,7 @@ Private Sub tmrComports_Timer()
 
         ProgramLeft = (j.Right - j.Left) * Screen.TwipsPerPixelX - Me.Width    '- 100
 
-        SetWindowPos Me.hwnd, 0, (ProgramLeft / Screen.TwipsPerPixelX), (ProgramTop / Screen.TwipsPerPixelY), 0, 0, SWP_NOSIZE Or SWP_NOACTIVATE
+        SetWindowPos Me.hWnd, 0, (ProgramLeft / Screen.TwipsPerPixelX), (ProgramTop / Screen.TwipsPerPixelY), 0, 0, SWP_NOSIZE Or SWP_NOACTIVATE
     End If
 
     uLoadCPU.Value = CpuUsage.Query

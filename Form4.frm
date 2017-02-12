@@ -3,12 +3,12 @@ Object = "{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}#1.1#0"; "ieframe.dll"
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Begin VB.Form frmProgramTools 
    AutoRedraw      =   -1  'True
-   BackColor       =   &H00584D43&
+   BackColor       =   &H008080FF&
    BorderStyle     =   0  'None
-   ClientHeight    =   11385
+   ClientHeight    =   11355
    ClientLeft      =   0
    ClientTop       =   0
-   ClientWidth     =   13680
+   ClientWidth     =   20790
    BeginProperty Font 
       Name            =   "Tahoma"
       Size            =   8.25
@@ -21,11 +21,73 @@ Begin VB.Form frmProgramTools
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   759
+   ScaleHeight     =   757
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   912
+   ScaleWidth      =   1386
    ShowInTaskbar   =   0   'False
    StartUpPosition =   3  'Windows Default
+   Begin VB.PictureBox picTab 
+      Appearance      =   0  'Flat
+      AutoRedraw      =   -1  'True
+      BackColor       =   &H80000005&
+      BorderStyle     =   0  'None
+      ForeColor       =   &H80000008&
+      Height          =   3270
+      Index           =   1
+      Left            =   12795
+      ScaleHeight     =   3270
+      ScaleWidth      =   7005
+      TabIndex        =   75
+      TabStop         =   0   'False
+      Top             =   960
+      Width           =   7005
+      Begin Project1.uListBox uProcess 
+         Height          =   1635
+         Left            =   90
+         TabIndex        =   76
+         Top             =   75
+         Width           =   2880
+         _ExtentX        =   5080
+         _ExtentY        =   2884
+         BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
+            Name            =   "Tahoma"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   400
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+         Text            =   ""
+         ItemHeight      =   21
+      End
+      Begin Project1.uButton uRefreshProcess 
+         Height          =   315
+         Left            =   5580
+         TabIndex        =   77
+         Top             =   2925
+         Width           =   1395
+         _ExtentX        =   2461
+         _ExtentY        =   556
+         FocusColor      =   0
+         BackgroundColorDisabled=   0
+         BorderColorDisabled=   0
+         ForeColorDisabled=   0
+         CaptionBorderColorDisabled=   0
+         FocusColorDisabled=   0
+         Caption         =   "Refresh"
+         BorderAnimation =   0
+         BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
+            Name            =   "MS Sans Serif"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   400
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+      End
+   End
    Begin VB.PictureBox picTab 
       AutoRedraw      =   -1  'True
       BackColor       =   &H00404040&
@@ -41,17 +103,17 @@ Begin VB.Form frmProgramTools
       EndProperty
       Height          =   3410
       Index           =   4
-      Left            =   6240
+      Left            =   9780
       ScaleHeight     =   227
       ScaleMode       =   3  'Pixel
       ScaleWidth      =   467
-      TabIndex        =   67
-      Top             =   4530
+      TabIndex        =   66
+      Top             =   4830
       Width           =   7005
       Begin Project1.uLoadBar loadScores 
          Height          =   1680
          Left            =   615
-         TabIndex        =   70
+         TabIndex        =   69
          Top             =   780
          Visible         =   0   'False
          Width           =   5955
@@ -80,7 +142,7 @@ Begin VB.Form frmProgramTools
          Height          =   200
          Index           =   0
          Left            =   60
-         TabIndex        =   72
+         TabIndex        =   71
          Top             =   3140
          Width           =   1400
          _ExtentX        =   2461
@@ -108,7 +170,7 @@ Begin VB.Form frmProgramTools
          LargeChange     =   10
          Left            =   6765
          Max             =   10
-         TabIndex        =   71
+         TabIndex        =   70
          Top             =   60
          Width           =   180
       End
@@ -116,7 +178,7 @@ Begin VB.Form frmProgramTools
          Height          =   200
          Index           =   1
          Left            =   1530
-         TabIndex        =   73
+         TabIndex        =   72
          Top             =   3140
          Width           =   1400
          _ExtentX        =   2461
@@ -142,7 +204,7 @@ Begin VB.Form frmProgramTools
       Begin Project1.uButton cmdRefreshScore 
          Height          =   200
          Left            =   3000
-         TabIndex        =   74
+         TabIndex        =   73
          Top             =   3140
          Width           =   1400
          _ExtentX        =   2461
@@ -394,6 +456,115 @@ Begin VB.Form frmProgramTools
       TabStop         =   0   'False
       Top             =   7275
       Width           =   7005
+      Begin Project1.uButton uSetIp 
+         Height          =   240
+         Left            =   5250
+         TabIndex        =   84
+         Top             =   855
+         Width           =   1680
+         _ExtentX        =   2963
+         _ExtentY        =   423
+         BackgroundColor =   5786947
+         ForeColor       =   16777215
+         MouseOverBackgroundColor=   8421504
+         Caption         =   "Set IP"
+         BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
+            Name            =   "MS Sans Serif"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   400
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+      End
+      Begin Project1.uButton uSetDNS 
+         Height          =   240
+         Left            =   5250
+         TabIndex        =   83
+         Top             =   1155
+         Width           =   1680
+         _ExtentX        =   2963
+         _ExtentY        =   423
+         BackgroundColor =   5786947
+         ForeColor       =   16777215
+         MouseOverBackgroundColor=   8421504
+         Caption         =   "Set DNS"
+         BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
+            Name            =   "MS Sans Serif"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   400
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+      End
+      Begin VB.TextBox txtSetIP 
+         Appearance      =   0  'Flat
+         BorderStyle     =   0  'None
+         Height          =   240
+         Index           =   3
+         Left            =   75
+         TabIndex        =   82
+         Top             =   1155
+         Width           =   1650
+      End
+      Begin VB.TextBox txtSetIP 
+         Appearance      =   0  'Flat
+         BorderStyle     =   0  'None
+         Height          =   240
+         Index           =   4
+         Left            =   1785
+         TabIndex        =   81
+         Top             =   1155
+         Width           =   1665
+      End
+      Begin Project1.uButton uRenew 
+         Height          =   270
+         Left            =   2655
+         TabIndex        =   80
+         Top             =   2970
+         Width           =   1050
+         _ExtentX        =   1852
+         _ExtentY        =   476
+         BackgroundColor =   5786947
+         ForeColor       =   16777215
+         MouseOverBackgroundColor=   8421504
+         Caption         =   "Renew"
+         BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
+            Name            =   "MS Sans Serif"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   400
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+      End
+      Begin Project1.uButton uCloseStats 
+         Height          =   270
+         Left            =   6420
+         TabIndex        =   79
+         Top             =   45
+         Visible         =   0   'False
+         Width           =   285
+         _ExtentX        =   503
+         _ExtentY        =   476
+         BackgroundColor =   5786947
+         ForeColor       =   16777215
+         MouseOverBackgroundColor=   8421504
+         Caption         =   "X"
+         BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
+            Name            =   "MS Sans Serif"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   400
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+      End
       Begin VB.TextBox txtPingResult 
          BackColor       =   &H00000000&
          BorderStyle     =   0  'None
@@ -416,14 +587,14 @@ Begin VB.Form frmProgramTools
          Width           =   5145
       End
       Begin Project1.uListBox lstIP 
-         Height          =   980
+         Height          =   705
          Index           =   0
-         Left            =   80
+         Left            =   75
          TabIndex        =   63
          Top             =   90
-         Width           =   3375
-         _ExtentX        =   5953
-         _ExtentY        =   1720
+         Width           =   6855
+         _ExtentX        =   12091
+         _ExtentY        =   1244
          BorderColor     =   12632256
          BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
             Name            =   "MS Sans Serif"
@@ -438,8 +609,8 @@ Begin VB.Form frmProgramTools
          Border          =   0   'False
          SelectionBackgroundColor=   16764768
          SelectionBorderColor=   16764768
-         ItemHeight      =   15
-         VisibleItems    =   4
+         ItemHeight      =   14
+         VisibleItems    =   3
       End
       Begin VB.TextBox txtSetIP 
          Appearance      =   0  'Flat
@@ -448,7 +619,7 @@ Begin VB.Form frmProgramTools
          Index           =   2
          Left            =   3525
          TabIndex        =   46
-         Top             =   1125
+         Top             =   855
          Width           =   1665
       End
       Begin VB.TextBox txtSetIP 
@@ -458,7 +629,7 @@ Begin VB.Form frmProgramTools
          Index           =   1
          Left            =   1785
          TabIndex        =   45
-         Top             =   1125
+         Top             =   855
          Width           =   1665
       End
       Begin VB.TextBox txtSetIP 
@@ -468,17 +639,17 @@ Begin VB.Form frmProgramTools
          Index           =   0
          Left            =   75
          TabIndex        =   44
-         Top             =   1125
+         Top             =   855
          Width           =   1650
       End
       Begin Project1.uButton uEnableDisable 
          Height          =   270
          Index           =   0
-         Left            =   3975
+         Left            =   4815
          TabIndex        =   36
-         Top             =   2940
-         Width           =   1440
-         _ExtentX        =   2540
+         Top             =   2970
+         Width           =   1050
+         _ExtentX        =   1852
          _ExtentY        =   476
          BackgroundColor =   5786947
          ForeColor       =   16777215
@@ -498,9 +669,9 @@ Begin VB.Form frmProgramTools
          Height          =   270
          Left            =   45
          TabIndex        =   38
-         Top             =   2940
-         Width           =   1950
-         _ExtentX        =   3440
+         Top             =   2970
+         Width           =   1500
+         _ExtentX        =   2646
          _ExtentY        =   476
          BackgroundColor =   5786947
          ForeColor       =   16777215
@@ -518,16 +689,16 @@ Begin VB.Form frmProgramTools
       End
       Begin Project1.uButton uChangeIP 
          Height          =   270
-         Left            =   2040
+         Left            =   1575
          TabIndex        =   39
-         Top             =   2940
-         Width           =   1890
-         _ExtentX        =   3334
+         Top             =   2970
+         Width           =   1050
+         _ExtentX        =   1852
          _ExtentY        =   476
          BackgroundColor =   5786947
          ForeColor       =   16777215
          MouseOverBackgroundColor=   8421504
-         Caption         =   "Set Selected Automatic"
+         Caption         =   "Toggle Type"
          BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
             Name            =   "MS Sans Serif"
             Size            =   8.25
@@ -540,11 +711,11 @@ Begin VB.Form frmProgramTools
       End
       Begin Project1.uButton uPing 
          Height          =   240
-         Left            =   5250
+         Left            =   3510
          TabIndex        =   47
-         Top             =   1125
-         Width           =   1665
-         _ExtentX        =   2937
+         Top             =   1155
+         Width           =   1680
+         _ExtentX        =   2963
          _ExtentY        =   423
          BackgroundColor =   5786947
          ForeColor       =   16777215
@@ -564,7 +735,7 @@ Begin VB.Form frmProgramTools
          Height          =   1080
          Left            =   75
          TabIndex        =   64
-         Top             =   1425
+         Top             =   1455
          Width           =   6840
          _ExtentX        =   12065
          _ExtentY        =   1905
@@ -586,11 +757,11 @@ Begin VB.Form frmProgramTools
       Begin Project1.uButton uEnableDisable 
          Height          =   270
          Index           =   1
-         Left            =   5460
+         Left            =   5895
          TabIndex        =   65
-         Top             =   2940
-         Width           =   1455
-         _ExtentX        =   2566
+         Top             =   2970
+         Width           =   1050
+         _ExtentX        =   1852
          _ExtentY        =   476
          BackgroundColor =   5786947
          ForeColor       =   16777215
@@ -606,16 +777,18 @@ Begin VB.Form frmProgramTools
             Strikethrough   =   0   'False
          EndProperty
       End
-      Begin Project1.uListBox lstIP 
-         Height          =   975
-         Index           =   1
-         Left            =   3525
-         TabIndex        =   66
-         Top             =   90
-         Width           =   3390
-         _ExtentX        =   5980
-         _ExtentY        =   1720
-         BorderColor     =   12632256
+      Begin Project1.uButton uStats 
+         Height          =   270
+         Left            =   3735
+         TabIndex        =   74
+         Top             =   2970
+         Width           =   1050
+         _ExtentX        =   1852
+         _ExtentY        =   476
+         BackgroundColor =   5786947
+         ForeColor       =   16777215
+         MouseOverBackgroundColor=   8421504
+         Caption         =   "Stats"
          BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
             Name            =   "MS Sans Serif"
             Size            =   8.25
@@ -625,12 +798,28 @@ Begin VB.Form frmProgramTools
             Italic          =   0   'False
             Strikethrough   =   0   'False
          EndProperty
-         Text            =   ""
-         Border          =   0   'False
-         SelectionBackgroundColor=   16764768
-         SelectionBorderColor=   16764768
-         ItemHeight      =   15
-         VisibleItems    =   4
+      End
+      Begin VB.TextBox txtStats 
+         BackColor       =   &H00000000&
+         BorderStyle     =   0  'None
+         BeginProperty Font 
+            Name            =   "Consolas"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   400
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+         ForeColor       =   &H0000FF00&
+         Height          =   3195
+         Left            =   45
+         MultiLine       =   -1  'True
+         ScrollBars      =   2  'Vertical
+         TabIndex        =   78
+         Top             =   45
+         Visible         =   0   'False
+         Width           =   210
       End
       Begin VB.Label lblIPSettings 
          BackStyle       =   0  'Transparent
@@ -640,7 +829,7 @@ Begin VB.Form frmProgramTools
          Index           =   4
          Left            =   1005
          TabIndex        =   43
-         Top             =   2520
+         Top             =   2550
          Width           =   1020
       End
       Begin VB.Label lblIPSettings 
@@ -651,7 +840,7 @@ Begin VB.Form frmProgramTools
          Index           =   3
          Left            =   5565
          TabIndex        =   42
-         Top             =   2520
+         Top             =   2550
          Width           =   1320
       End
       Begin VB.Label lblIPSettings 
@@ -662,7 +851,7 @@ Begin VB.Form frmProgramTools
          Index           =   2
          Left            =   3690
          TabIndex        =   41
-         Top             =   2520
+         Top             =   2550
          Width           =   1395
       End
       Begin VB.Label lblIPSettings 
@@ -673,18 +862,18 @@ Begin VB.Form frmProgramTools
          Index           =   1
          Left            =   2085
          TabIndex        =   40
-         Top             =   2520
+         Top             =   2550
          Width           =   1200
       End
       Begin VB.Label lblIPSettings 
          BackStyle       =   0  'Transparent
          Caption         =   "Selected IP:"
          ForeColor       =   &H00FFFFFF&
-         Height          =   200
+         Height          =   195
          Index           =   0
          Left            =   90
          TabIndex        =   37
-         Top             =   2520
+         Top             =   2550
          Width           =   870
       End
    End
@@ -716,7 +905,7 @@ Begin VB.Form frmProgramTools
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
       Height          =   2880
-      Index           =   1
+      Index           =   10
       Left            =   120
       ScaleHeight     =   192
       ScaleMode       =   3  'Pixel
@@ -1383,18 +1572,18 @@ Begin VB.Form frmProgramTools
       End
    End
    Begin Project1.uButton uMenu 
-      Height          =   300
+      Height          =   360
       Index           =   1
-      Left            =   50
+      Left            =   45
       TabIndex        =   12
-      Top             =   50
+      Top             =   45
       Width           =   1260
       _ExtentX        =   2223
-      _ExtentY        =   529
+      _ExtentY        =   635
       BackgroundColor =   5786947
       ForeColor       =   16777215
       MouseOverBackgroundColor=   8421504
-      Caption         =   "Serial Monitor"
+      Caption         =   "Process Explorer"
       BorderAnimation =   0
       BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
          Name            =   "MS Sans Serif"
@@ -1464,7 +1653,7 @@ Begin VB.Form frmProgramTools
       _ExtentX        =   2223
       _ExtentY        =   503
       BackgroundColor =   5786947
-      ForeColor       =   16777215
+      ForeColor       =   5786947
       MouseOverBackgroundColor=   8421504
       Caption         =   "Microsoft Pen"
       BorderAnimation =   0
@@ -1482,7 +1671,7 @@ Begin VB.Form frmProgramTools
       Height          =   285
       Index           =   4
       Left            =   5325
-      TabIndex        =   68
+      TabIndex        =   67
       Top             =   45
       Width           =   705
       _ExtentX        =   1244
@@ -1505,7 +1694,7 @@ Begin VB.Form frmProgramTools
    Begin SHDocVwCtl.WebBrowser wb1 
       Height          =   2710
       Left            =   310
-      TabIndex        =   69
+      TabIndex        =   68
       Top             =   590
       Width           =   5710
       ExtentX         =   10072
@@ -1579,6 +1768,7 @@ Option Explicit
 'use the cls from this website: http://vb.mvps.org/samples/SysInfo/
 'the cls has a ton of functions to prevent standby, sleep, usb removal ect.
 
+Dim objWMIService As Object
 
 Dim PreventNext As Boolean
 Dim DataBuffer(0 To 3, 0 To 100) As Byte
@@ -1607,11 +1797,19 @@ End Type
 Dim networkStatusString() As String
 Private Const networkStatusSum As String = "Disconnected,Connecting,Connected,Disconnecting,Hardware Not Present,Hardware Disabled,Hardware Malfunction,Media Disconnected,Authenticating,Authentication Succeeded,Authentication Failed,Invalid address,Credentials Required,Other"
 
+Dim networkStatusColorBack() As Long
+Private Const networkStatusColorBackSum As String = "&H0,&H0080C0FF&,&H0080FF80&,&H0080C0FF&,&H008080FF&,&H00808080&,&H00FF80FF&,&H00FFFF80&,&hffffff,&hffffff,&hffffff,&H008080FF&,&hffffff,&hffffff"
+
+Dim networkStatusColorFore() As Long
+Private Const networkStatusColorforeSum As String = "&hffffff,&h0,&h0,&h0,&h0,&h0,&h0,&h0,&h0,&h0,&h0,&h0,&h0,&h0"
+
+
+
 Dim NetworkAdapters() As networkSettings
 
 
 Private Declare Function GetCursorPos Lib "user32" (lpPoint As POINTAPI) As Long
-Private Declare Function SetCursorPos Lib "user32" (ByVal X As Long, ByVal Y As Long) As Long
+Private Declare Function SetCursorPos Lib "user32" (ByVal x As Long, ByVal y As Long) As Long
 
 
 
@@ -1646,7 +1844,7 @@ Dim Scores() As Score
 
 
 
-Private Sub cmdConnect_Click(Button As Integer, X As Single, Y As Single)
+Private Sub cmdConnect_Click(Button As Integer, x As Single, y As Single)
     Dim i As Long
 
     If uMaster.Value = u_Checked Then
@@ -1685,7 +1883,7 @@ Private Sub cmdConnect_Click(Button As Integer, X As Single, Y As Single)
 
 End Sub
 
-Private Sub cmdRefreshScore_Click(Button As Integer, X As Single, Y As Single)
+Private Sub cmdRefreshScore_Click(Button As Integer, x As Single, y As Single)
 
     loadScores.Visible = True
     loadScores.Loading = True
@@ -1699,7 +1897,7 @@ Private Sub cmdRefreshScore_Click(Button As Integer, X As Single, Y As Single)
 
 End Sub
 
-Private Sub cmdSort_Click(Index As Integer, Button As Integer, X As Single, Y As Single)
+Private Sub cmdSort_Click(Index As Integer, Button As Integer, x As Single, y As Single)
     
     SortBy Index
 End Sub
@@ -1735,28 +1933,32 @@ Private Sub Form_Load()
         txtCom.Text = txtCom.Text & Fmat(Hex(i), 2) & " "
     Next i
     
-    For i = 0 To 1
-        lstIP(i).Font.Size = 6
-        lstIP(i).setTabStop 0, 3
-        lstIP(i).setTabStop 1, 100
-        lstIP(i).setTabStop 2, 200
-    Next i
+    lstIP(0).Font.Size = 6
+    lstIP(0).setTabStop 0, 3
+    lstIP(0).setTabStop 1, 100
+    lstIP(0).setTabStop 2, 200
+    lstIP(0).setTabStop 3, 300
+    lstIP(0).setTabStop 4, 400
+
+'    lstIP(0).AddItem "10.1.99." & vbTab & "255.255.255.0" & vbTab & ""
+'    lstIP(0).AddItem "10.1.0." & vbTab & "255.255.255.0" & vbTab & ""
+'    lstIP(0).AddItem "10.1.1." & vbTab & "255.255.255.0" & vbTab & ""
+'    lstIP(0).AddItem "10.1.2." & vbTab & "255.255.255.0" & vbTab & ""
+'    lstIP(0).AddItem "10.255.0." & vbTab & "255.255.255.248" & vbTab & ""
+'
+'    lstIP(1).AddItem "10.0.99." & vbTab & "255.255.255.0" & vbTab & ""
+'    lstIP(1).AddItem "10.0.0." & vbTab & "255.255.255.0" & vbTab & ""
+'    lstIP(1).AddItem "10.0.1." & vbTab & "255.255.255.0" & vbTab & ""
+'    lstIP(1).AddItem "10.0.2." & vbTab & "255.255.255.0" & vbTab & ""
+'    lstIP(1).AddItem "10.0.3." & vbTab & "255.255.255.0" & vbTab & ""
     
-    lstIP(0).AddItem "10.1.99." & vbTab & "255.255.255.0" & vbTab & ""
-    lstIP(0).AddItem "10.1.0." & vbTab & "255.255.255.0" & vbTab & ""
-    lstIP(0).AddItem "10.1.1." & vbTab & "255.255.255.0" & vbTab & ""
-    lstIP(0).AddItem "10.1.2." & vbTab & "255.255.255.0" & vbTab & ""
-    lstIP(0).AddItem "10.255.0." & vbTab & "255.255.255.248" & vbTab & ""
+    lstIP(0).AddItem "192.168.0.6" & vbTab & "255.255.255.0" & vbTab & "192.168.0.1" & vbTab & "8.8.8.8" & vbTab & "8.8.4.4"
+    lstIP(0).AddItem "192.168.0.22" & vbTab & "255.255.255.0" & vbTab & "192.168.0.1" & vbTab & "8.8.8.8" & vbTab & "8.8.4.4"
+    lstIP(0).AddItem "172.16.0.10" & vbTab & "255.255.255.0" & vbTab & "172.16.0.1" & vbTab & "8.8.8.8" & vbTab & "8.8.4.4"
     
-    lstIP(1).AddItem "10.0.99." & vbTab & "255.255.255.0" & vbTab & ""
-    lstIP(1).AddItem "10.0.0." & vbTab & "255.255.255.0" & vbTab & ""
-    lstIP(1).AddItem "10.0.1." & vbTab & "255.255.255.0" & vbTab & ""
-    lstIP(1).AddItem "10.0.2." & vbTab & "255.255.255.0" & vbTab & ""
-    lstIP(1).AddItem "10.0.3." & vbTab & "255.255.255.0" & vbTab & ""
-    
-    For i = 0 To 1
-        lstIP(i).ListIndex = 0
-    Next i
+    'For i = 0 To 1
+        lstIP(0).ListIndex = 0
+    'Next i
     
     lstAdapter.Font.Size = 6
 
@@ -1770,13 +1972,30 @@ Private Sub Form_Load()
     tmrTopMost.Enabled = True
 
     networkStatusString = Split(networkStatusSum, ",")
-
+    
+    Dim tmpstr() As String
+    tmpstr = Split(networkStatusColorforeSum, ",")
+    ReDim networkStatusColorFore(0 To UBound(tmpstr))
+    For i = 0 To UBound(tmpstr)
+        networkStatusColorFore(i) = Val(tmpstr(i))
+    Next i
+    
+    tmpstr = Split(networkStatusColorBackSum, ",")
+    ReDim networkStatusColorBack(0 To UBound(tmpstr))
+    For i = 0 To UBound(tmpstr)
+        networkStatusColorBack(i) = Val(tmpstr(i))
+    Next i
+    
+    
+    Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
+    
+    
     RefreshNetworkAdapters
 End Sub
 
 Sub PenButtonPress_Single()
     If uPenOption(0).Value = u_Checked Then    'program
-        ShellExecute Me.hwnd, "open", txtPenProgram(0).Text, "", "", vbNormalFocus
+        ShellExecute Me.hWnd, "open", txtPenProgram(0).Text, "", "", vbNormalFocus
     Else    'keypress
         VbSendKeys txtPenKeyStroke(0).Text
     End If
@@ -1785,7 +2004,7 @@ End Sub
 
 Sub PenButtonPress_Double()
     If uPenOption(0).Value = u_Checked Then    'program
-        ShellExecute Me.hwnd, "open", txtPenProgram(1).Text, "", "", vbNormalFocus
+        ShellExecute Me.hWnd, "open", txtPenProgram(1).Text, "", "", vbNormalFocus
     Else    'keypress
         VbSendKeys txtPenKeyStroke(1).Text
     End If
@@ -1799,7 +2018,7 @@ End Sub
 
 
 Sub RefreshNetworkAdapters()
-    Dim objWMIService, colNetAdapters, objNetAdapter
+    Dim colNetAdapters, objNetAdapter
     Dim i As Long
     
     Static Refreshing As Boolean
@@ -1808,7 +2027,6 @@ Sub RefreshNetworkAdapters()
     Refreshing = True
     
 
-    Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
     Set colNetAdapters = objWMIService.ExecQuery _
                          ("Select * from Win32_NetworkAdapterConfiguration ")  '& "where IPEnabled=TRUE"
 
@@ -1878,7 +2096,7 @@ Sub RefreshNetworkAdapters()
 
         'End If
 
-        lstAdapter.AddItem i & vbTab & NetworkAdapters(i).nDescription & vbTab & networkStatusString(NetworkAdapters(i).nStatus), i, , IIf(NetworkAdapters(i).nEnabled, &HC0FFC0, &HC0C0FF)
+        lstAdapter.AddItem i & vbTab & NetworkAdapters(i).nDescription & vbTab & networkStatusString(NetworkAdapters(i).nStatus), i, , networkStatusColorBack(NetworkAdapters(i).nStatus), networkStatusColorFore(NetworkAdapters(i).nStatus)
         DoEvents
     Next
 
@@ -1911,84 +2129,172 @@ Sub RefreshNetworkAdapters()
 End Sub
 
 Function textstst(objItem As Variant) As String
-    Dim tmpStr As String
-    tmpStr = ""
+    Dim tmpstr As String
+    tmpstr = ""
+    
+    tmpstr = tmpstr & "Description                 : " & vbTab & objItem.Description & vbCrLf
+    tmpstr = tmpstr & "IPAddress                   : " & vbTab & GetMultiString_FromArray(objItem.IPAddress, ", ") & vbCrLf
+    tmpstr = tmpstr & "IPSubnet                    : " & vbTab & GetMultiString_FromArray(objItem.IPSubnet, ", ") & vbCrLf
+    tmpstr = tmpstr & "DefaultIPGateway            : " & vbTab & GetMultiString_FromArray(objItem.DefaultIPGateway, ", ") & vbCrLf & vbCrLf
+    tmpstr = tmpstr & "DNSServerSearchOrder        : " & vbTab & GetMultiString_FromArray(objItem.DNSServerSearchOrder, ", ") & vbCrLf & vbCrLf & vbCrLf
+    
+    
+    tmpstr = tmpstr & "ArpAlwaysSourceRoute        : " & vbTab & objItem.ArpAlwaysSourceRoute & vbCrLf
+    tmpstr = tmpstr & "ArpUseEtherSNAP             : " & vbTab & objItem.ArpUseEtherSNAP & vbCrLf
+    tmpstr = tmpstr & "DHCPEnabled                 : " & vbTab & objItem.DHCPEnabled & vbCrLf
+    tmpstr = tmpstr & "DHCPLeaseExpires            : " & vbTab & objItem.DHCPLeaseExpires & vbCrLf
+    tmpstr = tmpstr & "DHCPLeaseObtained           : " & vbTab & objItem.DHCPLeaseObtained & vbCrLf
+    tmpstr = tmpstr & "DHCPServer                  : " & vbTab & objItem.DHCPServer & vbCrLf
+    tmpstr = tmpstr & "DNSDomain                   : " & vbTab & objItem.DNSDomain & vbCrLf
+    tmpstr = tmpstr & "DNSDomainSuffixSearchOrder  : " & vbTab & GetMultiString_FromArray(objItem.DNSDomainSuffixSearchOrder, ", ") & vbCrLf
+    
+    tmpstr = tmpstr & "DNSEnabledForWINSResolution : " & vbTab & objItem.DNSEnabledForWINSResolution & vbCrLf
+    tmpstr = tmpstr & "DNSHostName                 : " & vbTab & objItem.DNSHostName & vbCrLf
+    
+    tmpstr = tmpstr & "DatabasePath                : " & vbTab & objItem.DatabasePath & vbCrLf
+    tmpstr = tmpstr & "DeadGWDetectEnabled         : " & vbTab & objItem.DeadGWDetectEnabled & vbCrLf
+    
+    tmpstr = tmpstr & "DefaultTOS                  : " & vbTab & objItem.DefaultTOS & vbCrLf
+    tmpstr = tmpstr & "DefaultTTL                  : " & vbTab & objItem.DefaultTTL & vbCrLf
+    
+    tmpstr = tmpstr & "DomainDNSRegistrationEnabled: " & vbTab & objItem.DomainDNSRegistrationEnabled & vbCrLf
+    tmpstr = tmpstr & "ForwardBufferMemory         : " & vbTab & objItem.ForwardBufferMemory & vbCrLf
+    tmpstr = tmpstr & "FullDNSRegistrationEnabled  : " & vbTab & objItem.FullDNSRegistrationEnabled & vbCrLf
+    tmpstr = tmpstr & "GatewayCostMetric           : " & vbTab & GetMultiString_FromArray(objItem.GatewayCostMetric, ", ") & vbCrLf
+    tmpstr = tmpstr & "IGMPLevel                   : " & vbTab & objItem.IGMPLevel & vbCrLf
+    
+    tmpstr = tmpstr & "IPConnectionMetric          : " & vbTab & objItem.IPConnectionMetric & vbCrLf
+    tmpstr = tmpstr & "IPEnabled                   : " & vbTab & objItem.IPEnabled & vbCrLf
+    tmpstr = tmpstr & "IPFilterSecurityEnabled     : " & vbTab & objItem.IPFilterSecurityEnabled & vbCrLf
+    tmpstr = tmpstr & "IPPortSecurityEnabled       : " & vbTab & objItem.IPPortSecurityEnabled & vbCrLf
+    tmpstr = tmpstr & "IPSecPermitIPProtocols      : " & vbTab & GetMultiString_FromArray(objItem.IPSecPermitIPProtocols, ", ") & vbCrLf
+    tmpstr = tmpstr & "IPSecPermitTCPPorts         : " & vbTab & GetMultiString_FromArray(objItem.IPSecPermitTCPPorts, ", ") & vbCrLf
+    tmpstr = tmpstr & "IPSecPermitUDPPorts         : " & vbTab & GetMultiString_FromArray(objItem.IPSecPermitUDPPorts, ", ") & vbCrLf
+    
+    tmpstr = tmpstr & "IPUseZeroBroadcast          : " & vbTab & objItem.IPUseZeroBroadcast & vbCrLf
+    tmpstr = tmpstr & "IPXAddress                  : " & vbTab & objItem.IPXAddress & vbCrLf
+    tmpstr = tmpstr & "IPXEnabled                  : " & vbTab & objItem.IPXEnabled & vbCrLf
+    tmpstr = tmpstr & "IPXFrameType                : " & vbTab & GetMultiString_FromArray(objItem.IPXFrameType, ", ") & vbCrLf
+    tmpstr = tmpstr & "IPXNetworkNumber            : " & vbTab & GetMultiString_FromArray(objItem.IPXNetworkNumber, ", ") & vbCrLf
+    tmpstr = tmpstr & "IPXVirtualNetNumber         : " & vbTab & objItem.IPXVirtualNetNumber & vbCrLf
+    tmpstr = tmpstr & "Index                       : " & vbTab & objItem.Index & vbCrLf
+    tmpstr = tmpstr & "KeepAliveInterval           : " & vbTab & objItem.KeepAliveInterval & vbCrLf
+    tmpstr = tmpstr & "KeepAliveTime               : " & vbTab & objItem.KeepAliveTime & vbCrLf
+    tmpstr = tmpstr & "MACAddress                  : " & vbTab & objItem.MACAddress & vbCrLf
+    tmpstr = tmpstr & "MTU                         : " & vbTab & objItem.MTU & vbCrLf
+    tmpstr = tmpstr & "NumForwardPackets           : " & vbTab & objItem.NumForwardPackets & vbCrLf
+    tmpstr = tmpstr & "PMTUBHDetectEnabled         : " & vbTab & objItem.PMTUBHDetectEnabled & vbCrLf
+    tmpstr = tmpstr & "PMTUDiscoveryEnabled        : " & vbTab & objItem.PMTUDiscoveryEnabled & vbCrLf
+    tmpstr = tmpstr & "ServiceName                 : " & vbTab & objItem.ServiceName & vbCrLf
+    tmpstr = tmpstr & "SettingID                   : " & vbTab & objItem.SettingID & vbCrLf
+    tmpstr = tmpstr & "TcpMaxConnectRetransmissions: " & vbTab & objItem.TcpMaxConnectRetransmissions & vbCrLf
+    tmpstr = tmpstr & "TcpMaxDataRetransmissions   : " & vbTab & objItem.TcpMaxDataRetransmissions & vbCrLf
+    tmpstr = tmpstr & "TcpNumConnections           : " & vbTab & objItem.TcpNumConnections & vbCrLf
+    tmpstr = tmpstr & "TcpUseRFC1122UrgentPointer  : " & vbTab & objItem.TcpUseRFC1122UrgentPointer & vbCrLf
+    tmpstr = tmpstr & "TcpWindowSize               : " & vbTab & objItem.TcpWindowSize & vbCrLf
+    tmpstr = tmpstr & "TcpipNetbiosOptions         : " & vbTab & objItem.TcpipNetbiosOptions & vbCrLf
+    tmpstr = tmpstr & "WINSEnableLMHostsLookup     : " & vbTab & objItem.WINSEnableLMHostsLookup & vbCrLf
+    tmpstr = tmpstr & "WINSHostLookupFile          : " & vbTab & objItem.WINSHostLookupFile & vbCrLf
+    tmpstr = tmpstr & "WINSPrimaryServer           : " & vbTab & objItem.WINSPrimaryServer & vbCrLf
+    tmpstr = tmpstr & "WINSScopeID                 : " & vbTab & objItem.WINSScopeID & vbCrLf
+    tmpstr = tmpstr & "WINSSecondaryServer         : " & vbTab & objItem.WINSSecondaryServer & vbCrLf
 
-    tmpStr = tmpStr & "IPAddress                   : " & vbTab & CStr(objItem.IPAddress(0)) & vbCrLf
     'tmpstr = tmpstr & "NetEnabled                  : " & vbTab &  & vbCrLf
-    tmpStr = tmpStr & "MACAddress                  : " & vbTab & objItem.MACAddress & vbCrLf
-    tmpStr = tmpStr & "Description                 : " & vbTab & objItem.Description & vbCrLf
-    tmpStr = tmpStr & "DHCPEnabled                 : " & vbTab & objItem.DHCPEnabled & vbCrLf
+'    tmpstr = tmpstr & "MACAddress                  : " & vbTab & objItem.MACAddress & vbCrLf
+'    tmpstr = tmpstr & "Description                 : " & vbTab & objItem.Description & vbCrLf
+'    tmpstr = tmpstr & "DHCPEnabled                 : " & vbTab & objItem.DHCPEnabled & vbCrLf
+'
+'    tmpstr = tmpstr & "IPConnectionMetric          : " & vbTab & objItem.IPConnectionMetric & vbCrLf
+'    tmpstr = tmpstr & "DHCPLeaseExpires            : " & vbTab & objItem.DHCPLeaseExpires & vbCrLf
+'    tmpstr = tmpstr & "DHCPLeaseObtained           : " & vbTab & objItem.DHCPLeaseObtained & vbCrLf
+'    tmpstr = tmpstr & "DHCPServer                  : " & vbTab & objItem.DHCPServer & vbCrLf
+'    tmpstr = tmpstr & "DNSDomain                   : " & vbTab & objItem.DNSDomain & vbCrLf
+'    tmpstr = tmpstr & "IPEnabled                   : " & vbTab & objItem.IPEnabled & vbCrLf
+'    tmpstr = tmpstr & "IPFilterSecurityEnabled     : " & vbTab & objItem.IPFilterSecurityEnabled & vbCrLf
+'    tmpstr = tmpstr & "IPPortSecurityEnabled       : " & vbTab & objItem.IPPortSecurityEnabled & vbCrLf
+'
+'
+'    tmpstr = tmpstr & "GatewayCostMetric           : " & vbTab & GetMultiString_FromArray(objItem.GatewayCostMetric, ", ") & vbCrLf
+'    tmpstr = tmpstr & "IPSecPermitIPProtocols      : " & vbTab & GetMultiString_FromArray(objItem.IPSecPermitIPProtocols, ", ") & vbCrLf
+'    tmpstr = tmpstr & "IPSecPermitTCPPorts         : " & vbTab & GetMultiString_FromArray(objItem.IPSecPermitTCPPorts, ", ") & vbCrLf
+'    tmpstr = tmpstr & "IPSecPermitUDPPorts         : " & vbTab & GetMultiString_FromArray(objItem.IPSecPermitUDPPorts, ", ") & vbCrLf
+'    tmpstr = tmpstr & "IPXFrameType                : " & vbTab & GetMultiString_FromArray(objItem.IPXFrameType, ", ") & vbCrLf
+'    tmpstr = tmpstr & "IPXNetworkNumber            : " & vbTab & GetMultiString_FromArray(objItem.IPXNetworkNumber, ", ") & vbCrLf
+'
+'    tmpstr = tmpstr & "DefaultIPGateway            : " & vbTab & GetMultiString_FromArray(objItem.DefaultIPGateway, ", ") & vbCrLf
+'    tmpstr = tmpstr & "IPAddress                   : " & vbTab & GetMultiString_FromArray(objItem.IPAddress, ", ") & vbCrLf
+'    tmpstr = tmpstr & "IPSubnet                    : " & vbTab & GetMultiString_FromArray(objItem.IPSubnet, ", ") & vbCrLf
+'
+'
+'    tmpstr = tmpstr & "DNSDomainSuffixSearchOrder  : " & vbTab & GetMultiString_FromArray(objItem.DNSDomainSuffixSearchOrder, ", ") & vbCrLf
+'    tmpstr = tmpstr & "DNSServerSearchOrder        : " & vbTab & GetMultiString_FromArray(objItem.DNSServerSearchOrder, ", ") & vbCrLf
+'    tmpstr = tmpstr & "DNSEnabledForWINSResolution : " & vbTab & objItem.DNSEnabledForWINSResolution & vbCrLf
+'    tmpstr = tmpstr & "DNSHostName                 : " & vbTab & objItem.DNSHostName & vbCrLf
+'
+'    tmpstr = tmpstr & "DomainDNSRegistrationEnabled: " & vbTab & objItem.DomainDNSRegistrationEnabled & vbCrLf
+'    tmpstr = tmpstr & "ForwardBufferMemory         : " & vbTab & objItem.ForwardBufferMemory & vbCrLf
+'    tmpstr = tmpstr & "FullDNSRegistrationEnabled  : " & vbTab & objItem.FullDNSRegistrationEnabled & vbCrLf
+'
+'
+'    tmpstr = tmpstr & "IGMPLevel                   : " & vbTab & objItem.IGMPLevel & vbCrLf
+'    tmpstr = tmpstr & "Index                       : " & vbTab & objItem.Index & vbCrLf
+'
+'
+'    tmpstr = tmpstr & "IPUseZeroBroadcast          : " & vbTab & objItem.IPUseZeroBroadcast & vbCrLf
+'    tmpstr = tmpstr & "IPXAddress                  : " & vbTab & objItem.IPXAddress & vbCrLf
+'    tmpstr = tmpstr & "IPXEnabled                  : " & vbTab & objItem.IPXEnabled & vbCrLf
+'
+'    tmpstr = tmpstr & "IPXVirtualNetNumber         : " & vbTab & objItem.IPXVirtualNetNumber & vbCrLf
+'    tmpstr = tmpstr & "KeepAliveInterval           : " & vbTab & objItem.KeepAliveInterval & vbCrLf
+'
+'    tmpstr = tmpstr & "KeepAliveTime               : " & vbTab & objItem.KeepAliveTime & vbCrLf
+'    tmpstr = tmpstr & "MTU                         : " & vbTab & objItem.MTU & vbCrLf
+'    tmpstr = tmpstr & "NumForwardPackets           : " & vbTab & objItem.NumForwardPackets & vbCrLf
+'    tmpstr = tmpstr & "PMTUBHDetectEnabled         : " & vbTab & objItem.PMTUBHDetectEnabled & vbCrLf
+'    tmpstr = tmpstr & "PMTUDiscoveryEnabled        : " & vbTab & objItem.PMTUDiscoveryEnabled & vbCrLf
+'    tmpstr = tmpstr & "ServiceName                 : " & vbTab & objItem.ServiceName & vbCrLf
+'    tmpstr = tmpstr & "SettingID                   : " & vbTab & objItem.SettingID & vbCrLf
+'    tmpstr = tmpstr & "TcpipNetbiosOptions         : " & vbTab & objItem.TcpipNetbiosOptions & vbCrLf
+'    tmpstr = tmpstr & "TcpMaxConnectRetransmissions: " & vbTab & objItem.TcpMaxConnectRetransmissions & vbCrLf
+'    tmpstr = tmpstr & "TcpMaxDataRetransmissions   : " & vbTab & objItem.TcpMaxDataRetransmissions & vbCrLf
+'    tmpstr = tmpstr & "TcpNumConnections           : " & vbTab & objItem.TcpNumConnections & vbCrLf
+'    tmpstr = tmpstr & "TcpUseRFC1122UrgentPointer  : " & vbTab & objItem.TcpUseRFC1122UrgentPointer & vbCrLf
+'    tmpstr = tmpstr & "TcpWindowSize               : " & vbTab & objItem.TcpWindowSize & vbCrLf
+'    tmpstr = tmpstr & "WINSEnableLMHostsLookup     : " & vbTab & objItem.WINSEnableLMHostsLookup & vbCrLf
+'    tmpstr = tmpstr & "WINSHostLookupFile          : " & vbTab & objItem.WINSHostLookupFile & vbCrLf
+'    tmpstr = tmpstr & "WINSPrimaryServer           : " & vbTab & objItem.WINSPrimaryServer & vbCrLf
+'    tmpstr = tmpstr & "WINSScopeID                 : " & vbTab & objItem.WINSScopeID & vbCrLf
+'    tmpstr = tmpstr & "WINSSecondaryServer         : " & vbTab & objItem.WINSSecondaryServer & vbCrLf
+'    tmpstr = tmpstr & "ArpAlwaysSourceRoute        : " & vbTab & objItem.ArpAlwaysSourceRoute & vbCrLf
+'    tmpstr = tmpstr & "ArpUseEtherSNAP             : " & vbTab & objItem.ArpUseEtherSNAP & vbCrLf
+'    tmpstr = tmpstr & "DatabasePath                : " & vbTab & objItem.DatabasePath & vbCrLf
+'    tmpstr = tmpstr & "DeadGWDetectEnabled         : " & vbTab & objItem.DeadGWDetectEnabled & vbCrLf
+'
+'    tmpstr = tmpstr & "DefaultTOS                  : " & vbTab & objItem.DefaultTOS & vbCrLf
+'    tmpstr = tmpstr & "DefaultTTL                  : " & vbTab & objItem.DefaultTTL & vbCrLf
+    tmpstr = tmpstr & vbCrLf & vbCrLf
 
-    tmpStr = tmpStr & "IPConnectionMetric          : " & vbTab & objItem.IPConnectionMetric & vbCrLf
-    tmpStr = tmpStr & "DHCPLeaseExpires            : " & vbTab & objItem.DHCPLeaseExpires & vbCrLf
-    tmpStr = tmpStr & "DHCPLeaseObtained           : " & vbTab & objItem.DHCPLeaseObtained & vbCrLf
-    tmpStr = tmpStr & "DHCPServer                  : " & vbTab & objItem.DHCPServer & vbCrLf
-    tmpStr = tmpStr & "DNSDomain                   : " & vbTab & objItem.DNSDomain & vbCrLf
-    tmpStr = tmpStr & "IPEnabled                   : " & vbTab & objItem.IPEnabled & vbCrLf
-    tmpStr = tmpStr & "IPFilterSecurityEnabled     : " & vbTab & objItem.IPFilterSecurityEnabled & vbCrLf
-    tmpStr = tmpStr & "IPPortSecurityEnabled       : " & vbTab & objItem.IPPortSecurityEnabled & vbCrLf
 
-
-    tmpStr = tmpStr & "DNSEnabledForWINSResolution : " & vbTab & objItem.DNSEnabledForWINSResolution & vbCrLf
-    tmpStr = tmpStr & "DNSHostName                 : " & vbTab & objItem.DNSHostName & vbCrLf
-
-
-    'If CBool(objItem.IPEnabled) = True Then objItem.DisableIPSec
-
-    tmpStr = tmpStr & "DomainDNSRegistrationEnabled: " & vbTab & objItem.DomainDNSRegistrationEnabled & vbCrLf
-    tmpStr = tmpStr & "ForwardBufferMemory         : " & vbTab & objItem.ForwardBufferMemory & vbCrLf
-    tmpStr = tmpStr & "FullDNSRegistrationEnabled  : " & vbTab & objItem.FullDNSRegistrationEnabled & vbCrLf
-
-
-    tmpStr = tmpStr & "IGMPLevel                   : " & vbTab & objItem.IGMPLevel & vbCrLf
-    tmpStr = tmpStr & "Index                       : " & vbTab & objItem.Index & vbCrLf
-
-
-    tmpStr = tmpStr & "IPUseZeroBroadcast          : " & vbTab & objItem.IPUseZeroBroadcast & vbCrLf
-    tmpStr = tmpStr & "IPXAddress                  : " & vbTab & objItem.IPXAddress & vbCrLf
-    tmpStr = tmpStr & "IPXEnabled                  : " & vbTab & objItem.IPXEnabled & vbCrLf
-
-    tmpStr = tmpStr & "IPXVirtualNetNumber         : " & vbTab & objItem.IPXVirtualNetNumber & vbCrLf
-    tmpStr = tmpStr & "KeepAliveInterval           : " & vbTab & objItem.KeepAliveInterval & vbCrLf
-
-    tmpStr = tmpStr & "KeepAliveTime               : " & vbTab & objItem.KeepAliveTime & vbCrLf
-    tmpStr = tmpStr & "MTU                         : " & vbTab & objItem.MTU & vbCrLf
-    tmpStr = tmpStr & "NumForwardPackets           : " & vbTab & objItem.NumForwardPackets & vbCrLf
-    tmpStr = tmpStr & "PMTUBHDetectEnabled         : " & vbTab & objItem.PMTUBHDetectEnabled & vbCrLf
-    tmpStr = tmpStr & "PMTUDiscoveryEnabled        : " & vbTab & objItem.PMTUDiscoveryEnabled & vbCrLf
-    tmpStr = tmpStr & "ServiceName                 : " & vbTab & objItem.ServiceName & vbCrLf
-    tmpStr = tmpStr & "SettingID                   : " & vbTab & objItem.SettingID & vbCrLf
-    tmpStr = tmpStr & "TcpipNetbiosOptions         : " & vbTab & objItem.TcpipNetbiosOptions & vbCrLf
-    tmpStr = tmpStr & "TcpMaxConnectRetransmissions: " & vbTab & objItem.TcpMaxConnectRetransmissions & vbCrLf
-    tmpStr = tmpStr & "TcpMaxDataRetransmissions   : " & vbTab & objItem.TcpMaxDataRetransmissions & vbCrLf
-    tmpStr = tmpStr & "TcpNumConnections           : " & vbTab & objItem.TcpNumConnections & vbCrLf
-    tmpStr = tmpStr & "TcpUseRFC1122UrgentPointer  : " & vbTab & objItem.TcpUseRFC1122UrgentPointer & vbCrLf
-    tmpStr = tmpStr & "TcpWindowSize               : " & vbTab & objItem.TcpWindowSize & vbCrLf
-    tmpStr = tmpStr & "WINSEnableLMHostsLookup     : " & vbTab & objItem.WINSEnableLMHostsLookup & vbCrLf
-    tmpStr = tmpStr & "WINSHostLookupFile          : " & vbTab & objItem.WINSHostLookupFile & vbCrLf
-    tmpStr = tmpStr & "WINSPrimaryServer           : " & vbTab & objItem.WINSPrimaryServer & vbCrLf
-    tmpStr = tmpStr & "WINSScopeID                 : " & vbTab & objItem.WINSScopeID & vbCrLf
-    tmpStr = tmpStr & "WINSSecondaryServer         : " & vbTab & objItem.WINSSecondaryServer & vbCrLf
-    tmpStr = tmpStr & "ArpAlwaysSourceRoute        : " & vbTab & objItem.ArpAlwaysSourceRoute & vbCrLf
-    tmpStr = tmpStr & "ArpUseEtherSNAP             : " & vbTab & objItem.ArpUseEtherSNAP & vbCrLf
-    tmpStr = tmpStr & "DatabasePath                : " & vbTab & objItem.DatabasePath & vbCrLf
-    tmpStr = tmpStr & "DeadGWDetectEnabled         : " & vbTab & objItem.DeadGWDetectEnabled & vbCrLf
-
-    tmpStr = tmpStr & "DefaultTOS                  : " & vbTab & objItem.DefaultTOS & vbCrLf
-    tmpStr = tmpStr & "DefaultTTL                  : " & vbTab & objItem.DefaultTTL & vbCrLf
-    tmpStr = tmpStr & vbCrLf & vbCrLf
-
-
-    textstst = tmpStr
+    textstst = tmpstr
 
 End Function
 
+
+Function GetMultiString_FromArray(ArrayString, Seprator)
+    Dim StrMultiArray
+    If IsNull(ArrayString) Then
+        StrMultiArray = ArrayString
+    Else
+        StrMultiArray = Join(ArrayString, Seprator)
+    End If
+    GetMultiString_FromArray = StrMultiArray
+End Function
+
+
 Sub setNetworkCardState(EnableCard As Boolean)
-    Dim objWMIService, colNetAdapters, objNetAdapter
+    Dim colNetAdapters, objNetAdapter
     Dim strIPAddress, strSubnetMask, strGateway, strGatewaymetric
     Dim errEnable, errGateways
-    Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
     Dim i As Long
 
     i = lstAdapter.ListIndex
@@ -1996,10 +2302,9 @@ Sub setNetworkCardState(EnableCard As Boolean)
 
     i = lstAdapter.ItemData(i)
 
-    Set colNetAdapters = objWMIService.ExecQuery _
-                         ("Select * from Win32_NetworkAdapter " & "where Index=" & i)
+    Set colNetAdapters = objWMIService.ExecQuery("Select * from Win32_NetworkAdapter " & "where Index=" & i)
 
-
+    
 
     For Each objNetAdapter In colNetAdapters
         If EnableCard Then
@@ -2011,39 +2316,21 @@ Sub setNetworkCardState(EnableCard As Boolean)
 
 End Sub
 
-Sub SetSelectedIp(Automatic As Boolean)
-    Dim objWMIService, colNetAdapters, objNetAdapter
+
+
+Sub ToggleNetworkType(Automatic As Boolean)
+    Dim colNetAdapters, objNetAdapter
     Dim strIPAddress, strSubnetMask, strGateway, strGatewaymetric
     Dim errEnable, errGateways
-    Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
 
     If Automatic = False And lstAdapter.ListIndex = -1 Then Exit Sub
 
-    If Automatic = False And (txtSetIP(0).Text = "" Or txtSetIP(1).Text = "") Then Exit Sub
-
-
-    Set colNetAdapters = objWMIService.ExecQuery _
-                         ("Select * from Win32_NetworkAdapterConfiguration " & "where Index=" & lstAdapter.ItemData(lstAdapter.ListIndex))
 
     If Automatic = False Then
-
-
-        strIPAddress = Array(txtSetIP(0).Text)
-        strSubnetMask = Array(txtSetIP(1).Text)
-        If txtSetIP(2).Text = "" Then
-            strGateway = Array(txtSetIP(0).Text)
-        Else
-            strGateway = Array(txtSetIP(2).Text)
-        End If
-
-        strGatewaymetric = Array(1)
-
-        For Each objNetAdapter In colNetAdapters
-            errEnable = objNetAdapter.EnableStatic(strIPAddress, strSubnetMask)
-            errGateways = objNetAdapter.SetGateways(strGateway, strGatewaymetric)
-        Next
+        SetStaticIp
     Else
 
+        Set colNetAdapters = objWMIService.ExecQuery("Select * from Win32_NetworkAdapterConfiguration " & "where Index=" & lstAdapter.ItemData(lstAdapter.ListIndex))
         For Each objNetAdapter In colNetAdapters
             objNetAdapter.EnableDHCP
         Next
@@ -2121,16 +2408,17 @@ Sub Form_Resize()
 
 
     LineBorder(4).X1 = 1
-    LineBorder(4).Y1 = uMenu(1).Height + uMenu(1).Top - 1
+    LineBorder(4).Y1 = 23 + uMenu(1).Top - 1
     LineBorder(4).X2 = Me.ScaleWidth - 1
-    LineBorder(4).Y2 = uMenu(1).Height + uMenu(1).Top - 1
+    LineBorder(4).Y2 = 23 + uMenu(1).Top - 1
 
 
     For i = 0 To picTab.Count - 1
+        On Error Resume Next
         picTab(i).Left = 2
         picTab(i).Width = Me.ScaleWidth - 4
-        picTab(i).Top = (uMenu(1).Height + uMenu(1).Top)
-        picTab(i).Height = Me.ScaleHeight - 3 - (uMenu(1).Height - 1 + uMenu(1).Top)
+        picTab(i).Top = (23 + uMenu(1).Top)
+        picTab(i).Height = Me.ScaleHeight - 3 - (23 + uMenu(1).Top)
     Next i
     
     loadScores.Left = 0
@@ -2159,11 +2447,13 @@ Private Sub lstIP_ItemChange(Index As Integer, ItemIndex As Long)
 
     Dim tmpSplit() As String
     tmpSplit = Split(lstIP(Index).List(ItemIndex), vbTab)
-
-    txtSetIP(0).Text = tmpSplit(0)
-    txtSetIP(1).Text = tmpSplit(1)
-    txtSetIP(2).Text = tmpSplit(2)
-
+    
+    Dim i As Long
+    
+    For i = 0 To UBound(tmpSplit)
+        txtSetIP(i).Text = tmpSplit(i)
+    Next i
+    
 End Sub
 
 Private Sub scrollScores_Change()
@@ -2200,12 +2490,12 @@ Private Sub socket_DataArrival(Index As Integer, ByVal bytesTotal As Long)
 
         Select Case Index
             Case 0
-                m_CursorPos.X = m_CursorPos.X + (bytes(i) - 128)
-                SetCursorPos m_CursorPos.X, m_CursorPos.Y
+                m_CursorPos.x = m_CursorPos.x + (bytes(i) - 128)
+                SetCursorPos m_CursorPos.x, m_CursorPos.y
 
             Case 1
-                m_CursorPos.Y = m_CursorPos.Y + (bytes(i) - 128)
-                SetCursorPos m_CursorPos.X, m_CursorPos.Y
+                m_CursorPos.y = m_CursorPos.y + (bytes(i) - 128)
+                SetCursorPos m_CursorPos.x, m_CursorPos.y
 
             Case 2
                 'to build yet
@@ -2290,11 +2580,11 @@ Private Sub tmrMouse_Timer()
     If WhatIndex = 0 Then
         WhatIndex = 1
 
-        SetCursorPos CenterX, m_CursorPos.Y
+        SetCursorPos CenterX, m_CursorPos.y
 
         If MouseInit Then
-            Xaxis = (m_CursorPos.X - PrevMouse.X) + 128
-            PrevMouse.X = CenterX
+            Xaxis = (m_CursorPos.x - PrevMouse.x) + 128
+            PrevMouse.x = CenterX
 
             If Xaxis < 0 Then Xaxis = 0
             If Xaxis > 255 Then Xaxis = 255
@@ -2306,17 +2596,17 @@ Private Sub tmrMouse_Timer()
             End If
 
         Else
-            PrevMouse.X = m_CursorPos.X
+            PrevMouse.x = m_CursorPos.x
             MouseInit = True
         End If
     ElseIf WhatIndex = 1 Then
         WhatIndex = 0
 
-        SetCursorPos m_CursorPos.X, CenterY
+        SetCursorPos m_CursorPos.x, CenterY
 
         If MouseInit Then
-            Yaxis = (m_CursorPos.Y - PrevMouse.Y) + 128
-            PrevMouse.Y = CenterY
+            Yaxis = (m_CursorPos.y - PrevMouse.y) + 128
+            PrevMouse.y = CenterY
 
             If Yaxis < 0 Then Yaxis = 0
             If Yaxis > 255 Then Yaxis = 255
@@ -2327,7 +2617,7 @@ Private Sub tmrMouse_Timer()
                 socket(1).SendData Chr(Yaxis)
             End If
         Else
-            PrevMouse.Y = m_CursorPos.Y
+            PrevMouse.y = m_CursorPos.y
             MouseInit = True
         End If
     End If
@@ -2411,7 +2701,7 @@ End Sub
 
 Sub tmrTopMost_Timer()
     If Me.Visible Then
-        SetTopMostWindow Me.hwnd, True
+        SetTopMostWindow Me.hWnd, True
         tmrTopMost.Enabled = False
     End If
 End Sub
@@ -2462,21 +2752,26 @@ Private Sub txtPingResult_Click()
     txtPingResult.Visible = False
 End Sub
 
-Private Sub uChangeIP_Click(Button As Integer, X As Single, Y As Single)
+Private Sub uChangeIP_Click(Button As Integer, x As Single, y As Single)
     Dim i As Long
     i = lstAdapter.ListIndex
     If i = -1 Then Exit Sub
 
-    SetSelectedIp Not NetworkAdapters(lstAdapter.ItemData(i)).nDHCP
+    ToggleNetworkType Not NetworkAdapters(lstAdapter.ItemData(i)).nDHCP
 
     RefreshNetworkAdapters
 End Sub
 
-Private Sub uClose_Click(Button As Integer, X As Single, Y As Single)
+Private Sub uClose_Click(Button As Integer, x As Single, y As Single)
     Me.Hide
 End Sub
 
-Private Sub uEnableDisable_Click(Index As Integer, Button As Integer, X As Single, Y As Single)
+Private Sub uCloseStats_Click(Button As Integer, x As Single, y As Single)
+    txtStats.Visible = False
+    uCloseStats.Visible = False
+End Sub
+
+Private Sub uEnableDisable_Click(Index As Integer, Button As Integer, x As Single, y As Single)
     Dim i As Long
     i = lstAdapter.ListIndex
     If i = -1 Then Exit Sub
@@ -2486,7 +2781,7 @@ Private Sub uEnableDisable_Click(Index As Integer, Button As Integer, X As Singl
     RefreshNetworkAdapters
 End Sub
 
-Private Sub uMenu_Click(Index As Integer, Button As Integer, X As Single, Y As Single)
+Private Sub uMenu_Click(Index As Integer, Button As Integer, x As Single, y As Single)
     Dim i As Long
 
 
@@ -2543,7 +2838,7 @@ Private Sub uMaster_ActivateNextState(u_Cancel As Boolean, u_NewState As uCheckb
 End Sub
 
 
-Private Sub uPing_Click(Button As Integer, X As Single, Y As Single)
+Private Sub uPing_Click(Button As Integer, x As Single, y As Single)
     Dim Reply As ICMP_ECHO_REPLY
     Dim lngSuccess As Long
     Dim strIPAddress As String
@@ -2582,8 +2877,119 @@ cleanupshit:
     DoEvents
 End Sub
 
-Private Sub uRefreshIp_Click(Button As Integer, X As Single, Y As Single)
+Private Sub uRefreshIp_Click(Button As Integer, x As Single, y As Single)
     RefreshNetworkAdapters
+End Sub
+
+Private Sub uRefreshProcess_Click(Button As Integer, x As Single, y As Single)
+    uProcess.Clear
+    
+    
+End Sub
+
+Private Sub uRenew_Click(Button As Integer, x As Single, y As Single)
+    Dim colNetAdapters, objNetAdapter
+    Dim strIPAddress, strSubnetMask, strGateway, strGatewaymetric
+    Dim errEnable, errGateways
+    Dim i As Long
+
+    i = lstAdapter.ListIndex
+    If i = -1 Then Exit Sub
+
+    i = lstAdapter.ItemData(i)
+
+    Set colNetAdapters = objWMIService.ExecQuery("Select * from Win32_NetworkAdapterConfiguration " & "where Index=" & i)
+
+    For Each objNetAdapter In colNetAdapters
+        objNetAdapter.ReleaseDHCPLease
+        DoEvents
+        objNetAdapter.RenewDHCPLease
+    Next
+End Sub
+
+Sub setNetworkDNS()
+    Dim colNetAdapters, objNetAdapter
+    Dim strDNS
+    Dim errDNS, errGateways
+
+    If lstAdapter.ListIndex = -1 Then Exit Sub
+
+    Set colNetAdapters = objWMIService.ExecQuery _
+                         ("Select * from Win32_NetworkAdapterConfiguration " & "where Index=" & lstAdapter.ItemData(lstAdapter.ListIndex))
+
+    strDNS = Array(txtSetIP(3).Text, txtSetIP(4).Text)
+
+    For Each objNetAdapter In colNetAdapters
+        errDNS = objNetAdapter.SetDNSServerSearchOrder(strDNS)
+        Debug.Print errDNS
+    Next
+End Sub
+
+Private Sub uSetDNS_Click(Button As Integer, x As Single, y As Single)
+    setNetworkDNS
+    
+    RefreshNetworkAdapters
+End Sub
+
+Private Sub uSetIp_Click(Button As Integer, x As Single, y As Single)
+    SetStaticIp
+    
+    RefreshNetworkAdapters
+End Sub
+
+Sub SetStaticIp()
+    Dim colNetAdapters, objNetAdapter
+    Dim strIPAddress, strSubnetMask, strGateway, strGatewaymetric
+    Dim errEnable, errGateways
+
+    If lstAdapter.ListIndex = -1 Then Exit Sub
+
+    If txtSetIP(0).Text = "" Or txtSetIP(1).Text = "" Then Exit Sub
+
+    Set colNetAdapters = objWMIService.ExecQuery _
+                         ("Select * from Win32_NetworkAdapterConfiguration " & "where Index=" & lstAdapter.ItemData(lstAdapter.ListIndex))
+
+    strIPAddress = Array(txtSetIP(0).Text)
+    strSubnetMask = Array(txtSetIP(1).Text)
+    If txtSetIP(2).Text = "" Then
+        strGateway = Array(txtSetIP(0).Text)
+    Else
+        strGateway = Array(txtSetIP(2).Text)
+    End If
+
+    strGatewaymetric = Array(1)
+
+    For Each objNetAdapter In colNetAdapters
+        errEnable = objNetAdapter.EnableStatic(strIPAddress, strSubnetMask)
+        errGateways = objNetAdapter.SetGateways(strGateway, strGatewaymetric)
+    Next
+End Sub
+
+
+Private Sub uStats_Click(Button As Integer, x As Single, y As Single)
+    
+    Dim colNetAdapters, objNetAdapter
+    Dim strIPAddress, strSubnetMask, strGateway, strGatewaymetric
+    Dim errEnable, errGateways
+    Dim i As Long
+
+    i = lstAdapter.ListIndex
+    If i = -1 Then Exit Sub
+
+    i = lstAdapter.ItemData(i)
+
+    Set colNetAdapters = objWMIService.ExecQuery("Select * from Win32_NetworkAdapterConfiguration " & "where Index=" & i)
+
+    For Each objNetAdapter In colNetAdapters
+        txtStats.Text = textstst(objNetAdapter)
+    Next
+
+    txtStats.Visible = True
+    uCloseStats.Visible = True
+    
+    txtStats.ZOrder 0
+    uCloseStats.ZOrder 0
+    
 End Sub
 
 Private Sub uSlave_ActivateNextState(u_Cancel As Boolean, u_NewState As uCheckboxConstants)

@@ -1,14 +1,14 @@
 VERSION 5.00
 Begin VB.UserControl uLoadBar 
    AutoRedraw      =   -1  'True
-   ClientHeight    =   2330
+   ClientHeight    =   2325
    ClientLeft      =   0
    ClientTop       =   0
-   ClientWidth     =   2990
+   ClientWidth     =   2985
    ControlContainer=   -1  'True
-   ScaleHeight     =   233
+   ScaleHeight     =   155
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   299
+   ScaleWidth      =   199
 End
 Attribute VB_Name = "uLoadBar"
 Attribute VB_GlobalNameSpace = False
@@ -77,7 +77,6 @@ End Property
 
 Public Property Set Font(ByVal StdValue As StdFont)
     Set m_StdFont = StdValue
-    Set UserControl.Font = m_StdFont
     PropertyChanged "Font"
     If Not m_bStarting Then Redraw
 End Property
@@ -366,6 +365,10 @@ Sub Redraw()
     Dim lCounter As Long
     Dim tmpPi As Double
     Dim partSize As Double
+    
+    If Not m_StdFont Is Nothing Then
+        Set UserControl.Font = m_StdFont
+    End If
 
     tmpTextHeight = UserControl.TextHeight(m_StrCaption)
     tmpTextWidth = UserControl.TextWidth(m_StrCaption)
@@ -393,8 +396,8 @@ Set_Progress:
 
     partSize = m_LonMaxValue / 8
 
-    pts(0).X = UserControl.ScaleWidth / 2
-    pts(0).Y = -3
+    pts(0).x = UserControl.ScaleWidth / 2
+    pts(0).y = -3
 
     UserControl.DrawWidth = 1
     UserControl.FillStyle = 0
@@ -405,62 +408,62 @@ Set_Progress:
         Case uBarType.u_Bar_Square
             If m_LonValue <= partSize Then    ' 12.5% or smaller
                 tmpX = Tan((2 * Pi) / m_LonMaxValue * m_LonValue) * (UserControl.ScaleWidth / 2 + 3)
-                pts(1).X = pts(0).X + tmpX: pts(1).Y = -3
-                pts(2).X = UserControl.ScaleWidth / 2: pts(2).Y = UserControl.ScaleHeight / 2
+                pts(1).x = pts(0).x + tmpX: pts(1).y = -3
+                pts(2).x = UserControl.ScaleWidth / 2: pts(2).y = UserControl.ScaleHeight / 2
                 Polygon UserControl.hdc, pts(0), 3
             ElseIf m_LonValue <= (partSize * 3) Then
-                pts(1).X = pts(0).X + (UserControl.ScaleWidth / 2) + 3: pts(1).Y = -3
+                pts(1).x = pts(0).x + (UserControl.ScaleWidth / 2) + 3: pts(1).y = -3
                 tmpY = Tan((2 * Pi) / m_LonMaxValue * (m_LonValue - partSize * 2)) * (UserControl.ScaleHeight / 2 + 3)
-                pts(2).X = pts(1).X: pts(2).Y = UserControl.ScaleHeight / 2 + tmpY
-                pts(3).X = UserControl.ScaleWidth / 2: pts(3).Y = UserControl.ScaleHeight / 2
+                pts(2).x = pts(1).x: pts(2).y = UserControl.ScaleHeight / 2 + tmpY
+                pts(3).x = UserControl.ScaleWidth / 2: pts(3).y = UserControl.ScaleHeight / 2
                 Polygon UserControl.hdc, pts(0), 4
             ElseIf m_LonValue <= (partSize * 5) Then
-                pts(1).X = UserControl.ScaleWidth + 3: pts(1).Y = -3
-                pts(2).X = pts(1).X: pts(2).Y = UserControl.ScaleHeight + 3
+                pts(1).x = UserControl.ScaleWidth + 3: pts(1).y = -3
+                pts(2).x = pts(1).x: pts(2).y = UserControl.ScaleHeight + 3
                 tmpX = Tan((2 * Pi) / m_LonMaxValue * (m_LonValue - partSize * 4)) * ((UserControl.ScaleWidth + 6) / 2)
-                pts(3).X = UserControl.ScaleWidth / 2 - tmpX: pts(3).Y = pts(2).Y
-                pts(4).X = UserControl.ScaleWidth / 2: pts(4).Y = UserControl.ScaleHeight / 2
+                pts(3).x = UserControl.ScaleWidth / 2 - tmpX: pts(3).y = pts(2).y
+                pts(4).x = UserControl.ScaleWidth / 2: pts(4).y = UserControl.ScaleHeight / 2
                 Polygon UserControl.hdc, pts(0), 5
             ElseIf m_LonValue <= (partSize * 7) Then
-                pts(1).X = UserControl.ScaleWidth + 3: pts(1).Y = -3
-                pts(2).X = pts(1).X: pts(2).Y = UserControl.ScaleHeight + 3
-                pts(3).X = -3: pts(3).Y = UserControl.ScaleHeight + 3
+                pts(1).x = UserControl.ScaleWidth + 3: pts(1).y = -3
+                pts(2).x = pts(1).x: pts(2).y = UserControl.ScaleHeight + 3
+                pts(3).x = -3: pts(3).y = UserControl.ScaleHeight + 3
                 tmpY = Tan((2 * Pi) / m_LonMaxValue * (m_LonValue - partSize * 6)) * ((UserControl.ScaleHeight + 6) / 2)
-                pts(4).X = pts(3).X: pts(4).Y = UserControl.ScaleHeight / 2 - tmpY
-                pts(5).X = UserControl.ScaleWidth / 2: pts(5).Y = UserControl.ScaleHeight / 2
+                pts(4).x = pts(3).x: pts(4).y = UserControl.ScaleHeight / 2 - tmpY
+                pts(5).x = UserControl.ScaleWidth / 2: pts(5).y = UserControl.ScaleHeight / 2
                 Polygon UserControl.hdc, pts(0), 6
             ElseIf m_LonValue = m_LonMaxValue Then
-                pts(0).X = -3: pts(0).Y = -3
-                pts(1).X = UserControl.ScaleWidth + 3: pts(1).Y = -3
-                pts(2).X = UserControl.ScaleWidth + 3: pts(2).Y = UserControl.ScaleHeight + 3
-                pts(3).X = -3: pts(3).Y = UserControl.ScaleHeight + 3
+                pts(0).x = -3: pts(0).y = -3
+                pts(1).x = UserControl.ScaleWidth + 3: pts(1).y = -3
+                pts(2).x = UserControl.ScaleWidth + 3: pts(2).y = UserControl.ScaleHeight + 3
+                pts(3).x = -3: pts(3).y = UserControl.ScaleHeight + 3
                 Polygon UserControl.hdc, pts(0), 4
             Else
-                pts(1).X = UserControl.ScaleWidth + 3: pts(1).Y = -3
-                pts(2).X = pts(1).X: pts(2).Y = UserControl.ScaleHeight + 3
-                pts(3).X = -3: pts(3).Y = UserControl.ScaleHeight + 3
-                pts(4).X = -3: pts(4).Y = UserControl.ScaleHeight + 3
-                pts(5).X = -3: pts(5).Y = -3
+                pts(1).x = UserControl.ScaleWidth + 3: pts(1).y = -3
+                pts(2).x = pts(1).x: pts(2).y = UserControl.ScaleHeight + 3
+                pts(3).x = -3: pts(3).y = UserControl.ScaleHeight + 3
+                pts(4).x = -3: pts(4).y = UserControl.ScaleHeight + 3
+                pts(5).x = -3: pts(5).y = -3
                 tmpX = Tan((2 * Pi) / m_LonMaxValue * (m_LonValue - partSize * 7)) * ((UserControl.ScaleWidth) / 2)
-                pts(6).X = tmpX: pts(6).Y = -3
-                pts(7).X = UserControl.ScaleWidth / 2: pts(7).Y = UserControl.ScaleHeight / 2
+                pts(6).x = tmpX: pts(6).y = -3
+                pts(7).x = UserControl.ScaleWidth / 2: pts(7).y = UserControl.ScaleHeight / 2
                 Polygon UserControl.hdc, pts(0), 8
             End If
 
 
         Case uBarType.u_Bar_Horizontal
-            pts(0).X = -3: pts(0).Y = pts(0).X
-            pts(1).X = (UserControl.ScaleWidth) / m_LonMaxValue * m_LonValue: pts(1).Y = pts(0).X
-            pts(2).X = pts(1).X: pts(2).Y = UserControl.ScaleHeight + 3
-            pts(3).X = pts(0).X: pts(3).Y = pts(2).Y
+            pts(0).x = -3: pts(0).y = pts(0).x
+            pts(1).x = (UserControl.ScaleWidth) / m_LonMaxValue * m_LonValue: pts(1).y = pts(0).x
+            pts(2).x = pts(1).x: pts(2).y = UserControl.ScaleHeight + 3
+            pts(3).x = pts(0).x: pts(3).y = pts(2).y
             Polygon UserControl.hdc, pts(0), 4
 
 
         Case uBarType.u_Bar_Vertical
-            pts(0).X = -3: pts(0).Y = UserControl.ScaleHeight + 3
-            pts(1).X = pts(0).X: pts(1).Y = UserControl.ScaleHeight - (UserControl.ScaleHeight) / m_LonMaxValue * m_LonValue - 1
-            pts(2).X = UserControl.ScaleWidth + 3: pts(2).Y = pts(1).Y
-            pts(3).X = pts(2).X: pts(3).Y = pts(0).Y
+            pts(0).x = -3: pts(0).y = UserControl.ScaleHeight + 3
+            pts(1).x = pts(0).x: pts(1).y = UserControl.ScaleHeight - (UserControl.ScaleHeight) / m_LonMaxValue * m_LonValue - 1
+            pts(2).x = UserControl.ScaleWidth + 3: pts(2).y = pts(1).y
+            pts(3).x = pts(2).x: pts(3).y = pts(0).y
             Polygon UserControl.hdc, pts(0), 4
 
 
@@ -484,20 +487,20 @@ Skip_Plotting:
                     tmpConnectY = Sin(tmpPi * i + m_DouLoadPosition) * UserControl.ScaleHeight
 
                     If Not bToggle Then
-                        pts(lCounter).X = tmpX
-                        pts(lCounter).Y = tmpY
+                        pts(lCounter).x = tmpX
+                        pts(lCounter).y = tmpY
                         lCounter = lCounter + 1
 
-                        pts(lCounter).X = tmpConnectX + tmpX
-                        pts(lCounter).Y = tmpConnectY + tmpY
+                        pts(lCounter).x = tmpConnectX + tmpX
+                        pts(lCounter).y = tmpConnectY + tmpY
                         lCounter = lCounter + 1
                     Else
-                        pts(lCounter).X = tmpConnectX + tmpX
-                        pts(lCounter).Y = tmpConnectY + tmpY
+                        pts(lCounter).x = tmpConnectX + tmpX
+                        pts(lCounter).y = tmpConnectY + tmpY
                         lCounter = lCounter + 1
 
-                        pts(lCounter).X = tmpX
-                        pts(lCounter).Y = tmpY
+                        pts(lCounter).x = tmpX
+                        pts(lCounter).y = tmpY
                         lCounter = lCounter + 1
                     End If
                     bToggle = Not bToggle
@@ -520,26 +523,26 @@ Skip_Plotting:
 
                 For i = -tmpConnectY To 1
 
-                    pts(lCounter).X = -3 + tmpConnectX + (60 * i) + m_DouLoadPosition
-                    pts(lCounter).Y = UserControl.ScaleHeight + 3
+                    pts(lCounter).x = -3 + tmpConnectX + (60 * i) + m_DouLoadPosition
+                    pts(lCounter).y = UserControl.ScaleHeight + 3
                     lCounter = lCounter + 1
 
-                    pts(lCounter).X = pts(lCounter - 1).X + 30
-                    pts(lCounter).Y = pts(lCounter - 1).Y
+                    pts(lCounter).x = pts(lCounter - 1).x + 30
+                    pts(lCounter).y = pts(lCounter - 1).y
                     lCounter = lCounter + 1
 
-                    pts(lCounter).X = pts(lCounter - 1).X + UserControl.ScaleHeight + 6
-                    pts(lCounter).Y = -3
-                    lCounter = lCounter + 1
-
-
-                    pts(lCounter).X = pts(lCounter - 1).X + 30
-                    pts(lCounter).Y = pts(lCounter - 1).Y
+                    pts(lCounter).x = pts(lCounter - 1).x + UserControl.ScaleHeight + 6
+                    pts(lCounter).y = -3
                     lCounter = lCounter + 1
 
 
-                    pts(lCounter).X = pts(lCounter - 3).X + 30
-                    pts(lCounter).Y = pts(lCounter - 4).Y
+                    pts(lCounter).x = pts(lCounter - 1).x + 30
+                    pts(lCounter).y = pts(lCounter - 1).y
+                    lCounter = lCounter + 1
+
+
+                    pts(lCounter).x = pts(lCounter - 3).x + 30
+                    pts(lCounter).y = pts(lCounter - 4).y
                     lCounter = lCounter + 1
                 Next i
 
@@ -556,17 +559,17 @@ Skip_Plotting:
         UserControl.FillStyle = 1
         UserControl.ForeColor = m_OleBorderColor
 
-        pts(0).X = 0
-        pts(0).Y = 0
+        pts(0).x = 0
+        pts(0).y = 0
 
-        pts(1).X = UserControl.ScaleWidth - 1
-        pts(1).Y = 0
+        pts(1).x = UserControl.ScaleWidth - 1
+        pts(1).y = 0
 
-        pts(2).X = UserControl.ScaleWidth - 1
-        pts(2).Y = UserControl.ScaleHeight - 1
+        pts(2).x = UserControl.ScaleWidth - 1
+        pts(2).y = UserControl.ScaleHeight - 1
 
-        pts(3).X = 0
-        pts(3).Y = UserControl.ScaleHeight - 1
+        pts(3).x = 0
+        pts(3).y = UserControl.ScaleHeight - 1
 
         Polygon UserControl.hdc, pts(0), 4
     End If
@@ -578,17 +581,17 @@ Skip_Plotting:
     UserControl.FillColor = m_OleBackgroundColor
 
     If m_LonBarWidth > 0 And UserControl.ScaleWidth > (m_LonBarWidth + 1) * 2 And UserControl.ScaleHeight > (m_LonBarWidth + 1) * 2 Then
-        pts(0).X = m_LonBarWidth
-        pts(0).Y = m_LonBarWidth
+        pts(0).x = m_LonBarWidth
+        pts(0).y = m_LonBarWidth
 
-        pts(1).X = UserControl.ScaleWidth - m_LonBarWidth - 1
-        pts(1).Y = m_LonBarWidth
+        pts(1).x = UserControl.ScaleWidth - m_LonBarWidth - 1
+        pts(1).y = m_LonBarWidth
 
-        pts(2).X = UserControl.ScaleWidth - m_LonBarWidth - 1
-        pts(2).Y = UserControl.ScaleHeight - m_LonBarWidth - 1
+        pts(2).x = UserControl.ScaleWidth - m_LonBarWidth - 1
+        pts(2).y = UserControl.ScaleHeight - m_LonBarWidth - 1
 
-        pts(3).X = m_LonBarWidth
-        pts(3).Y = UserControl.ScaleHeight - m_LonBarWidth - 1
+        pts(3).x = m_LonBarWidth
+        pts(3).y = UserControl.ScaleHeight - m_LonBarWidth - 1
 
         Polygon UserControl.hdc, pts(0), 4
     End If
@@ -642,7 +645,7 @@ End_of_sub:
 End Sub
 
 
-Private Sub UserControl_Resize()
+Private Sub Usercontrol_Resize()
     If Not m_bStarting Then Redraw
 End Sub
 
