@@ -501,6 +501,12 @@ Public Function ByteArrayToString(ByRef bytArray() As Byte) As String
     
 End Function
 
+Public Property Get TextLength() As Long
+    TextLength = UBound(m_byteText)
+End Property
+
+
+
 Public Property Get Text() As String
     Text = ByteArrayToString(m_byteText)
     
@@ -644,7 +650,7 @@ Private Sub UserControl_Initialize()
     Const randomMarkup As Boolean = False
     
     
-    constString = FileToString("lorumipsum.txt")
+    constString = FileToString("changelog.txt")
 
     'For i = 0 To 5
     '    constString = constString & "This textbox is made by Ricardo de Roode HereIsAVeryLongWord." & vbCrLf    '& vbCrLf
@@ -1051,7 +1057,10 @@ MakeNewRule:
                         RowMap(NRC).StartChar = cc
                     End If
                     
-                    
+                    If m_lScrollTop > NRC Then
+                        TextOffsetY = 0
+                        'GoTo NextChar
+                    End If
                     
                     If NLNR = True Then
                         NLNR = False
@@ -1066,7 +1075,7 @@ MakeNewRule:
         End If
 
         
-        If TextOffsetY < UH And TextOffsetX - TSP < UW And TextOffsetX + CharMap(cc).W > 0 Then  '
+        If TextOffsetY < UH And TextOffsetX - TSP < UW And TextOffsetX + CharMap(cc).W > 0 And TextOffsetY >= 0 Then  '
             Dim jj As Long
             Dim kk As Long
 
