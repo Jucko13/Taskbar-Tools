@@ -19,27 +19,41 @@ Begin VB.Form frmTempStart
    ScaleHeight     =   8715
    ScaleWidth      =   11445
    StartUpPosition =   2  'CenterScreen
+   Begin VB.Timer tmrRedrawTextbox 
+      Enabled         =   0   'False
+      Interval        =   100
+      Left            =   780
+      Top             =   5610
+   End
+   Begin VB.Timer tmrAddChar 
+      Enabled         =   0   'False
+      Interval        =   1
+      Left            =   300
+      Top             =   5535
+   End
    Begin Project1.uTextBox uTextBox1 
-      Height          =   1095
-      Left            =   270
+      Height          =   7980
+      Left            =   2040
       TabIndex        =   0
-      Top             =   465
-      Width           =   6495
-      _ExtentX        =   11456
-      _ExtentY        =   1931
+      Top             =   585
+      Width           =   8610
+      _ExtentX        =   15187
+      _ExtentY        =   14076
+      BackgroundColor =   0
       BorderColor     =   0
       BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
-         Name            =   "MS Sans Serif"
-         Size            =   8.25
+         Name            =   "Courier"
+         Size            =   9.75
          Charset         =   0
          Weight          =   400
          Underline       =   0   'False
          Italic          =   0   'False
          Strikethrough   =   0   'False
       EndProperty
-      RowLines        =   -1  'True
-      RowLineColor    =   8421504
+      ForeColor       =   65280
+      RowLineColor    =   14737632
       RowNumberOnEveryLine=   -1  'True
+      WordWrap        =   -1  'True
       MultiLine       =   -1  'True
    End
    Begin VB.CommandButton cmdClear 
@@ -492,36 +506,47 @@ Private Sub HScroll1_Scroll()
     
 End Sub
 
-Private Sub uTextBox1_Changed()
-    Dim i As Long
-    Dim s As String
-    Dim t As String
-    
-    
-    s = uTextBox1.Text
+Private Sub tmrAddChar_Timer()
     uTextBox1.RedrawPause
-    
-    For i = 1 To Len(s) - 1
-        t = Mid$(s, i, 1)
-        uTextBox1.setCharForeColor i - 1, -1
-        uTextBox1.setCharBold i - 1, False
-            
-        Select Case t
-            
-                
-            Case "(", "e"
-                uTextBox1.setCharForeColor i - 1, vbRed
-                
-            Case "d"
-                uTextBox1.setCharBold i - 1, True
-                
-        End Select
-        
-    Next i
-    
-    
+    uTextBox1.AddCharAtCursor Chr(Rnd * 26 + 65), False
+End Sub
+
+Private Sub tmrRedrawTextbox_Timer()
     uTextBox1.RedrawResume
+End Sub
+
+Private Sub uTextBox1_Changed()
     
-    HScroll1.Max = uTextBox1.m_lScrollLeftMax
+'    Dim i As Long
+'    Dim s As String
+'    Dim t As String
+'
+'
+'    s = uTextBox1.Text
+'    uTextBox1.RedrawPause
+'
+'    For i = 1 To Len(s) - 1
+'        t = Mid$(s, i, 1)
+'        uTextBox1.setCharForeColor i - 1, -1
+'        uTextBox1.setCharBold i - 1, False
+'
+'        Select Case t
+'
+'
+'            Case "(", "e"
+'                uTextBox1.setCharForeColor i - 1, vbRed
+'                uTextBox1.setCharItallic i - 1, True
+'
+'            Case "d"
+'                uTextBox1.setCharBold i - 1, True
+'
+'        End Select
+'
+'    Next i
+'
+'
+'    uTextBox1.RedrawResume
+'
+'    HScroll1.Max = uTextBox1.m_lScrollLeftMax
 End Sub
 

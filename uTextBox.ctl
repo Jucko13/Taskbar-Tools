@@ -620,6 +620,15 @@ Private Sub UserControl_GotFocus()
     updateCaretPos
 End Sub
 
+Function FileToString(strFilename As String) As String
+  Dim iFile As Long
+  
+  iFile = FreeFile
+  Open strFilename For Input As #iFile
+    FileToString = StrConv(InputB(LOF(iFile), iFile), vbUnicode)
+  Close #iFile
+End Function
+
 Private Sub UserControl_Initialize()
     m_bStarting = True
 
@@ -632,12 +641,14 @@ Private Sub UserControl_Initialize()
     'Dim MS As String 'mid string
 
     Dim constString As String
-    Const randomMarkup As Boolean = True
+    Const randomMarkup As Boolean = False
     
+    
+    constString = FileToString("lorumipsum.txt")
 
-    For i = 0 To 5
-        constString = constString & "This textbox is made by Ricardo de Roode HereIsAVeryLongWord." & vbCrLf    '& vbCrLf
-    Next i
+    'For i = 0 To 5
+    '    constString = constString & "This textbox is made by Ricardo de Roode HereIsAVeryLongWord." & vbCrLf    '& vbCrLf
+    'Next i
 
 
     If randomMarkup Then
@@ -983,7 +994,7 @@ checkNextChar:
                 POWC = MarkupS(cc).lPartOfWord
 
                 'does the current word fit?
-                If m_bWordWrap And TextOffsetX + WordMap(POWC).W > UW And POWC > 0 Then
+                If m_bWordWrap And TextOffsetX + WordMap(POWC).W > UW And POWC > 0 Or (NLNR = True And MultiLine = True And m_bWordWrap = False) Then
 MakeNewRule:
                     TextOffsetX = LNW - m_lScrollLeft
                     TTW = TextOffsetX
@@ -1008,6 +1019,8 @@ MakeNewRule:
                             If CharMap(RL).H - CharMap(RL).d > RH Then RH = CharMap(RL).H - CharMap(RL).d
                             If CharMap(RL).d > RD Then RD = CharMap(RL).d
                             If TTW > MTW Then MTW = TTW
+                            'If CharMap(RL).H > RH Then RH = CharMap(RL).H
+                            
                         Next RL
                     End If
                     
@@ -1583,7 +1596,7 @@ Dim i As Long
     UB = UBound(RowMap)
     CR = UB
     For i = 0 To UB    'number of rows
-        If y < RowMap(i).StartY Then
+        If y < RowMap(i).StartY Then 'And RowMap(i).NumChars <> 1
             CR = i
             Exit For
         End If
