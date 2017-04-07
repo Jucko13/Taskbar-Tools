@@ -64,6 +64,7 @@ Private m_OleCaptionBorderColorDisabled As OLE_COLOR
 Private m_OleMouseOverBackgroundColorDisabled As OLE_COLOR
 Private m_OleFocusColorDisabled As OLE_COLOR
 
+Private m_bFocusVisible As Boolean
 Private m_bBorder As Boolean
 Private m_ButButtonAnimation As ButtonOnClick
 Private m_StdPicture As StdPicture
@@ -105,6 +106,18 @@ Public Property Let CaptionBorderColor(ByVal OleValue As OLE_COLOR)
     PropertyChanged "CaptionBorderColor"
     If Not m_bStarting Then Redraw
 End Property
+
+
+Public Property Get FocusVisible() As Boolean
+    FocusVisible = m_bFocusVisible
+End Property
+
+Public Property Let FocusVisible(ByVal bValue As Boolean)
+    m_bFocusVisible = bValue
+    PropertyChanged "FocusVisible"
+    If Not m_bStarting Then Redraw
+End Property
+
 
 
 Public Property Get FocusColor() As OLE_COLOR
@@ -469,7 +482,7 @@ Sub Redraw()
         UserControl.Line (tmpBorderOffset, tmpBorderOffset)-(tmpBorderOffset, UserControl.ScaleHeight - 1 - tmpBorderOffset), IIf(m_bEnabled, m_OleBorderColor, m_OleBorderColorDisabled)
     End If
     
-    If m_bHasFocus Then
+    If m_bHasFocus And m_bFocusVisible Then
         tmpFocusColor = IIf(m_bEnabled, m_OleFocusColor, m_OleFocusColorDisabled)
         UserControl.DrawStyle = vbDot
         
@@ -611,6 +624,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         m_OleFocusColorDisabled = .ReadProperty("FocusColorDisabled", &HFFFFFF)
         
         
+        m_bFocusVisible = .ReadProperty("FocusVisible", True)
         m_strCaption = .ReadProperty("Caption", "Button")
         m_bBorder = .ReadProperty("Border", True)
         m_ButButtonAnimation = .ReadProperty("BorderAnimation", [Move Border In])
@@ -651,6 +665,8 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "CaptionBorderColorDisabled", m_OleCaptionBorderColorDisabled, &HFFFFFF
         .WriteProperty "FocusColorDisabled", m_OleFocusColorDisabled, &HFFFFFF
         
+        
+        .WriteProperty "FocusVisible", m_bFocusVisible, True
         .WriteProperty "Caption", m_strCaption, "Button"
         .WriteProperty "Border", m_bBorder, True
         .WriteProperty "BorderAnimation", m_ButButtonAnimation, [Move Border In]

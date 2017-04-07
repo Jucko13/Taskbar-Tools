@@ -650,7 +650,7 @@ Private Sub UserControl_Initialize()
     Const randomMarkup As Boolean = False
     
     
-    constString = FileToString("changelog.txt")
+    'constString = FileToString("changelog.txt")
 
     'For i = 0 To 5
     '    constString = constString & "This textbox is made by Ricardo de Roode HereIsAVeryLongWord." & vbCrLf    '& vbCrLf
