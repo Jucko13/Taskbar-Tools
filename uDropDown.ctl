@@ -18,15 +18,15 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-Private Declare Function GetWindowRect Lib "user32" (ByVal hwnd As Long, lpRect As RECT) As Long
+Private Declare Function GetWindowRect Lib "user32" (ByVal hWnd As Long, lpRect As RECT) As Long
 Private Declare Function CreatePen& Lib "gdi32" (ByVal nPenStyle As Long, ByVal nWidth As Long, ByVal crColor As Long)
 Private Declare Function GetForegroundWindow Lib "user32.dll" () As Long
 
 
 Private Declare Function GetLastError Lib "kernel32" () As Long
 
-Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long) As Long
-Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long) As Long
+Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
 Private Const WS_EX_APPWINDOW As Long = &H40000
 Private Const GWL_EXSTYLE As Long = (-20)
 Private Const SW_HIDE As Long = 0
@@ -203,7 +203,8 @@ Public Property Get ListIndex() As Long
 End Property
 
 Public Property Let ListIndex(Index As Long)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Exit Property 'Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    
     m_LonListIndex = Index
     m_StrText = Items(m_LonListIndex).Text
     RaiseEvent ItemChange(m_LonListIndex)
@@ -593,7 +594,7 @@ Private Sub m_tmrFocus_Timer()
     Set i = UserControl.Parent
 
     'If LCase(TypeName(i)) = "form" Then
-        If GetForegroundWindow() <> i.hwnd Then
+        If GetForegroundWindow() <> i.hWnd Then
             CloseMenu
         End If
     'End If
@@ -671,12 +672,12 @@ Private Sub UserControl_Initialize()
     m_picMenu.FontSize = 8
     
     Set m_StdFontWebdings = New StdFont
-    m_StdFontWebdings.Name = "Webdings"
+    m_StdFontWebdings.name = "Webdings"
     m_StdFontWebdings.Size = 8
     
-    SetParent m_picMenu.hwnd, GetParent(0)
+    SetParent m_picMenu.hWnd, GetParent(0)
 
-    SetWindowLong m_picMenu.hwnd, -20, GetWindowLong(m_picMenu.hwnd, -20) Or &H80&
+    SetWindowLong m_picMenu.hWnd, -20, GetWindowLong(m_picMenu.hWnd, -20) Or &H80&
 
 
 
@@ -719,7 +720,7 @@ End Sub
 Private Function CalculatePosition() As POINTAPI
     Dim tmpMenuPosition As RECT
 
-    GetWindowRect UserControl.hwnd, tmpMenuPosition
+    GetWindowRect UserControl.hWnd, tmpMenuPosition
 
     CalculatePosition.x = tmpMenuPosition.Left * Screen.TwipsPerPixelX
     CalculatePosition.y = tmpMenuPosition.Top * Screen.TwipsPerPixelY
@@ -1041,7 +1042,7 @@ Sub OpenMenu()
 
     m_bScrollHandleVisible = m_LonScrollHeight < m_LonScrollMax
 
-    SetTopMostWindow m_picMenu.hwnd, True
+    SetTopMostWindow m_picMenu.hWnd, True
     m_tmrFocus.Interval = 100
     m_tmrFocus.Enabled = True
     m_bMenuDown = True
@@ -1181,7 +1182,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
 End Sub
 
 Private Sub UserControl_Terminate()
-    SetParent m_picMenu.hwnd, GetParent(UserControl.hwnd)
+    SetParent m_picMenu.hWnd, GetParent(UserControl.hWnd)
 End Sub
 
 Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
