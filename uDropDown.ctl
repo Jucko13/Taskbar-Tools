@@ -548,7 +548,11 @@ End Sub
 
 Private Sub m_picMenu_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
     Dim tmpL As Long
-
+    Static isBusy As Boolean
+    
+    If isBusy Then Exit Sub
+    isBusy = True
+    
     CheckScrollButtons Button, Shift, x, y
 
     If m_bScrollHandleDown Then
@@ -560,6 +564,8 @@ Private Sub m_picMenu_MouseMove(Button As Integer, Shift As Integer, x As Single
     End If
 
     RedrawMenu
+    DoEvents
+    isBusy = False
 End Sub
 
 Private Sub m_picMenu_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
