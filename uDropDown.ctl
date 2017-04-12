@@ -72,13 +72,13 @@ End Type
 
 
 Public Event ItemChange(ItemIndex As Long)
-Public Event OnDropdown()
+Public Event OnDropdown(ByRef cancel As Boolean)
 
 Private WithEvents m_picMenu As PictureBox
 Attribute m_picMenu.VB_VarHelpID = -1
-Private WithEvents m_tmrFocus As Timer
+Private WithEvents m_tmrFocus As timer
 Attribute m_tmrFocus.VB_VarHelpID = -1
-Private WithEvents m_tmrScroll As Timer
+Private WithEvents m_tmrScroll As timer
 Attribute m_tmrScroll.VB_VarHelpID = -1
 
 Private m_OleBackgroundColor As OLE_COLOR
@@ -130,6 +130,9 @@ Private m_LonListIndexMouseOver As Long
 Private m_StdFont As StdFont
 Private m_StdFontWebdings As StdFont
 Private m_LonDotsTextWidth As Long
+
+Private m_LonLastFormPosition As Long
+Private m_ObjParent As Object
 
 Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
 
@@ -193,8 +196,8 @@ Public Property Set Font(ByVal StdValue As StdFont)
 End Property
 
 
-Public Property Get ListCount() As Long
-    ListCount = m_LonItemCount
+Public Property Get listCount() As Long
+    listCount = m_LonItemCount
 End Property
 
 
@@ -497,29 +500,29 @@ End Sub
 
 
 
-Sub CheckScrollButtons(Button As Integer, Shift As Integer, x As Single, y As Single)
+Sub CheckScrollButtons(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpL As Long
 
-    m_PoiMenuMouse.x = x
-    m_PoiMenuMouse.y = y
+    m_PoiMenuMouse.X = X
+    m_PoiMenuMouse.Y = Y
 
     m_bScrollArrowUp = False
     m_bScrollArrowDown = False
 
     If Button = 1 And m_bScrollHandleVisible Then
-        If x >= m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2 And x <= m_picMenu.ScaleWidth - 3 Then
+        If X >= m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2 And X <= m_picMenu.ScaleWidth - 3 Then
             'mouse is above scrollbar
 
-            If y >= 2 And y < m_LonScrollBarWidth - 2 Then
+            If Y >= 2 And Y < m_LonScrollBarWidth - 2 Then
                 m_bScrollArrowUp = True
             End If
 
-            If y >= m_picMenu.ScaleHeight - m_LonScrollBarWidth + 3 And y < m_picMenu.ScaleHeight - 1 Then
+            If Y >= m_picMenu.ScaleHeight - m_LonScrollBarWidth + 3 And Y < m_picMenu.ScaleHeight - 1 Then
                 m_bScrollArrowDown = True
             End If
 
             tmpL = m_LonScrollTop + ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible) * m_LonItemAtTop)
-            If y >= tmpL And y < tmpL + m_LonScrollHeight Then
+            If Y >= tmpL And Y < tmpL + m_LonScrollHeight Then
                 m_bScrollHandleDown = True
 
             End If
@@ -529,34 +532,34 @@ Sub CheckScrollButtons(Button As Integer, Shift As Integer, x As Single, y As Si
 End Sub
 
 Private Sub m_picMenu_DblClick()
-    m_picMenu_MouseDown 1, 0, CInt(m_PoiMenuMouse.x), CInt(m_PoiMenuMouse.y)
+    m_picMenu_MouseDown 1, 0, CInt(m_PoiMenuMouse.X), CInt(m_PoiMenuMouse.Y)
 End Sub
 
-Private Sub m_picMenu_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
-    CheckScrollButtons Button, Shift, x, y
+Private Sub m_picMenu_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    CheckScrollButtons Button, Shift, X, Y
     If m_bScrollArrowUp Or m_bScrollArrowDown Then
         m_tmrScroll.Interval = 500
         m_tmrScroll.Enabled = True
     End If
 
     If m_bScrollHandleDown Then
-        m_LonScrollHandleDragY = y - (m_LonScrollTop + ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible) * m_LonItemAtTop))
+        m_LonScrollHandleDragY = Y - (m_LonScrollTop + ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible) * m_LonItemAtTop))
     End If
 
     RedrawMenu
 End Sub
 
-Private Sub m_picMenu_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub m_picMenu_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpL As Long
     Static isBusy As Boolean
     
     If isBusy Then Exit Sub
     isBusy = True
     
-    CheckScrollButtons Button, Shift, x, y
+    CheckScrollButtons Button, Shift, X, Y
 
     If m_bScrollHandleDown Then
-        tmpL = (y - m_LonScrollHandleDragY - m_LonScrollTop) / ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible))
+        tmpL = (Y - m_LonScrollHandleDragY - m_LonScrollTop) / ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible))
         If tmpL < 0 Then tmpL = 0
         If tmpL > m_LonItemCount - m_LonItemsVisible Then tmpL = m_LonItemCount - m_LonItemsVisible
 
@@ -568,8 +571,8 @@ Private Sub m_picMenu_MouseMove(Button As Integer, Shift As Integer, x As Single
     isBusy = False
 End Sub
 
-Private Sub m_picMenu_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
-    CheckScrollButtons Button, Shift, x, y
+Private Sub m_picMenu_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    CheckScrollButtons Button, Shift, X, Y
     If m_bScrollArrowUp Then
         m_LonItemAtTop = m_LonItemAtTop - 1
         If m_LonItemAtTop < 0 Then m_LonItemAtTop = 0
@@ -594,22 +597,26 @@ End Sub
 Private Sub m_tmrFocus_Timer()
     On Error GoTo Not_Supported
     
-    Dim i As Object
-    Dim j As Long
-    
-    Set i = UserControl.Parent
+    If GetForegroundWindow() <> m_ObjParent.hWnd Then
+        CloseMenu
+    End If
 
-    'If LCase(TypeName(i)) = "form" Then
-        If GetForegroundWindow() <> i.hWnd Then
+    If TypeOf m_ObjParent Is Form Then
+        Dim lastPos As Long
+        
+        lastPos = m_ObjParent.Left + m_ObjParent.Top + m_ObjParent.Width + m_ObjParent.Height
+        
+        If m_LonLastFormPosition <> lastPos Then
             CloseMenu
         End If
-    'End If
+        
+        m_LonLastFormPosition = lastPos
+    End If
     
-    'Debug.Print "GetForegroundWindow():" & GetForegroundWindow(); "i.hwnd: " & i.hwnd
+    'Debug.Print "GetForegroundWindow():" & GetForegroundWindow(); "i.hwnd: " & i.hWnd; "typename: " & LCase()
 
     Exit Sub
 Not_Supported:
-    
     
 End Sub
 
@@ -627,7 +634,7 @@ Private Sub m_tmrScroll_Timer()
 End Sub
 
 Private Sub UserControl_DblClick()
-    UserControl_MouseDown 1, 0, CInt(m_PoiMouse.x), CInt(m_PoiMouse.y)
+    UserControl_MouseDown 1, 0, CInt(m_PoiMouse.X), CInt(m_PoiMouse.Y)
 End Sub
 
 Private Sub UserControl_EnterFocus()
@@ -670,7 +677,7 @@ Private Sub UserControl_Initialize()
     Set m_tmrFocus = UserControl.Controls.Add("VB.Timer", "m_tmrFocus")
     Set m_tmrScroll = UserControl.Controls.Add("VB.Timer", "m_tmrScroll")
 
-    Usercontrol_Resize
+    UserControl_Resize
     m_picMenu.BorderStyle = 0
     m_picMenu.AutoRedraw = True
     m_picMenu.ScaleMode = vbPixels
@@ -678,7 +685,7 @@ Private Sub UserControl_Initialize()
     m_picMenu.FontSize = 8
     
     Set m_StdFontWebdings = New StdFont
-    m_StdFontWebdings.name = "Webdings"
+    m_StdFontWebdings.Name = "Webdings"
     m_StdFontWebdings.Size = 8
     
     SetParent m_picMenu.hWnd, GetParent(0)
@@ -728,8 +735,8 @@ Private Function CalculatePosition() As POINTAPI
 
     GetWindowRect UserControl.hWnd, tmpMenuPosition
 
-    CalculatePosition.x = tmpMenuPosition.Left * Screen.TwipsPerPixelX
-    CalculatePosition.y = tmpMenuPosition.Top * Screen.TwipsPerPixelY
+    CalculatePosition.X = tmpMenuPosition.Left * Screen.TwipsPerPixelX
+    CalculatePosition.Y = tmpMenuPosition.Top * Screen.TwipsPerPixelY
 
 End Function
 
@@ -766,15 +773,15 @@ Sub Redraw()
     
     
     ReDim pts(0 To 3)
-    pts(0).x = 3: pts(0).y = 3
-    pts(1).x = 3: pts(1).y = UserControl.ScaleHeight - 3
-    pts(2).x = UserControl.ScaleWidth - m_LonScrollBarWidth - 2: pts(2).y = UserControl.ScaleHeight - 3
-    pts(3).x = UserControl.ScaleWidth - m_LonScrollBarWidth - 2: pts(3).y = 3
+    pts(0).X = 3: pts(0).Y = 3
+    pts(1).X = 3: pts(1).Y = UserControl.ScaleHeight - 3
+    pts(2).X = UserControl.ScaleWidth - m_LonScrollBarWidth - 2: pts(2).Y = UserControl.ScaleHeight - 3
+    pts(3).X = UserControl.ScaleWidth - m_LonScrollBarWidth - 2: pts(3).Y = 3
     UserControl.ForeColor = IIf(m_bEnabled, m_OleSelectionBorderColor, m_OleSelectionBorderColorDisabled)
     If m_LonListIndex > -1 Then
-        UserControl.FillColor = IIf(Items(m_LonListIndex).ItemColor <> -1, Items(m_LonListIndex).ItemColor, IIf(m_bEnabled, m_OleSelectionBackgroundColor, m_OleSelectionBackgroundColorDisabled))
+        UserControl.FillColor = IIf(Items(m_LonListIndex).ItemColor <> -1, Items(m_LonListIndex).ItemColor, IIf(m_bEnabled, m_OleBackgroundColor, m_OleBackgroundColorDisabled))
     Else
-        UserControl.FillColor = IIf(m_bEnabled, m_OleSelectionBackgroundColor, m_OleSelectionBackgroundColorDisabled)
+        UserControl.FillColor = IIf(m_bEnabled, m_OleBackgroundColor, m_OleBackgroundColorDisabled)
     End If
     UserControl.DrawStyle = 5
     UserControl.FillStyle = 0
@@ -782,10 +789,10 @@ Sub Redraw()
 
 
     If m_bGotFocus And Not m_bMenuDown And m_bEnabled Then
-        pts(0).x = pts(0).x - 1
-        pts(0).y = pts(0).y - 1
-        pts(1).x = pts(1).x - 1
-        pts(3).y = pts(3).y - 1
+        pts(0).X = pts(0).X - 1
+        pts(0).Y = pts(0).Y - 1
+        pts(1).X = pts(1).X - 1
+        pts(3).Y = pts(3).Y - 1
         UserControl.DrawStyle = 2
         UserControl.FillStyle = 1
         UserControl.ForeColor = IIf(m_bEnabled, m_OleSelectionBorderColor, m_OleSelectionBorderColorDisabled)
@@ -805,10 +812,10 @@ Sub Redraw()
 
     ReDim pts(0 To 3)
     UserControl.DrawStyle = 0
-    pts(0).x = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).y = 2
-    pts(1).x = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(1).y = UserControl.ScaleHeight - 3
-    pts(2).x = UserControl.ScaleWidth - 3: pts(2).y = UserControl.ScaleHeight - 3
-    pts(3).x = UserControl.ScaleWidth - 3: pts(3).y = 2
+    pts(0).X = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).Y = 2
+    pts(1).X = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(1).Y = UserControl.ScaleHeight - 3
+    pts(2).X = UserControl.ScaleWidth - 3: pts(2).Y = UserControl.ScaleHeight - 3
+    pts(3).X = UserControl.ScaleWidth - 3: pts(3).Y = 2
     Polygon UserControl.hdc, pts(0), 4
 
 
@@ -859,10 +866,10 @@ Sub RedrawMenu()
     ReDim pts(0 To 3)
     m_picMenu.DrawStyle = 0
     m_picMenu.FillStyle = 0
-    pts(0).x = 0: pts(0).y = 0
-    pts(1).x = m_picMenu.ScaleWidth - 1: pts(1).y = 0
-    pts(2).x = m_picMenu.ScaleWidth - 1: pts(2).y = m_picMenu.ScaleHeight - 1
-    pts(3).x = 0: pts(3).y = m_picMenu.ScaleHeight - 1
+    pts(0).X = 0: pts(0).Y = 0
+    pts(1).X = m_picMenu.ScaleWidth - 1: pts(1).Y = 0
+    pts(2).X = m_picMenu.ScaleWidth - 1: pts(2).Y = m_picMenu.ScaleHeight - 1
+    pts(3).X = 0: pts(3).Y = m_picMenu.ScaleHeight - 1
     
     
     m_picMenu.FillColor = IIf(m_bEnabled, m_OleBackgroundColor, m_OleBackgroundColorDisabled)
@@ -882,19 +889,19 @@ Sub RedrawMenu()
 
     While tmpPrintTop < m_picMenu.ScaleHeight - m_LonItemHeight And i < m_LonItemCount And (i + m_LonItemAtTop) < m_LonItemCount
 
-        pts(0).x = 2: pts(0).y = tmpPrintTop + 1
-        pts(1).x = m_picMenu.ScaleWidth - tmpScrollbarWidth - 2: pts(1).y = tmpPrintTop + 1
-        pts(2).x = m_picMenu.ScaleWidth - tmpScrollbarWidth - 2: pts(2).y = tmpPrintTop + m_LonItemHeight
-        pts(3).x = 2: pts(3).y = tmpPrintTop + m_LonItemHeight
+        pts(0).X = 2: pts(0).Y = tmpPrintTop + 1
+        pts(1).X = m_picMenu.ScaleWidth - tmpScrollbarWidth - 2: pts(1).Y = tmpPrintTop + 1
+        pts(2).X = m_picMenu.ScaleWidth - tmpScrollbarWidth - 2: pts(2).Y = tmpPrintTop + m_LonItemHeight
+        pts(3).X = 2: pts(3).Y = tmpPrintTop + m_LonItemHeight
 
-        If m_PoiMenuMouse.x >= 0 And m_PoiMenuMouse.x <= m_picMenu.ScaleWidth - tmpScrollbarWidth And _
-           m_PoiMenuMouse.y > tmpPrintTop And m_PoiMenuMouse.y < tmpPrintTop + m_LonItemHeight + 1 Then
+        If m_PoiMenuMouse.X >= 0 And m_PoiMenuMouse.X <= m_picMenu.ScaleWidth - tmpScrollbarWidth And _
+           m_PoiMenuMouse.Y > tmpPrintTop And m_PoiMenuMouse.Y < tmpPrintTop + m_LonItemHeight + 1 Then
             m_LonListIndexMouseOver = m_LonItemAtTop + i
         Else
             m_picMenu.ForeColor = IIf(m_bEnabled, m_OleBackgroundColor, m_OleBackgroundColorDisabled)
         End If
 
-        m_picMenu.FillColor = IIf(Items(m_LonItemAtTop + i).ItemColor = -1, IIf(m_bEnabled, m_OleSelectionBackgroundColor, m_OleSelectionBackgroundColorDisabled), Items(m_LonItemAtTop + i).ItemColor)
+        m_picMenu.FillColor = IIf(Items(m_LonItemAtTop + i).ItemColor = -1, IIf(m_LonListIndex = i, IIf(m_bEnabled, m_OleSelectionBackgroundColor, m_OleSelectionBackgroundColorDisabled), IIf(m_bEnabled, m_OleBackgroundColor, m_OleBackgroundColorDisabled)), Items(m_LonItemAtTop + i).ItemColor)
         Polygon m_picMenu.hdc, pts(0), 4
 
         m_picMenu.ForeColor = IIf(m_bEnabled, m_OleForeColor, m_OleForeColorDisabled)
@@ -912,7 +919,7 @@ Sub RedrawMenu()
 
                 Select Case Items(m_LonItemAtTop + i).TextAlignment
                     Case AlignmentConstants.vbLeftJustify
-                        tmpLeft = 3
+                        tmpLeft = 7
 
                     Case AlignmentConstants.vbCenter
                         tmpLeft = (m_picMenu.ScaleWidth - m_LonScrollBarWidth - 5) / 2 - m_picMenu.TextWidth(tmpShortText) / 2 + 2
@@ -932,7 +939,7 @@ Sub RedrawMenu()
 
             Select Case Items(m_LonItemAtTop + i).TextAlignment
                 Case AlignmentConstants.vbLeftJustify
-                    tmpLeft = 3
+                    tmpLeft = 7
 
                 Case AlignmentConstants.vbCenter
                     tmpLeft = (m_picMenu.ScaleWidth - m_LonScrollBarWidth - 5) / 2 - m_picMenu.TextWidth(tmpShortText) / 2 + 3
@@ -956,10 +963,10 @@ Sub RedrawMenu()
     If m_bScrollHandleVisible Then
         'The ScrollBar
         m_picMenu.DrawStyle = 0
-        pts(0).x = m_picMenu.ScaleWidth - m_LonScrollBarWidth: pts(0).y = 0
-        pts(1).x = m_picMenu.ScaleWidth - 1: pts(1).y = 0
-        pts(2).x = m_picMenu.ScaleWidth - 1: pts(2).y = m_picMenu.ScaleHeight - 1
-        pts(3).x = m_picMenu.ScaleWidth - m_LonScrollBarWidth: pts(3).y = m_picMenu.ScaleHeight - 1
+        pts(0).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth: pts(0).Y = 0
+        pts(1).X = m_picMenu.ScaleWidth - 1: pts(1).Y = 0
+        pts(2).X = m_picMenu.ScaleWidth - 1: pts(2).Y = m_picMenu.ScaleHeight - 1
+        pts(3).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth: pts(3).Y = m_picMenu.ScaleHeight - 1
         m_picMenu.ForeColor = IIf(m_bEnabled, m_OleBorderColor, m_OleBorderColorDisabled)
         m_picMenu.FillColor = IIf(m_bEnabled, m_OleBackgroundColor, m_OleBackgroundColorDisabled)
         Polygon m_picMenu.hdc, pts(0), 4
@@ -972,10 +979,10 @@ Sub RedrawMenu()
             tmpArrowUpOffset = 1
             m_picMenu.DrawStyle = 2
         End If
-        pts(0).x = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).y = 2
-        pts(1).x = m_picMenu.ScaleWidth - 3: pts(1).y = 2
-        pts(2).x = m_picMenu.ScaleWidth - 3: pts(2).y = m_LonScrollBarWidth - 3
-        pts(3).x = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(3).y = m_LonScrollBarWidth - 3
+        pts(0).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).Y = 2
+        pts(1).X = m_picMenu.ScaleWidth - 3: pts(1).Y = 2
+        pts(2).X = m_picMenu.ScaleWidth - 3: pts(2).Y = m_LonScrollBarWidth - 3
+        pts(3).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(3).Y = m_LonScrollBarWidth - 3
         Polygon m_picMenu.hdc, pts(0), 4
 
 
@@ -988,19 +995,19 @@ Sub RedrawMenu()
             tmpArrowDownOffset = 1
             m_picMenu.DrawStyle = 2
         End If
-        pts(0).x = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).y = m_picMenu.ScaleHeight - m_LonScrollBarWidth + 2
-        pts(1).x = m_picMenu.ScaleWidth - 3: pts(1).y = pts(0).y
-        pts(2).x = pts(1).x: pts(2).y = m_picMenu.ScaleHeight - 3
-        pts(3).x = pts(0).x: pts(3).y = m_picMenu.ScaleHeight - 3
+        pts(0).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).Y = m_picMenu.ScaleHeight - m_LonScrollBarWidth + 2
+        pts(1).X = m_picMenu.ScaleWidth - 3: pts(1).Y = pts(0).Y
+        pts(2).X = pts(1).X: pts(2).Y = m_picMenu.ScaleHeight - 3
+        pts(3).X = pts(0).X: pts(3).Y = m_picMenu.ScaleHeight - 3
         Polygon m_picMenu.hdc, pts(0), 4
 
 
         'Middle Bar
         m_picMenu.DrawStyle = IIf(m_bScrollHandleDown = True, 2, 0)
-        pts(0).x = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).y = m_LonScrollTop + ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible) * m_LonItemAtTop)
-        pts(1).x = m_picMenu.ScaleWidth - 3: pts(1).y = pts(0).y
-        pts(2).x = m_picMenu.ScaleWidth - 3: pts(2).y = pts(0).y + m_LonScrollHeight
-        pts(3).x = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(3).y = pts(0).y + m_LonScrollHeight
+        pts(0).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).Y = m_LonScrollTop + ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible) * m_LonItemAtTop)
+        pts(1).X = m_picMenu.ScaleWidth - 3: pts(1).Y = pts(0).Y
+        pts(2).X = m_picMenu.ScaleWidth - 3: pts(2).Y = pts(0).Y + m_LonScrollHeight
+        pts(3).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(3).Y = pts(0).Y + m_LonScrollHeight
         Polygon m_picMenu.hdc, pts(0), 4
 
         m_picMenu.ForeColor = IIf(m_bEnabled, m_OleBorderColor, m_OleBorderColorDisabled)
@@ -1030,12 +1037,12 @@ Sub OpenMenu()
 
     tmpP = CalculatePosition
     m_picMenu.Height = (m_LonItemsVisible * m_LonItemHeight + 4) * Screen.TwipsPerPixelY
-    m_picMenu.Left = tmpP.x
+    m_picMenu.Left = tmpP.X
 
-    If tmpP.y + UserControl.Height - Screen.TwipsPerPixelY + m_picMenu.Height > Screen.Height Then
-        m_picMenu.Top = tmpP.y - m_picMenu.Height + Screen.TwipsPerPixelY
+    If tmpP.Y + UserControl.Height - Screen.TwipsPerPixelY + m_picMenu.Height > Screen.Height Then
+        m_picMenu.Top = tmpP.Y - m_picMenu.Height + Screen.TwipsPerPixelY
     Else
-        m_picMenu.Top = tmpP.y + UserControl.Height - Screen.TwipsPerPixelY
+        m_picMenu.Top = tmpP.Y + UserControl.Height - Screen.TwipsPerPixelY
     End If
 
     m_picMenu.Visible = True
@@ -1052,6 +1059,10 @@ Sub OpenMenu()
     m_tmrFocus.Interval = 100
     m_tmrFocus.Enabled = True
     m_bMenuDown = True
+    
+    
+    Set m_ObjParent = UserControl.Parent
+    m_LonLastFormPosition = m_ObjParent.Left + m_ObjParent.Top + m_ObjParent.Width + m_ObjParent.Height
 End Sub
 
 Sub CloseMenu()
@@ -1084,19 +1095,21 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     Redraw
 End Sub
 
-Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Dim cancel As Boolean
+    
     If Not m_bEnabled Then
         Redraw
         Exit Sub
     End If
     
-    CheckMenuOpenButton Button, Shift, x, y
+    CheckMenuOpenButton Button, Shift, X, Y
 
     'If Not m_bPicButtonDown Then
         'If m_bGotFocus Then
     If m_bMenuDown = False Then
-        RaiseEvent OnDropdown
-        OpenMenu
+        RaiseEvent OnDropdown(cancel)
+        If Not cancel Then OpenMenu
     Else
         CloseMenu
     End If
@@ -1105,19 +1118,19 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Sing
     Redraw
 End Sub
 
-Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
-    m_PoiMouse.x = x
-    m_PoiMouse.y = y
+Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    m_PoiMouse.X = X
+    m_PoiMouse.Y = Y
 
 End Sub
 
-Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Not m_bEnabled Then
         Redraw
         Exit Sub
     End If
     
-    CheckMenuOpenButton Button, Shift, x, y
+    CheckMenuOpenButton Button, Shift, X, Y
 
 '    If m_bPicButtonDown Then
 '        m_bMenuDown = Not m_bMenuDown
@@ -1134,11 +1147,11 @@ Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single
 End Sub
 
 
-Sub CheckMenuOpenButton(Button As Integer, Shift As Integer, x As Single, y As Single)
+Sub CheckMenuOpenButton(Button As Integer, Shift As Integer, X As Single, Y As Single)
     m_bPicButtonDown = False
 
-    If x > UserControl.ScaleWidth - UserControl.ScaleHeight + 2 And x < UserControl.ScaleWidth - 2 Then
-        If y > 1 And y < UserControl.ScaleHeight - 1 Then
+    If X > UserControl.ScaleWidth - UserControl.ScaleHeight + 2 And X < UserControl.ScaleWidth - 2 Then
+        If Y > 1 And Y < UserControl.ScaleHeight - 1 Then
             m_bPicButtonDown = True
         End If
     End If
@@ -1148,7 +1161,7 @@ End Sub
 
 
 
-Private Sub Usercontrol_Resize()
+Private Sub UserControl_Resize()
 
 '    m_picOpen.Width = UserControl.ScaleHeight - 2
 '    m_picOpen.Left = UserControl.ScaleWidth - m_picOpen.Width - 1
