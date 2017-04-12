@@ -1,14 +1,14 @@
 VERSION 5.00
 Begin VB.UserControl uOptionBox 
    AutoRedraw      =   -1  'True
-   ClientHeight    =   2330
+   ClientHeight    =   2325
    ClientLeft      =   0
    ClientTop       =   0
-   ClientWidth     =   2990
+   ClientWidth     =   2985
    ControlContainer=   -1  'True
-   ScaleHeight     =   233
+   ScaleHeight     =   155
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   299
+   ScaleWidth      =   199
 End
 Attribute VB_Name = "uOptionBox"
 Attribute VB_GlobalNameSpace = False
@@ -36,6 +36,7 @@ Public Enum uOptionSizes
 End Enum
 
 Public Event ActivateNextState(ByRef u_Cancel As Boolean, ByRef u_NewState As uOptionBoxConstants)
+Public Event Changed(ByRef u_NewState As uOptionBoxConstants)
 
 Private m_OleBackgroundColor As OLE_COLOR
 Private m_OleForeColor As OLE_COLOR
@@ -174,13 +175,16 @@ End Property
 
 Private Sub SetOtherControls()
     Dim m_Control As Control
-
+    On Error Resume Next
+    
     For Each m_Control In UserControl.Parent.Controls
         If TypeName(m_Control) = "uOptionBox" Then
             If m_Control.Name = UserControl.Extender.Name Then
                 If UserControl.Extender.Index <> m_Control.Index Then
+                    If Err.Number <> 0 Then Exit Sub
                     m_Control.Value = 0
                 End If
+                
             End If
         End If
     Next
@@ -501,7 +505,9 @@ Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single
             Value = u_Selected
         End If
     End If
-
+    
+    RaiseEvent Changed(Value)
+    
     If Not m_bStarting Then Redraw
 End Sub
 
