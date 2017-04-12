@@ -126,15 +126,15 @@ Private Type WH
     W As Long
     H As Long
     d As Long
-    x As Long
-    y As Long
+    X As Long
+    Y As Long
 End Type
 
 Private Type WHSL
     W As Long
     H As Long
     s As Long
-    L As Long
+    l As Long
 End Type
 
 Private Type NSS
@@ -241,8 +241,8 @@ Private m_bBlockNextKeyPress As Boolean 'for things like ctrl+space autocomplete
 Private Declare Function GetTextExtentPoint32 Lib "gdi32" Alias "GetTextExtentPoint32A" (ByVal hdc As Long, ByVal lpsz As String, ByVal cbString As Long, lpSize As WH) As Long
 Private Declare Function SetTextAlign Lib "gdi32.dll" (ByVal hdc As Long, ByVal wFlags As Long) As Long
 
-Private Declare Function CreateCaret Lib "user32" (ByVal hWnd As Long, ByVal hBitmap As Long, ByVal x As Long, ByVal y As Long) As Long
-Private Declare Function setCaretPos Lib "user32" Alias "SetCaretPos" (ByVal x As Long, ByVal y As Long) As Long
+Private Declare Function CreateCaret Lib "user32" (ByVal hWnd As Long, ByVal hBitmap As Long, ByVal X As Long, ByVal Y As Long) As Long
+Private Declare Function setCaretPos Lib "user32" Alias "SetCaretPos" (ByVal X As Long, ByVal Y As Long) As Long
 Private Declare Function ShowCaret Lib "user32" (ByVal hWnd As Long) As Long
 Private Declare Function DestroyCaret Lib "user32" () As Long
 
@@ -253,7 +253,7 @@ Public Function getWordFromChar(char As Long) As Long
 End Function
 
 Public Function getWordLength(word As Long) As Long
-    getWordLength = WordMap(word).L
+    getWordLength = WordMap(word).l
 End Function
 
 Public Function getWordStart(word As Long) As Long
@@ -304,7 +304,7 @@ Sub updateCaretPos()
     
     CreateCaret UserControl.hWnd, 0, 2, CharMap(m_CursorPos).H
 
-    setCaretPos CharMap(m_CursorPos).x - 1, CharMap(m_CursorPos).y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d
+    setCaretPos CharMap(m_CursorPos).X - 1, CharMap(m_CursorPos).Y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d
     ShowCaret UserControl.hWnd
 End Sub
 
@@ -614,7 +614,7 @@ Private Sub UserControl_DblClick()
         
     If word <> -1 Then
         m_SelStart = WordMap(word).s
-        m_SelEnd = WordMap(word).s + WordMap(word).L
+        m_SelEnd = WordMap(word).s + WordMap(word).l
         If m_SelEnd > UBound(CharMap) Then m_SelEnd = UBound(CharMap)
         m_CursorPos = m_SelEnd
         If Not m_bStarting Then Redraw
@@ -736,17 +736,17 @@ Sub DrawScrollBars(ByVal UW As Long, ByVal UH As Long, ByVal UHS As Long, ByVal 
     
     If m_sScrollBars = lHorizontal Or m_sScrollBars = lBoth Then
         
-        pts(0).x = UW - UWS
-        pts(0).y = 0
+        pts(0).X = UW - UWS
+        pts(0).Y = 0
 
-        pts(1).x = UW
-        pts(1).y = 0
+        pts(1).X = UW
+        pts(1).Y = 0
         
-        pts(2).x = UW
-        pts(2).y = UH
+        pts(2).X = UW
+        pts(2).Y = UH
 
-        pts(3).x = UW - UWS
-        pts(3).y = UH
+        pts(3).X = UW - UWS
+        pts(3).Y = UH
 
         Polygon UserControl.hdc, pts(0), 4
             
@@ -792,20 +792,20 @@ Sub DrawScrollBars(ByVal UW As Long, ByVal UH As Long, ByVal UHS As Long, ByVal 
         
         
         If m_lScrollLeftMax > 0 Then 'bar
-            pts(0).x = UWS + 2
-            pts(0).y = UH - UHS + 2
+            pts(0).X = UWS + 2
+            pts(0).Y = UH - UHS + 2
     
-            pts(1).x = pts(0).x
-            pts(1).y = UH - 3
+            pts(1).X = pts(0).X
+            pts(1).Y = UH - 3
             
-            pts(2).x = (UW - UWS * IIf(m_sScrollBars = lBoth, 3, 2) - 3) - (UW - UWS * IIf(m_sScrollBars = lBoth, 3, 2) - 3) * (1 / (m_lScrollLeftMax + UW) * m_lScrollLeftMax)
-            If pts(2).x < 10 Then pts(2).x = 10
-            pts(2).x = pts(2).x + pts(0).x
+            pts(2).X = (UW - UWS * IIf(m_sScrollBars = lBoth, 3, 2) - 3) - (UW - UWS * IIf(m_sScrollBars = lBoth, 3, 2) - 3) * (1 / (m_lScrollLeftMax + UW) * m_lScrollLeftMax)
+            If pts(2).X < 10 Then pts(2).X = 10
+            pts(2).X = pts(2).X + pts(0).X
             
-            pts(2).y = pts(1).y
+            pts(2).Y = pts(1).Y
     
-            pts(3).x = pts(2).x
-            pts(3).y = pts(0).y
+            pts(3).X = pts(2).X
+            pts(3).Y = pts(0).Y
             
             Polygon UserControl.hdc, pts(0), 4
         End If
@@ -984,8 +984,8 @@ checkNextChar:
             Case 13
                 If m_bMultiLine Then NLNR = True
             Case 10
-                CharMap(cc).x = TextOffsetX
-                CharMap(cc).y = TextOffsetY
+                CharMap(cc).X = TextOffsetX
+                CharMap(cc).Y = TextOffsetY
                 GoTo NextChar
             Case 32
                 'If TL = CC Then GoTo NextChar
@@ -1088,17 +1088,17 @@ MakeNewRule:
 
 
             If cMarking <> -1 Then
-                pts(0).x = TextOffsetX
-                pts(0).y = TextOffsetY + CharMap(cc).d
+                pts(0).X = TextOffsetX
+                pts(0).Y = TextOffsetY + CharMap(cc).d
 
-                pts(1).x = TextOffsetX + CharMap(cc).W
-                pts(1).y = pts(0).y
+                pts(1).X = TextOffsetX + CharMap(cc).W
+                pts(1).Y = pts(0).Y
 
-                pts(2).x = pts(1).x
-                pts(2).y = pts(0).y - CharMap(cc).H 'TextOffsetY - CharMap(CC).H + CharMap(CC).d
+                pts(2).X = pts(1).X
+                pts(2).Y = pts(0).Y - CharMap(cc).H 'TextOffsetY - CharMap(CC).H + CharMap(CC).d
 
-                pts(3).x = pts(0).x
-                pts(3).y = pts(2).y
+                pts(3).X = pts(0).X
+                pts(3).Y = pts(2).Y
                 'UserControl.DrawMode = 15
 
                 Polygon UserControl.hdc, pts(0), 4
@@ -1145,17 +1145,17 @@ MakeNewRule:
 
             If cc >= m_SelStart And cc < m_SelEnd Then
 
-                pts(0).x = TextOffsetX
-                pts(0).y = TextOffsetY + CharMap(cc).d
+                pts(0).X = TextOffsetX
+                pts(0).Y = TextOffsetY + CharMap(cc).d
 
-                pts(1).x = TextOffsetX + CharMap(cc).W
-                pts(1).y = pts(0).y
+                pts(1).X = TextOffsetX + CharMap(cc).W
+                pts(1).Y = pts(0).Y
 
-                pts(2).x = pts(1).x
-                pts(2).y = TextOffsetY - RH + IIf(m_bMultiLine, CharMap(cc).d, 0)
+                pts(2).X = pts(1).X
+                pts(2).Y = TextOffsetY - RH + IIf(m_bMultiLine, CharMap(cc).d, 0)
 
-                pts(3).x = TextOffsetX
-                pts(3).y = pts(2).y
+                pts(3).X = TextOffsetX
+                pts(3).Y = pts(2).Y
                 
                 UserControl.DrawMode = 6 '6
                 Polygon UserControl.hdc, pts(0), 4
@@ -1167,8 +1167,8 @@ MakeNewRule:
             GoTo DoneRefreshing
         End If
         
-        CharMap(cc).x = TextOffsetX
-        CharMap(cc).y = TextOffsetY
+        CharMap(cc).X = TextOffsetX
+        CharMap(cc).Y = TextOffsetY
         
         RowMap(NRC).NumChars = RowMap(NRC).NumChars + 1
 
@@ -1204,10 +1204,10 @@ DoneRefreshing:
     ReDim Preserve RowMap(0 To NRC)
     
     If m_bLineNumbers Then
-        pts(0).x = 0:         pts(0).y = 0
-        pts(1).x = LNR + TSP: pts(1).y = 0
-        pts(2).x = pts(1).x:  pts(2).y = UH
-        pts(3).x = 0:         pts(3).y = UH
+        pts(0).X = 0:         pts(0).Y = 0
+        pts(1).X = LNR + TSP: pts(1).Y = 0
+        pts(2).X = pts(1).X:  pts(2).Y = UH
+        pts(3).X = 0:         pts(3).Y = UH
         Polygon UserControl.hdc, pts(0), 4
         
         For i = 0 To NRC
@@ -1236,6 +1236,7 @@ DoneRefreshing:
     
     
     If m_bBorder Then
+        UserControl.DrawWidth = 3
         UserControl.Line (0, 0)-(0, UserControl.ScaleHeight), m_OleBorderColor
         UserControl.Line (0, 0)-(UserControl.ScaleWidth, 0), m_OleBorderColor
         UserControl.Line (UserControl.ScaleWidth - 1, 0)-(UserControl.ScaleWidth - 1, UserControl.ScaleHeight), m_OleBorderColor
@@ -1277,7 +1278,7 @@ Sub ReCalculateWords()
             If WL >= 0 Then
                 WordMap(WC).H = WH
                 WordMap(WC).W = WW
-                WordMap(WC).L = WL
+                WordMap(WC).l = WL
                 'If m_byteText(TL) <> 10 Then
                 WC = WC + 1
                 'End If
@@ -1302,7 +1303,7 @@ Sub ReCalculateWords()
 
     WordMap(WC).H = WH
     WordMap(WC).W = WW
-    WordMap(WC).L = WL
+    WordMap(WC).l = WL
 
     WordCount = WC
 endff:
@@ -1592,7 +1593,7 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
 
 End Sub
 
-Function getCharAtCursor(x As Long, y As Long) As Long
+Function getCharAtCursor(X As Long, Y As Long) As Long
 Dim i As Long
 
     Dim TTW     As Long    'total text width
@@ -1605,7 +1606,7 @@ Dim i As Long
     UB = UBound(RowMap)
     CR = UB
     For i = 0 To UB    'number of rows
-        If y < RowMap(i).StartY Then 'And RowMap(i).NumChars <> 1
+        If Y < RowMap(i).StartY Then 'And RowMap(i).NumChars <> 1
             CR = i
             Exit For
         End If
@@ -1617,10 +1618,10 @@ Dim i As Long
         EOR = RowMap(CR + 1).StartChar - 1
     End If
     
-    If CharMap(RowMap(CR).StartChar).x > x Then
+    If CharMap(RowMap(CR).StartChar).X > X Then
         getCharAtCursor = RowMap(CR).StartChar
         Exit Function
-    ElseIf CharMap(RowMap(CR).StartChar + RowMap(CR).NumChars - 1).x < x Then
+    ElseIf CharMap(RowMap(CR).StartChar + RowMap(CR).NumChars - 1).X < X Then
         getCharAtCursor = EOR
         Exit Function
     End If
@@ -1628,8 +1629,8 @@ Dim i As Long
     'TS = CharMap(RowMap(CR).StartChar).X
     For i = RowMap(CR).StartChar To EOR
         If m_byteText(i) <> 10 And m_byteText(i) <> 13 Then
-            If x > CharMap(i).x And x <= CharMap(i).x + CharMap(i).W Then
-                If x < CharMap(i).x + CharMap(i).W / 2 Then
+            If X > CharMap(i).X And X <= CharMap(i).X + CharMap(i).W Then
+                If X < CharMap(i).X + CharMap(i).W / 2 Then
                     getCharAtCursor = i
                 Else
                     getCharAtCursor = i + 1
@@ -1647,15 +1648,15 @@ Private Sub UserControl_LostFocus()
     DestroyCaret
 End Sub
 
-Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpSwapSel As Long
     Dim mustRedraw As Boolean
     
     m_lMouseDown = m_lMouseDown Or Button
-    m_lMouseDownX = x ' - m_lScrollLeft
-    m_lMouseDownY = y ' - m_lScrollTop
-    m_lMouseX = x ' - m_lScrollLeft
-    m_lMouseY = y ' - m_lScrollTop
+    m_lMouseDownX = X ' - m_lScrollLeft
+    m_lMouseDownY = Y ' - m_lScrollTop
+    m_lMouseX = X ' - m_lScrollLeft
+    m_lMouseY = Y ' - m_lScrollTop
     
     tmpSwapSel = m_CursorPos
     m_CursorPos = getCharAtCursor(CLng(m_lMouseDownX), CLng(m_lMouseDownY))
@@ -1689,12 +1690,12 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Sing
 End Sub
 
 
-Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpSwapSel As Long
     Dim mustRedraw As Boolean
     
-    m_lMouseX = x ' - m_lScrollLeft
-    m_lMouseY = y ' - m_lScrollTop
+    m_lMouseX = X ' - m_lScrollLeft
+    m_lMouseY = Y ' - m_lScrollTop
     
     If m_lMouseDown <> lNone Then
         getSelectionChanged True
@@ -1716,11 +1717,11 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Sing
             RaiseEvent SelectionChanged
         End If
         
-        If CharMap(m_CursorPos).x >= m_lUsercontrolWidth Then
-            m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).x - m_lUsercontrolWidth)
+        If CharMap(m_CursorPos).X >= m_lUsercontrolWidth Then
+            m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolWidth)
             mustRedraw = True
-        ElseIf CharMap(m_CursorPos).x <= m_lUsercontrolLeft Then
-            m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).x - m_lUsercontrolLeft)
+        ElseIf CharMap(m_CursorPos).X <= m_lUsercontrolLeft Then
+            m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolLeft)
             mustRedraw = True
         End If
         
@@ -1728,7 +1729,7 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Sing
     End If
 End Sub
 
-Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     m_lMouseDown = m_lMouseDown And Not Button
     'Debug.Print m_lMouseDown
     If Not m_bStarting Then Redraw
@@ -2024,11 +2025,11 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     If m_CursorPos > UBound(CharMap) Then m_CursorPos = UBound(CharMap)
     
 
-    If CharMap(m_CursorPos).x >= m_lUsercontrolWidth Then
-        m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).x - m_lUsercontrolWidth)
+    If CharMap(m_CursorPos).X >= m_lUsercontrolWidth Then
+        m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolWidth)
         mustRedraw = True
-    ElseIf CharMap(m_CursorPos).x <= m_lUsercontrolLeft Then
-        m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).x - m_lUsercontrolLeft)
+    ElseIf CharMap(m_CursorPos).X <= m_lUsercontrolLeft Then
+        m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolLeft)
         mustRedraw = True
     End If
 
@@ -2089,7 +2090,7 @@ Function getNextWordFromCursor() As Long
     Else
         WordPart = WordPart + 1
         If WordPart > WordCount Then
-            getNextWordFromCursor = WordMap(WordCount).s + WordMap(WordCount).L
+            getNextWordFromCursor = WordMap(WordCount).s + WordMap(WordCount).l
         Else
             getNextWordFromCursor = WordMap(WordPart).s
             For i = WordMap(WordPart).s To UBound(CharMap)
@@ -2167,7 +2168,7 @@ Function getPreviousChar(lStart As Long) As Long
 End Function
 
 
-Private Sub Usercontrol_Resize()
+Private Sub UserControl_Resize()
     If Not m_bStarting Then Redraw
 
     '    Dim j As Long
@@ -2236,7 +2237,7 @@ Sub ReplaceWord(newText As String, Optional wordNr As Long = -2)
     If wordNr < 0 Then Exit Sub
     
     m_SelStart = WordMap(wordNr).s
-    m_SelEnd = m_SelStart + WordMap(wordNr).L
+    m_SelEnd = m_SelStart + WordMap(wordNr).l
     
     If m_SelEnd > UBound(CharMap) Then m_SelEnd = UBound(CharMap)
     
