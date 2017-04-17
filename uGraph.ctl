@@ -150,10 +150,6 @@ End Sub
 '    StillScrolling = False
 'End Sub
 
-Private Sub Scroll_Scroll()
-    Scroll_Change
-End Sub
-
 Private Sub UserControl_Initialize()
     Dim i As Long
 

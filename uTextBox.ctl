@@ -243,6 +243,7 @@ Public Event Changed()
 Public Event SelectionChanged()
 Public Event KeyPress(KeyAscii As Integer)
 Public Event KeyDown(ByRef KeyCode As Integer, ByRef Shift As Integer)
+Public Event Click(ByVal charIndex As Long, ByVal charRow As Long)
 
 Private m_lUsercontrolHeight As Long
 Private m_lUsercontrolWidth As Long
@@ -958,6 +959,9 @@ Sub ReCalculateRowMap(Optional fromWhere As Long = 0)
     If fromWhere <= 0 Then
         ReDim RowMap(0)
         fromWhere = 0
+        
+        'TextOffsetY
+        
     Else
         NRC = fromWhere
         TextOffsetY = RowMap(NRC).StartY
@@ -1047,7 +1051,7 @@ MakeNewRule:
                     RH = 0
                     RD = 0
                     
-                    If WordWrap Then
+                    If m_bWordWrap Then
                         If cc = 0 Then
                             POWC = 0
                         End If
@@ -1102,7 +1106,7 @@ MakeNewRule:
                     '    'GoTo NextChar
                     'End If
                     
-                    If NLNR = True Then
+                    If NLNR = True Or cc = 0 Then
                         NLNR = False
                         GoTo checkNextChar
                     End If
@@ -1120,7 +1124,7 @@ MakeNewRule:
         CharMap(cc).y = TextOffsetY
         CharMap(cc).r = NRC
         TextOffsetX = TextOffsetX + CharMap(cc).W
-
+        
 NextChar:
     Next cc
     
@@ -1735,7 +1739,7 @@ Function AddCharAtCursor(Optional sChar As String = "", Optional noevents As Boo
         lLengthDifference = lInsertLength
     End If
     
-    reCalculateFromWhere = m_SelStart
+    reCalculateFromWhere = IIf(m_SelStart < m_SelEnd, m_SelStart, m_SelEnd)
     
     CursorToEnd = UBound(CharMap) - m_SelEnd + 1
     
@@ -1804,7 +1808,12 @@ Function AddCharAtCursor(Optional sChar As String = "", Optional noevents As Boo
         
     Else
         m_lRefreshFromCharAt = reCalculateFromWhere
-        m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt).r
+        If m_lRefreshFromCharAt > 0 Then
+            m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt - 1).r
+        Else
+            m_lRefreshFromRowAt = 0
+        End If
+
     End If
     
     m_bWordsCalculated = False
@@ -2024,6 +2033,8 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Sing
     End If
     
     updateCaretPos
+    RaiseEvent Click(m_SelStart, CharMap(m_SelStart).r)
+    
     
     If Not m_bStarting And mustRedraw Then Redraw
 End Sub
@@ -2378,7 +2389,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
         Case vbKeyBack
             If m_SelStart = m_SelEnd Then
                 If m_SelStart > 0 Then
-                    m_SelStart = m_SelStart - 1
+                    m_SelStart = getPreviousChar(m_SelStart - 1)
                 Else
                     Exit Sub
                 End If
@@ -2392,7 +2403,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
             End If
 
             If m_SelStart = m_SelEnd Then
-                m_SelEnd = m_SelEnd + 1
+                m_SelEnd = getNextChar(m_SelStart + 1)
             End If
 
             mustRedraw = AddCharAtCursor()
