@@ -23,7 +23,7 @@ Option Explicit
 
 
 Public Enum uCheckboxConstants
-    u_UnChecked = 0
+    u_unChecked = 0
     u_Checked = 1
     u_PartialChecked = 2
     u_Cross = 3
@@ -58,7 +58,7 @@ Private m_UChValue As uCheckboxConstants
 Private m_UChCheckSize As uCheckSizes
 Private m_SinCheckSize As Long
 
-Private m_strCaption As String
+Private m_StrCaption As String
 Private m_bCaptionBorder As Boolean
 Private m_OleCaptionBorderColor As OLE_COLOR
 Private m_intCaptionOffsetLeft As Integer
@@ -165,6 +165,7 @@ Public Property Get Value() As uCheckboxConstants
 End Property
 
 Public Property Let Value(ByVal UChValue As uCheckboxConstants)
+    RaiseEvent Changed(UChValue)
     m_UChValue = UChValue
     PropertyChanged "Value"
     If Not m_bStarting Then Redraw
@@ -245,11 +246,11 @@ End Property
 Public Property Get Caption() As String
 Attribute Caption.VB_ProcData.VB_Invoke_Property = ";Text"
 Attribute Caption.VB_UserMemId = -518
-    Caption = m_strCaption
+    Caption = m_StrCaption
 End Property
 
 Public Property Let Caption(ByVal StrValue As String)
-    m_strCaption = StrValue
+    m_StrCaption = StrValue
     PropertyChanged "Caption"
     If Not m_bStarting Then Redraw
 End Property
@@ -264,11 +265,11 @@ Public Property Let ForeColor(ByVal OleValue As OLE_COLOR)
     If Not m_bStarting Then Redraw
 End Property
 
-Public Property Get BackgroundColor() As OLE_COLOR
-    BackgroundColor = m_OleBackgroundColor
+Public Property Get BackGroundColor() As OLE_COLOR
+    BackGroundColor = m_OleBackgroundColor
 End Property
 
-Public Property Let BackgroundColor(ByVal OleValue As OLE_COLOR)
+Public Property Let BackGroundColor(ByVal OleValue As OLE_COLOR)
     m_OleBackgroundColor = OleValue
     PropertyChanged "BackgroundColor"
     If Not m_bStarting Then Redraw
@@ -277,7 +278,7 @@ End Property
 Private Sub UserControl_Initialize()
     m_bStarting = True
     m_OleForeColor = &H0
-    m_strCaption = "uFrame"
+    m_StrCaption = "uFrame"
     m_OleBorderColor = &HFFFFFF
     m_OleBackgroundColor = &HFFFFFF
     m_bBorder = True
@@ -289,7 +290,7 @@ Private Sub UserControl_Initialize()
 
     m_MouMousePointer = 0
     Set Font = UserControl.Font
-    m_UChValue = uCheckboxConstants.u_UnChecked
+    m_UChValue = uCheckboxConstants.u_unChecked
     m_UChCheckSize = uCheckSizes.u_Normal
     m_bCaptionBorder = False
     m_OleCaptionBorderColor = &HFFFFFF
@@ -320,8 +321,8 @@ Sub Redraw()
     Dim i As Long
     Dim j As Long
 
-    tmpTextHeight = UserControl.TextHeight(m_strCaption)
-    tmpTextWidth = UserControl.TextWidth(m_strCaption)
+    tmpTextHeight = UserControl.TextHeight(m_StrCaption)
+    tmpTextWidth = UserControl.TextWidth(m_StrCaption)
 
     UserControl.Cls
 
@@ -406,7 +407,7 @@ Sub Redraw()
 
 
     tmpCapX = tmpX + tmpWidth + 5 + m_intCaptionOffsetLeft
-    tmpCapY = tmpY - Fix(UserControl.TextHeight(m_strCaption) / 2) - 1 + m_intCaptionOffsetTop
+    tmpCapY = tmpY - Fix(UserControl.TextHeight(m_StrCaption) / 2) - 1 + m_intCaptionOffsetTop
     If m_bCaptionBorder Then
         UserControl.ForeColor = m_OleCaptionBorderColor
         For i = -1 To 1
@@ -414,7 +415,7 @@ Sub Redraw()
                 If i <> 0 Or j <> 0 Then
                     UserControl.CurrentX = tmpCapX + i
                     UserControl.CurrentY = tmpCapY + j
-                    UserControl.Print m_strCaption
+                    UserControl.Print m_StrCaption
                 End If
             Next j
         Next i
@@ -424,7 +425,7 @@ Sub Redraw()
     UserControl.CurrentX = tmpCapX
     UserControl.CurrentY = tmpCapY
 
-    UserControl.Print m_strCaption
+    UserControl.Print m_StrCaption
 
     UserControl.ForeColor = m_OleCheckSelectionColor
     UserControl.FillColor = m_OleCheckSelectionColor
@@ -524,8 +525,8 @@ Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single
         m_UChValue = tmpNewState
     Else
         If m_UChValue = u_Checked Then
-            m_UChValue = u_UnChecked
-        ElseIf m_UChValue = u_UnChecked Then
+            m_UChValue = u_unChecked
+        ElseIf m_UChValue = u_unChecked Then
             m_UChValue = u_Checked
         End If
     End If
@@ -549,7 +550,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         m_OleBorderColor = .ReadProperty("BorderColor", &HFFFFFF)
         m_LonBorderThickness = .ReadProperty("BorderThickness", 1)
 
-        m_strCaption = .ReadProperty("Caption", "Button")
+        m_StrCaption = .ReadProperty("Caption", "Button")
         m_bCaptionBorder = .ReadProperty("CaptionBorder", False)
         m_OleCaptionBorderColor = .ReadProperty("CaptionBorderColor", &HFFFFFF)
         m_intCaptionOffsetLeft = .ReadProperty("CaptionOffsetLeft", 0)
@@ -564,7 +565,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         Set Font = .ReadProperty("Font", Ambient.Font)
         m_OleForeColor = .ReadProperty("ForeColor", &H0)
         MousePointer = .ReadProperty("MousePointer", 0)
-        m_UChValue = .ReadProperty("Value", uCheckboxConstants.u_UnChecked)
+        m_UChValue = .ReadProperty("Value", uCheckboxConstants.u_unChecked)
 
 
     End With
@@ -581,7 +582,7 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "BorderColor", m_OleBorderColor, &HFFFFFF
         .WriteProperty "BorderThickness", m_LonBorderThickness, 1
 
-        .WriteProperty "Caption", m_strCaption, "Button"
+        .WriteProperty "Caption", m_StrCaption, "Button"
         .WriteProperty "CaptionBorder", m_bCaptionBorder, False
         .WriteProperty "CaptionBorderColor", m_OleCaptionBorderColor, &HFFFFFF
         .WriteProperty "CaptionOffsetLeft", m_intCaptionOffsetLeft, 0
@@ -596,7 +597,7 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "Font", m_StdFont, Ambient.Font
         .WriteProperty "ForeColor", m_OleForeColor, &H0
         .WriteProperty "MousePointer", m_MouMousePointer, 0
-        .WriteProperty "Value", m_UChValue, uCheckboxConstants.u_UnChecked
+        .WriteProperty "Value", m_UChValue, uCheckboxConstants.u_unChecked
     End With
 
 
