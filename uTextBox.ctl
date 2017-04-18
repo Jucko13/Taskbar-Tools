@@ -124,12 +124,13 @@ End Type
 
 
 Private Type WH
-    W As Long
-    H As Long
-    d As Long
-    x As Long
-    y As Long
-    r As Long
+    W As Long 'char width
+    H As Long 'char height
+    d As Long 'divider height
+    x As Long 'x position
+    y As Long 'y position
+    r As Long 'belongs to what row?
+    p As Long 'part of word
 End Type
 
 Private Type WHSL
@@ -154,7 +155,7 @@ Private Type MarkupStyles
     lBold As Boolean
     lMarking As Long
     lFontSize As Long
-    lPartOfWord As Long
+    'lPartOfWord As Long
     lStrikeThrough As Boolean
     lLine As Long
 End Type
@@ -207,6 +208,7 @@ Private m_bWordsCalculated As Boolean
 Private m_bWordsCalculating As Boolean
 
 Private m_bHideCursor As Boolean
+Private m_bLocked As Boolean
 
 Private m_bMultiLine As Boolean
 Private m_bRowLines As Boolean
@@ -244,6 +246,7 @@ Public Event SelectionChanged()
 Public Event KeyPress(KeyAscii As Integer)
 Public Event KeyDown(ByRef KeyCode As Integer, ByRef Shift As Integer)
 Public Event Click(ByVal charIndex As Long, ByVal charRow As Long)
+Public Event OnCursorPositionChanged(ByVal charIndex As Long, ByVal charRow As Long, ByVal charCol As Long, ByVal charVal As Byte)
 
 Private m_lUsercontrolHeight As Long
 Private m_lUsercontrolWidth As Long
@@ -278,7 +281,7 @@ Public Property Get RawText() As Byte()
 End Property
 
 Public Function getWordFromChar(Char As Long) As Long
-    getWordFromChar = MarkupS(Char).lPartOfWord
+    getWordFromChar = CharMap(Char).p
 End Function
 
 Public Function getWordLength(word As Long) As Long
@@ -288,6 +291,12 @@ End Function
 Public Function getWordStart(word As Long) As Long
     getWordStart = WordMap(word).s
 End Function
+
+Public Sub resetCharMarkup()
+    ReDim MarkupS(0 To UBound(MarkupS))
+    
+    'MarkupS(Char).lItalic = bValue
+End Sub
 
 
 Public Sub setCharItallic(Char As Long, bValue As Boolean)
@@ -327,7 +336,10 @@ End Function
 Sub updateCaretPos()
 
     If Not Screen.ActiveControl Is Nothing Then
-        If Not UserControl.Extender Is Screen.ActiveControl Then Exit Sub
+        If Not UserControl.Extender Is Screen.ActiveControl Then
+            DestroyCaret
+            Exit Sub
+        End If
     End If
     
     If m_bHideCursor Then Exit Sub
@@ -336,6 +348,8 @@ Sub updateCaretPos()
 
     setCaretPos CharMap(m_CursorPos).x - 1, CharMap(m_CursorPos).y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d - SYT
     ShowCaret UserControl.hWnd
+    
+    RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).r, m_CursorPos - RowMap(CharMap(m_CursorPos).r).startChar, m_byteText(m_CursorPos))
 End Sub
 
 
@@ -610,6 +624,20 @@ Public Property Let Border(ByVal bValue As Boolean)
 End Property
 
 
+
+Public Property Get Locked() As Boolean
+    Locked = m_bLocked
+End Property
+
+Public Property Let Locked(ByVal bValue As Boolean)
+    m_bLocked = bValue
+    PropertyChanged "Locked"
+    'If Not m_bStarting Then Redraw
+End Property
+
+
+
+
 Public Property Get BorderColor() As OLE_COLOR
     BorderColor = m_OleBorderColor
 End Property
@@ -659,10 +687,10 @@ End Function
 Private Sub UserControl_DblClick()
     Dim word As Long
     
-    word = MarkupS(m_CursorPos).lPartOfWord
+    word = CharMap(m_CursorPos).p
     
     If word = -1 And m_CursorPos > 0 Then
-        word = MarkupS(m_CursorPos - 1).lPartOfWord
+        word = CharMap(m_CursorPos - 1).p
     End If
         
     If word <> -1 Then
@@ -774,7 +802,7 @@ Private Sub UserControl_Initialize()
     m_lMouseDownPrevious = 99
     m_lBorderThickness = 1
     TSP = 6
-    
+    m_bLocked = False
     ReDim RowMap(0 To 0)
     
     Debug.Print "initialize"
@@ -954,8 +982,6 @@ Sub ReCalculateRowMap(Optional fromWhere As Long = 0)
     Dim NLNR As Boolean    'Next Loop goto NextRow
     Dim POWC As Long    'part of word checked
     
-    CalculateUserControlWidthHeight
-    
     If fromWhere <= 0 Then
         ReDim RowMap(0)
         fromWhere = 0
@@ -1026,9 +1052,12 @@ checkNextChar:
         Select Case m_byteText(cc)
             Case 13
                 If m_bMultiLine Then NLNR = True
+                CharMap(cc).r = NRC
+                
             Case 10
                 CharMap(cc).x = TextOffsetX
                 CharMap(cc).y = TextOffsetY
+                CharMap(cc).r = NRC
                 GoTo NextChar
             Case 32
                 'If TL = CC Then GoTo NextChar
@@ -1039,9 +1068,9 @@ checkNextChar:
 
         
         
-        If MarkupS(cc).lPartOfWord <> -1 Then
-            If POWC <> MarkupS(cc).lPartOfWord Then
-                POWC = MarkupS(cc).lPartOfWord
+        If CharMap(cc).p <> -1 Then
+            If POWC <> CharMap(cc).p Then
+                POWC = CharMap(cc).p
 
                 'does the current word fit?
                 If m_bWordWrap And TextOffsetX + WordMap(POWC).W > UW And POWC > 0 Or (NLNR = True And MultiLine = True And m_bWordWrap = False) Then
@@ -1113,7 +1142,7 @@ MakeNewRule:
                 End If
 
                 'if the word started on the previous row check to break again for really long words!
-            ElseIf m_bWordWrap And TextOffsetX + CharMap(cc).W > UW Then
+            ElseIf m_bWordWrap And TextOffsetX + CharMap(cc).W > UW - UWS Then
                 GoTo MakeNewRule
             End If
         End If
@@ -1213,10 +1242,6 @@ Sub Redraw()
     m_bRefreshing = True
     
     'm_timer.tStart
-
-    If m_bMarkupCalculated = False Then ReCalculateMarkup
-    If m_bWordsCalculated = False Then ReCalculateWords m_lRefreshFromCharAt
-    If m_bRowMapCalculated = False Then ReCalculateRowMap m_lRefreshFromRowAt
     
    
     Dim i As Long
@@ -1269,26 +1294,14 @@ Sub Redraw()
 
     SetTextAlign UserControl.hdc, 24
     
-    If m_lScrollTop - 1 >= 0 Then
-        SYT = CharMap(RowMap(m_lScrollTop - 1).startChar).y
-    '    TW = TextWidth((m_lScrollTop + 1) & "0")
-    Else
-        SYT = 0
-    '    TW = TextWidth("00")
+    If m_bRowMapCalculated = False Then
+        CalculateUserControlWidthHeight
     End If
 
 
     TW = TextWidth("00000")
-    
-    'TH = TextHeight("W")
-    
     TSP = 6
     POWC = -1
-    
-
-    
-    TL = UBound(m_byteText)
-    'm_sScrollBars = lVertical
 
     LNW = 0
     LNR = 0
@@ -1303,12 +1316,27 @@ Sub Redraw()
         TextOffsetX = TSP
     End If
     
-    NRC = m_lScrollTopMax
-
-    'm_timer.tStart
-    'On Error Resume Next
     
-
+    
+    If TextOffsetX > UW - UWS Then
+        m_bRefreshing = False
+        Exit Sub
+    End If
+    
+    If m_bMarkupCalculated = False Then ReCalculateMarkup
+    If m_bWordsCalculated = False Then ReCalculateWords m_lRefreshFromCharAt
+    If m_bRowMapCalculated = False Then ReCalculateRowMap m_lRefreshFromRowAt
+    
+    NRC = m_lScrollTopMax
+    
+    If m_lScrollTop - 1 >= 0 Then
+        SYT = CharMap(RowMap(m_lScrollTop - 1).startChar).y
+    Else
+        SYT = 0
+    End If
+    
+    TL = UBound(m_byteText)
+    
 
     For i = m_lScrollTop To NRC
         'Debug.Print m_byteText(CC);
@@ -1537,7 +1565,9 @@ DoneRefreshing:
     End If
 
     UserControl.Refresh
-
+    
+    updateCaretPos
+    
     'DoEvents
     m_bRefreshing = False
     'If m_bRefreshedWhileBusy Then
@@ -1594,10 +1624,10 @@ Sub ReCalculateWords(Optional fromWhere As Long = 0)
                 WL = 0
 
                 WordMap(WC).s = TL + 1
-                MarkupS(TL).lPartOfWord = -1
+                CharMap(TL).p = -1
             End If
         Else
-            MarkupS(TL).lPartOfWord = WC
+            CharMap(TL).p = WC
             If CharMap(TL).H > WH Then
                 WH = CharMap(TL).H
             End If
@@ -1649,10 +1679,10 @@ End Sub
 ''                WL = 0
 '
 '                WordMap(WC).S = TL + 1
-'                MarkupS(TL).lPartOfWord = -1
+'                MarkupS(TL).p = -1
 '            End If
 '        Else
-'            MarkupS(TL).lPartOfWord = WC
+'            MarkupS(TL).p = WC
 '            If CharMap(TL).H > WordMap(WC).H Then
 '                WordMap(WC).H = CharMap(TL).H
 '            End If
@@ -1715,7 +1745,7 @@ Public Sub Clear()
     
     AddCharAtCursor , True
     
-    'Redraw
+    If Not m_bStarting Then Redraw
 End Sub
 
 
@@ -2224,7 +2254,9 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     
     RaiseEvent KeyDown(KeyCode, Shift)
     
-    If KeyCode = 0 And Shift = 0 Then m_bBlockNextKeyPress = True
+    If (KeyCode = 0 And Shift = 0) Or Locked Then m_bBlockNextKeyPress = True
+    
+    
     
     Select Case KeyCode
         Case vbKeyDown, vbKeyUp
@@ -2356,11 +2388,12 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
                             Exit Sub
                         End If
 
-                        If KeyCode = vbKeyX Then
+                        If KeyCode = vbKeyX And Locked = False Then
                             mustRedraw = AddCharAtCursor()
                         End If
 
                     Case vbKeyV
+                        If Locked Then Exit Sub
                         mustRedraw = AddCharAtCursor(Clipboard.GetText)
                     
                     Case vbKeyA
@@ -2384,9 +2417,11 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
         '    mustRedraw = AddCharAtCursor(" ")
 
         Case vbKeyReturn
+            If Locked Then Exit Sub
             If m_bMultiLine Then mustRedraw = AddCharAtCursor(vbCrLf)
 
         Case vbKeyBack
+            If Locked Then Exit Sub
             If m_SelStart = m_SelEnd Then
                 If m_SelStart > 0 Then
                     m_SelStart = getPreviousChar(m_SelStart - 1)
@@ -2398,6 +2433,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
             mustRedraw = AddCharAtCursor()
 
         Case vbKeyDelete
+            If Locked Then Exit Sub
             If m_SelEnd >= UBound(m_byteText) Then
                 Exit Sub
             End If
@@ -2479,10 +2515,10 @@ Function getNextWordFromCursor() As Long
     Dim i As Long
     Dim WordPart As Long
 
-    WordPart = MarkupS(m_CursorPos).lPartOfWord
+    WordPart = CharMap(m_CursorPos).p
     If WordPart = -1 Then
         For i = m_CursorPos To UBound(CharMap)
-            WordPart = MarkupS(i).lPartOfWord
+            WordPart = CharMap(i).p
             If WordPart <> -1 Then
                 getNextWordFromCursor = WordMap(WordPart).s
                 Exit Function
@@ -2510,10 +2546,10 @@ Function getPreviousWordFromCursor() As Long
     Dim i As Long
     Dim WordPart As Long
 
-    WordPart = MarkupS(m_CursorPos).lPartOfWord
+    WordPart = CharMap(m_CursorPos).p
     If WordPart = -1 Then
         For i = m_CursorPos To 0 Step -1
-            WordPart = MarkupS(i).lPartOfWord
+            WordPart = CharMap(i).p
             If WordPart <> -1 Then
                 getPreviousWordFromCursor = WordMap(WordPart).s
                 Exit Function
@@ -3078,7 +3114,9 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "MultiLine", m_bMultiLine, False
         .WriteProperty "HideCursor", m_bHideCursor, False
         .WriteProperty "AutoResize", m_bAutoResize, False
+        .WriteProperty "Locked", m_bLocked, False
         .WriteProperty "ScrollBars", m_sScrollBars, ScrollBarStyle.lNone
+        
     End With
 End Sub
 
@@ -3103,6 +3141,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         m_bMultiLine = .ReadProperty("MultiLine", False)
         m_bHideCursor = .ReadProperty("HideCursor", False)
         m_bAutoResize = .ReadProperty("AutoResize", False)
+        m_bLocked = .ReadProperty("Locked", False)
         m_sScrollBars = .ReadProperty("ScrollBars", ScrollBarStyle.lNone)
         
     End With
