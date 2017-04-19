@@ -271,9 +271,9 @@ Private m_bBlockNextKeyPress As Boolean 'for things like ctrl+space autocomplete
 Private Declare Function GetTextExtentPoint32 Lib "gdi32" Alias "GetTextExtentPoint32A" (ByVal hdc As Long, ByVal lpsz As String, ByVal cbString As Long, lpSize As WH) As Long
 Private Declare Function SetTextAlign Lib "gdi32.dll" (ByVal hdc As Long, ByVal wFlags As Long) As Long
 
-Private Declare Function CreateCaret Lib "user32" (ByVal hWnd As Long, ByVal hBitmap As Long, ByVal x As Long, ByVal y As Long) As Long
+Private Declare Function CreateCaret Lib "user32" (ByVal hwnd As Long, ByVal hBitmap As Long, ByVal x As Long, ByVal y As Long) As Long
 Private Declare Function setCaretPos Lib "user32" Alias "SetCaretPos" (ByVal x As Long, ByVal y As Long) As Long
-Private Declare Function ShowCaret Lib "user32" (ByVal hWnd As Long) As Long
+Private Declare Function ShowCaret Lib "user32" (ByVal hwnd As Long) As Long
 Private Declare Function DestroyCaret Lib "user32" () As Long
 
 Public Property Get RawText() As Byte()
@@ -292,9 +292,21 @@ Public Function getWordStart(word As Long) As Long
     getWordStart = WordMap(word).s
 End Function
 
-Public Sub resetCharMarkup()
-    ReDim MarkupS(0 To UBound(MarkupS))
+Public Sub ClearMarkup()
+    Dim i As Long
     
+    For i = 0 To UBound(MarkupS)
+        With MarkupS(i)
+            .lBold = False
+            .lFontSize = -1
+            .lForeColor = -1
+            .lItalic = False
+            .lLine = -1
+            .lMarking = -1
+            .lStrikeThrough = False
+            .lUnderline = False
+        End With
+    Next i
     'MarkupS(Char).lItalic = bValue
 End Sub
 
@@ -344,10 +356,10 @@ Sub updateCaretPos()
     
     If m_bHideCursor Then Exit Sub
     
-    CreateCaret UserControl.hWnd, 0, 2, CharMap(m_CursorPos).H
+    CreateCaret UserControl.hwnd, 0, 2, CharMap(m_CursorPos).H
 
     setCaretPos CharMap(m_CursorPos).x - 1, CharMap(m_CursorPos).y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d - SYT
-    ShowCaret UserControl.hWnd
+    ShowCaret UserControl.hwnd
     
     RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).r, m_CursorPos - RowMap(CharMap(m_CursorPos).r).startChar, m_byteText(m_CursorPos))
 End Sub
@@ -680,8 +692,8 @@ Sub RedrawResume(Optional bDoNotRedraw As Boolean = False)
     updateCaretPos
 End Sub
 
-Function hWnd() As Long
-    hWnd = UserControl.hWnd
+Function hwnd() As Long
+    hwnd = UserControl.hwnd
 End Function
 
 Private Sub UserControl_DblClick()
@@ -805,7 +817,7 @@ Private Sub UserControl_Initialize()
     m_bLocked = False
     ReDim RowMap(0 To 0)
     
-    Debug.Print "initialize"
+    'Debug.Print "initialize"
     'CalculateUserControlWidthHeight
     
     Set performance = New PerformanceTimer
@@ -1073,7 +1085,7 @@ checkNextChar:
                 POWC = CharMap(cc).p
 
                 'does the current word fit?
-                If m_bWordWrap And TextOffsetX + WordMap(POWC).W > UW And POWC > 0 Or (NLNR = True And MultiLine = True And m_bWordWrap = False) Then
+                If m_bWordWrap And TextOffsetX + WordMap(POWC).W > UW - UWS And POWC > 0 Or (NLNR = True And MultiLine = True And m_bWordWrap = False) Then
 MakeNewRule:
                     TextOffsetX = LNW - m_lScrollLeft
                     TTW = TextOffsetX
@@ -1087,7 +1099,7 @@ MakeNewRule:
                         
                         For RL = POWC To WordCount
                             TTW = TTW + WordMap(RL).W
-                            If TTW > UW And RL > POWC Then Exit For
+                            If TTW > UW - UWS And RL > POWC Then Exit For
                             If WordMap(RL).H > RH Then RH = WordMap(RL).H
                         Next RL
                         
@@ -1585,6 +1597,8 @@ Sub ReCalculateWords(Optional fromWhere As Long = 0)
     Dim BT As Long    'ByteText
     Dim UB As Long    'ubound bytetext
     Dim TL As Long    'text length
+    Dim POW As Long   'part of word
+    
     If m_bMarkupCalculating Then Exit Sub
     m_bMarkupCalculating = True
 
@@ -1592,16 +1606,21 @@ Sub ReCalculateWords(Optional fromWhere As Long = 0)
     
     'ReDim Preserve WordMap(0 To UBound(m_byteText) + 2)
     'ReDim RowMap(0 To 0)
+
+    UB = UBound(m_byteText)
     
     If fromWhere <= 1 Then
         ReDim WordMap(0)
+    Else
+        POW = CharMap(fromWhere).p
+        If POW <> -1 Then
+            fromWhere = WordMap(POW).s
+            WC = POW
+        End If
     End If
     
-    
-    UB = UBound(m_byteText)
-    
     If fromWhere = -1 Then fromWhere = 0
-    
+
     For TL = fromWhere To UB
         BT = m_byteText(TL)
         
@@ -1985,10 +2004,10 @@ Dim i As Long
         EOR = RowMap(CR + 1).startChar - 1
     End If
     
-    If CharMap(RowMap(CR).startChar).x > x Then
-        getCharAtCursor = RowMap(CR).startChar
-        Exit Function
-    ElseIf CharMap(RowMap(CR).startChar + RowMap(CR).NumChars - 1).x < x Then
+    'If CharMap(RowMap(CR).startChar).x > x Then
+    '    getCharAtCursor = RowMap(CR).startChar
+    '    Exit Function
+    If CharMap(RowMap(CR).startChar + RowMap(CR).NumChars - 1).x < x Then
         getCharAtCursor = EOR
         Exit Function
     End If
@@ -2003,6 +2022,9 @@ Dim i As Long
                     getCharAtCursor = i + 1
                     If getCharAtCursor > UBound(m_byteText) Then getCharAtCursor = UBound(m_byteText)
                 End If
+                Exit Function
+            ElseIf CharMap(i).x > x Then
+                getCharAtCursor = i
                 Exit Function
             End If
         End If
@@ -2025,7 +2047,7 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Sing
     m_lMouseX = x ' - m_lScrollLeft
     m_lMouseY = y ' - m_lScrollTop
     
-    If x > UserControl.ScaleWidth - 15 Then
+    If x > UserControl.ScaleWidth - 15 And m_sScrollBars <> lNone Then
         If m_lMouseDownY >= m_lScrollTopBarY And m_lMouseDownY <= m_lScrollTopBarY + m_lScrollTopBarHeight Then
             m_bScrollingTopBar = True
             m_lScrollTopDragStartY = m_lMouseDownY - m_lScrollTopBarY
