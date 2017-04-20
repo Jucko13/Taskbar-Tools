@@ -43,6 +43,8 @@ Option Explicit
 'maybe add a mode for rtf?
 
 Private Declare Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (hpvDest As Any, hpvSource As Any, ByVal cbCopy As Long)
+'Private Declare Function DrawText Lib "user32" Alias "DrawTextA" (ByVal hdc As Long, ByVal lpStr As String, ByVal nCount As Long, lpRect As RECT, ByVal wFormat As Long) As Long
+Private Declare Function TextOut Lib "gdi32" Alias "TextOutA" (ByVal hdc As Long, ByVal x As Long, ByVal y As Long, ByVal lpString As String, ByVal nCount As Long) As Long
 
 Private Type TEXTMETRIC
     tmHeight As Long
@@ -327,6 +329,9 @@ Public Sub setCharBackColor(Char As Long, OleValue As OLE_COLOR)
     MarkupS(Char).lMarking = IIf(OleValue >= 0, OleValue, -1)
 End Sub
 
+Public Sub setCharBorderColor(Char As Long, OleValue As OLE_COLOR)
+    MarkupS(Char).lLine = IIf(OleValue >= 0, OleValue, -1)
+End Sub
 
 Public Function getCharItallic(Char As Long) As Boolean
     getCharItallic = MarkupS(Char).lItalic
@@ -1130,7 +1135,7 @@ MakeNewRule:
                     End If
                     
                     
-                    If m_bRowNumberOnEveryLine Or NLNR Or cc = 0 Then
+                    If m_bMultiLine Or NLNR Or cc = 0 Then
                         'RowMap(NRC).Height = RH
                         
                         If cc <> 0 Then NRC = NRC + 1
@@ -1253,8 +1258,8 @@ Sub Redraw()
     
     m_bRefreshing = True
     
-    'm_timer.tStart
     
+    Dim m_timer As PerformanceTimer
    
     Dim i As Long
     Dim cc As Long    'Char Count
@@ -1276,7 +1281,8 @@ Sub Redraw()
     Dim MTW As Long   'max text width
 
     Dim NLNR As Boolean    'Next Loop goto NextRow
-
+    Dim CTP As String 'char to print
+    
     'currentStyle values
     Dim cForeColor As Long
     Dim cUnderline As Boolean
@@ -1303,6 +1309,7 @@ Sub Redraw()
     UserControl.FillStyle = vbFSSolid
     UserControl.DrawStyle = 5
     UserControl.DrawMode = 13
+    
 
     SetTextAlign UserControl.hdc, 24
     
@@ -1338,6 +1345,11 @@ Sub Redraw()
     If m_bMarkupCalculated = False Then ReCalculateMarkup
     If m_bWordsCalculated = False Then ReCalculateWords m_lRefreshFromCharAt
     If m_bRowMapCalculated = False Then ReCalculateRowMap m_lRefreshFromRowAt
+    
+    Set m_timer = New PerformanceTimer
+    
+    
+    m_timer.StartTimer
     
     NRC = m_lScrollTopMax
     
@@ -1441,22 +1453,24 @@ Sub Redraw()
                         UserControl.ForeColor = cLine
                     End If
     
-                    Dim MS As String
-                    MS = ChrW(m_byteText(cc))
-                    For jj = 0 To 2
-                        For kk = -2 To 0
+                    
+                    CTP = ChrW(m_byteText(cc))
+                    For jj = -1 To 1
+                        For kk = -1 To 1
                             If Not (jj = 0 And kk = 0) Then
-                                UserControl.CurrentX = TextOffsetX + jj ' + 1
-                                UserControl.CurrentY = TextOffsetY + kk '- 1    '- CharMap(CC).H
-                                UserControl.Print MS;
+                                ''UserControl.CurrentX = TextOffsetX + jj ' + 1
+                                ''UserControl.CurrentY = TextOffsetY + kk '- 1    '- CharMap(CC).H
+                                ''UserControl.Print MS;
+                                
+                                TextOut UserControl.hdc, TextOffsetX + jj, TextOffsetY + kk, CTP, 1
                             End If
                         Next kk
                     Next jj
-                    UserControl.CurrentX = TextOffsetX + 1
-                    UserControl.CurrentY = TextOffsetY - 1    ' - CharMap(CC).H
+                    ''UserControl.CurrentX = TextOffsetX + 1
+                    ''UserControl.CurrentY = TextOffsetY - 1    ' - CharMap(CC).H
                 Else
-                    UserControl.CurrentX = TextOffsetX
-                    UserControl.CurrentY = TextOffsetY    ' - CharMap(CC).H
+                    ''UserControl.CurrentX = TextOffsetX
+                    ''UserControl.CurrentY = TextOffsetY    ' - CharMap(CC).H
                 End If
     
                 If cForeColor <> MarkupS(cc).lForeColor Then
@@ -1467,8 +1481,11 @@ Sub Redraw()
                         UserControl.ForeColor = cForeColor
                     End If
                 End If
-    
-                UserControl.Print ChrW(m_byteText(cc));
+                
+                
+                If m_byteText(cc) <> 10 And m_byteText(cc) <> 13 Then TextOut UserControl.hdc, TextOffsetX, TextOffsetY, ChrW(m_byteText(cc)), 1
+
+                'UserControl.Print Chr(m_byteText(cc));
     
                 If cc >= m_SelStart And cc < m_SelEnd And m_byteText(cc) <> 10 Then
     
@@ -1505,6 +1522,10 @@ NextChar:
         Next cc
     Next i
 DoneRefreshing:
+    
+    'm_timer.StopTimer
+    
+    'Debug.Print m_timer.TimeElapsed(pvMilliSecond)
     
     m_lRefreshFromRowAt = -1
     m_lRefreshFromCharAt = -1
@@ -1816,6 +1837,11 @@ Function AddCharAtCursor(Optional sChar As String = "", Optional noevents As Boo
 
     For i = 1 To lInsertLength
         m_byteText(m_SelStart + i - 1) = Asc(Mid$(sChar, i, 1))
+        
+        'If reCalculateFromWhere + i - 2 > 0 Then
+        '    MarkupS(reCalculateFromWhere + i - 1) = MarkupS((reCalculateFromWhere + i - 2))
+        'End If
+        
         'If m_SelStart + i - 2 > 0 Then
         'CharMap(m_SelStart + i - 1) = CharMap(m_SelStart + i - 2)
         'End If
