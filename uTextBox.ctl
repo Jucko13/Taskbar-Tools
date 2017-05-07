@@ -88,23 +88,6 @@ Private m_bStarting As Boolean
 Private m_bBorder As Boolean
 Private m_lBorderThickness As Long
 
-'Private Type Sel_Normal
-'    lStart As Long
-'    lLength As Long
-'    bValue As Boolean
-'End Type
-
-'Private Type Sel_Font
-'    lStart As Long
-'    lLength As Long
-'    sFontName As String
-'End Type
-
-'Private Type Sel_Color
-'    lStart As Long
-'    lLength As Long
-'    lColor As Long
-'End Type
 
 Private Enum Sel_Edit
     sFontName = 0
@@ -136,10 +119,10 @@ Private Type WH
 End Type
 
 Private Type WHSL
-    W As Long
-    H As Long
-    s As Long
-    l As Long
+    W As Long 'width
+    H As Long 'height
+    s As Long 'startChar
+    l As Long 'length
 End Type
 
 Private Type NSS
@@ -151,15 +134,16 @@ End Type
 
 Private Type MarkupStyles
     'lFontName As String
-    lForeColor As Long
-    lUnderline As Boolean
-    lItalic As Boolean
-    lBold As Boolean
+    lLine As Long
     lMarking As Long
     lFontSize As Long
-    'lPartOfWord As Long
-    lStrikeThrough As Boolean
-    lLine As Long
+    lForeColor As Long
+    
+    lStrikeThrough As Byte
+    lUnderline As Byte
+    lItalic As Byte
+    lBold As Byte
+    
 End Type
 
 Private MarkupS() As MarkupStyles
@@ -188,18 +172,8 @@ Private m_SelUpDownTheSame As Boolean
 Private m_bRefreshing As Boolean
 Private m_bRefreshedWhileBusy As Boolean
 
-'Private m_LonFontCount As Long
-'Private m_SelFont() As Sel_Font
-'Private m_LonColorCount As Long
-'Private m_SelColor() As Sel_Color
-'Private m_LonMarkingCount As Long
-'Private m_SelMarking() As Sel_Color
-'Private m_LonUnderlineCount As Long
-'Private m_SelUnderline() As Sel_Normal
-'Private m_LonItalicCount As Long
-'Private m_SelItalic() As Sel_Normal
-'Private m_LonBoldCount As Long
-'Private m_SelBold() As Sel_Normal
+Private m_bConsoleColors As Boolean
+Private m_sConsoleColorBuffer As String
 
 Private m_bLineNumbers As Boolean
 Private m_bMarkupCalculated As Boolean
@@ -247,6 +221,7 @@ Public Event Changed()
 Public Event SelectionChanged()
 Public Event KeyPress(KeyAscii As Integer)
 Public Event KeyDown(ByRef KeyCode As Integer, ByRef Shift As Integer)
+Public Event KeyUp(ByRef KeyCode As Integer, ByRef Shift As Integer)
 Public Event Click(ByVal charIndex As Long, ByVal charRow As Long)
 Public Event OnCursorPositionChanged(ByVal charIndex As Long, ByVal charRow As Long, ByVal charCol As Long, ByVal charVal As Byte)
 
@@ -273,10 +248,13 @@ Private m_bBlockNextKeyPress As Boolean 'for things like ctrl+space autocomplete
 Private Declare Function GetTextExtentPoint32 Lib "gdi32" Alias "GetTextExtentPoint32A" (ByVal hdc As Long, ByVal lpsz As String, ByVal cbString As Long, lpSize As WH) As Long
 Private Declare Function SetTextAlign Lib "gdi32.dll" (ByVal hdc As Long, ByVal wFlags As Long) As Long
 
-Private Declare Function CreateCaret Lib "user32" (ByVal hwnd As Long, ByVal hBitmap As Long, ByVal x As Long, ByVal y As Long) As Long
+Private Declare Function CreateCaret Lib "user32" (ByVal hWnd As Long, ByVal hBitmap As Long, ByVal x As Long, ByVal y As Long) As Long
 Private Declare Function setCaretPos Lib "user32" Alias "SetCaretPos" (ByVal x As Long, ByVal y As Long) As Long
-Private Declare Function ShowCaret Lib "user32" (ByVal hwnd As Long) As Long
+Private Declare Function ShowCaret Lib "user32" (ByVal hWnd As Long) As Long
 Private Declare Function DestroyCaret Lib "user32" () As Long
+
+Private m_OleConsoleColors(0 To 7) As OLE_COLOR
+
 
 Public Property Get RawText() As Byte()
     RawText = m_byteText
@@ -361,10 +339,10 @@ Sub updateCaretPos()
     
     If m_bHideCursor Then Exit Sub
     
-    CreateCaret UserControl.hwnd, 0, 2, CharMap(m_CursorPos).H
+    CreateCaret UserControl.hWnd, 0, 2, CharMap(m_CursorPos).H
 
     setCaretPos CharMap(m_CursorPos).x - 1, CharMap(m_CursorPos).y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d - SYT
-    ShowCaret UserControl.hwnd
+    ShowCaret UserControl.hWnd
     
     RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).r, m_CursorPos - RowMap(CharMap(m_CursorPos).r).startChar, m_byteText(m_CursorPos))
 End Sub
@@ -411,6 +389,15 @@ Public Property Let HideCursor(ByVal bValue As Boolean)
     updateCaretPos
 End Property
 
+
+Public Property Get ConsoleColors() As Boolean
+    ConsoleColors = m_bConsoleColors
+End Property
+
+Public Property Let ConsoleColors(ByVal bValue As Boolean)
+    m_bConsoleColors = bValue
+    PropertyChanged "ConsoleColors"
+End Property
 
 
 Public Property Get MultiLine() As Boolean
@@ -697,8 +684,8 @@ Sub RedrawResume(Optional bDoNotRedraw As Boolean = False)
     updateCaretPos
 End Sub
 
-Function hwnd() As Long
-    hwnd = UserControl.hwnd
+Function hWnd() As Long
+    hWnd = UserControl.hWnd
 End Function
 
 Private Sub UserControl_DblClick()
@@ -735,7 +722,16 @@ End Function
 
 Private Sub UserControl_Initialize()
     m_bStarting = True
-
+    
+    m_OleConsoleColors(0) = vbBlack
+    m_OleConsoleColors(1) = vbRed
+    m_OleConsoleColors(2) = vbGreen
+    m_OleConsoleColors(3) = vbYellow
+    m_OleConsoleColors(4) = vbBlue
+    m_OleConsoleColors(5) = vbMagenta
+    m_OleConsoleColors(6) = vbCyan
+    m_OleConsoleColors(7) = vbWhite
+    
     'Set m_timer = New clsTimer
 
     'Dim lrand As Long
@@ -811,7 +807,8 @@ Private Sub UserControl_Initialize()
 
     m_OleRowLineColor = &HEEEEEE
     m_bRowLines = False
-
+    m_bConsoleColors = True
+    
     m_bLineNumbers = False
     m_OleLineNumberBackground = 0
     m_OleLineNumberForeColor = vbWhite
@@ -826,7 +823,6 @@ Private Sub UserControl_Initialize()
     'CalculateUserControlWidthHeight
     
     Set performance = New PerformanceTimer
-    
 End Sub
 
 Sub DrawScrollBars()
@@ -980,7 +976,7 @@ Sub ReCalculateRowMap(Optional fromWhere As Long = 0)
     Dim i As Long
     'Dim WC As Long 'word count
     Dim TL As Long 'text length
-    Dim cc As Long
+    Dim CC As Long
     
     Dim TW As Long    'text width
     Dim LNW As Long    'line number width
@@ -1055,10 +1051,10 @@ Sub ReCalculateRowMap(Optional fromWhere As Long = 0)
     'RD = 0
     
     
-    For cc = fromWhere To UBound(m_byteText)
+    For CC = fromWhere To UBound(m_byteText)
 
         
-        If NLNR = True Or cc = 0 Then
+        If NLNR = True Or CC = 0 Then
             GoTo MakeNewRule
         End If
         
@@ -1066,15 +1062,15 @@ checkNextChar:
 
 
 
-        Select Case m_byteText(cc)
+        Select Case m_byteText(CC)
             Case 13
                 If m_bMultiLine Then NLNR = True
-                CharMap(cc).r = NRC
+                CharMap(CC).r = NRC
                 
             Case 10
-                CharMap(cc).x = TextOffsetX
-                CharMap(cc).y = TextOffsetY
-                CharMap(cc).r = NRC
+                CharMap(CC).x = TextOffsetX
+                CharMap(CC).y = TextOffsetY
+                CharMap(CC).r = NRC
                 GoTo NextChar
             Case 32
                 'If TL = CC Then GoTo NextChar
@@ -1085,9 +1081,9 @@ checkNextChar:
 
         
         
-        If CharMap(cc).p <> -1 Then
-            If POWC <> CharMap(cc).p Then
-                POWC = CharMap(cc).p
+        If CharMap(CC).p <> -1 Then
+            If POWC <> CharMap(CC).p Then
+                POWC = CharMap(CC).p
 
                 'does the current word fit?
                 If m_bWordWrap And TextOffsetX + WordMap(POWC).W > UW - UWS And POWC > 0 Or (NLNR = True And MultiLine = True And m_bWordWrap = False) Then
@@ -1098,7 +1094,7 @@ MakeNewRule:
                     RD = 0
                     
                     If m_bWordWrap Then
-                        If cc = 0 Then
+                        If CC = 0 Then
                             POWC = 0
                         End If
                         
@@ -1109,7 +1105,7 @@ MakeNewRule:
                         Next RL
                         
                     Else
-                        For RL = cc To UBound(m_byteText)
+                        For RL = CC To UBound(m_byteText)
                             TTW = TTW + CharMap(RL).W
                             
                             If m_byteText(RL) = 10 Then Exit For
@@ -1121,7 +1117,7 @@ MakeNewRule:
                         Next RL
                     End If
                     
-                    If cc = 0 Then
+                    If CC = 0 Then
                         If m_bMultiLine Then
                             TextOffsetY = RH 'TSP + RH
                         Else
@@ -1135,15 +1131,15 @@ MakeNewRule:
                     End If
                     
                     
-                    If m_bMultiLine Or NLNR Or cc = 0 Then
+                    If m_bMultiLine Or NLNR Or CC = 0 Then
                         'RowMap(NRC).Height = RH
                         
-                        If cc <> 0 Then NRC = NRC + 1
+                        If CC <> 0 Then NRC = NRC + 1
                         
                         If NRC > UBound(RowMap) Then growRowMap
                         
                         RowMap(NRC).StartY = TextOffsetY
-                        RowMap(NRC).startChar = cc
+                        RowMap(NRC).startChar = CC
                         RowMap(NRC).NumChars = 0
                     End If
                     
@@ -1152,27 +1148,27 @@ MakeNewRule:
                     '    'GoTo NextChar
                     'End If
                     
-                    If NLNR = True Or cc = 0 Then
+                    If NLNR = True Or CC = 0 Then
                         NLNR = False
                         GoTo checkNextChar
                     End If
                 End If
 
                 'if the word started on the previous row check to break again for really long words!
-            ElseIf m_bWordWrap And TextOffsetX + CharMap(cc).W > UW - UWS Then
+            ElseIf m_bWordWrap And TextOffsetX + CharMap(CC).W > UW - UWS Then
                 GoTo MakeNewRule
             End If
         End If
         RowMap(NRC).Height = RH
         RowMap(NRC).NumChars = RowMap(NRC).NumChars + 1
         
-        CharMap(cc).x = TextOffsetX
-        CharMap(cc).y = TextOffsetY
-        CharMap(cc).r = NRC
-        TextOffsetX = TextOffsetX + CharMap(cc).W
+        CharMap(CC).x = TextOffsetX
+        CharMap(CC).y = TextOffsetY
+        CharMap(CC).r = NRC
+        TextOffsetX = TextOffsetX + CharMap(CC).W
         
 NextChar:
-    Next cc
+    Next CC
     
     m_lScrollTopMax = NRC
     If m_lScrollTop > m_lScrollTopMax Then m_lScrollTop = m_lScrollTopMax
@@ -1187,7 +1183,8 @@ Sub CalculateUserControlWidthHeight()
     Dim TW As Long    'text width
     Dim LNW As Long    'line number width
     Dim LNR As Long    'line number right
-    
+    Dim SC As Long 'start char
+     
     If m_sScrollBars <> lNone Then
         UWS = 15
         UHS = 15
@@ -1210,7 +1207,16 @@ Sub CalculateUserControlWidthHeight()
     End If
     
     If m_lScrollTop - 1 >= 0 Then
-        SYT = CharMap(RowMap(m_lScrollTop - 1).startChar).y
+        If m_lScrollTop > UBound(RowMap) Then
+            m_lScrollTop = UBound(RowMap)
+        End If
+        
+        SC = RowMap(m_lScrollTop - 1).startChar
+        If SC > UBound(CharMap) Then
+            SC = UBound(CharMap)
+        End If
+        
+        SYT = CharMap(SC).y
         TW = TextWidth(m_lScrollTop & "0")
     Else
         SYT = 0
@@ -1238,6 +1244,7 @@ Sub ScrollToEnd()
     Dim RH As Long 'row height
     Dim i As Long
     
+    If m_bScrollingTopBar Then Exit Sub
     
     For i = UBound(RowMap) To 0 Step -1
         RH = RH + RowMap(i).Height
@@ -1262,7 +1269,7 @@ Sub Redraw()
     Dim m_timer As PerformanceTimer
    
     Dim i As Long
-    Dim cc As Long    'Char Count
+    Dim CC As Long    'Char Count
     Dim TL As Long    'text length
     
     Dim TW As Long    'text width
@@ -1297,18 +1304,10 @@ Sub Redraw()
     
     UserControl.Cls
 
-    UserControl.Font = m_StdFont
-    UserControl.ForeColor = m_OleForeColor
-    UserControl.BackColor = m_OleBackgroundColor
-    UserControl.FontSize = m_StdFont.Size
-    UserControl.FontStrikethru = m_StdFont.Strikethrough
-    UserControl.FontUnderline = m_StdFont.Underline
-    UserControl.FontItalic = m_StdFont.Italic
-    UserControl.FontBold = m_StdFont.Bold
-
     UserControl.FillStyle = vbFSSolid
     UserControl.DrawStyle = 5
     UserControl.DrawMode = 13
+    
     
 
     SetTextAlign UserControl.hdc, 24
@@ -1346,6 +1345,24 @@ Sub Redraw()
     If m_bWordsCalculated = False Then ReCalculateWords m_lRefreshFromCharAt
     If m_bRowMapCalculated = False Then ReCalculateRowMap m_lRefreshFromRowAt
     
+    'initialize colors to original color
+    UserControl.Font = m_StdFont
+    UserControl.FontBold = m_StdFont.Bold
+    UserControl.FontStrikethru = m_StdFont.Strikethrough
+    UserControl.FontUnderline = m_StdFont.Underline
+    UserControl.FontItalic = m_StdFont.Italic
+    
+    UserControl.BackColor = m_OleBackgroundColor
+    cForeColor = MarkupS(0).lForeColor: UserControl.ForeColor = IIf(cForeColor <> -1, cForeColor, m_OleForeColor)
+    cFontSize = MarkupS(0).lFontSize: UserControl.FontSize = IIf(cFontSize <> -1, cFontSize, m_StdFont.Size)
+    
+    cStrikeThrough = False
+    cBold = False
+    cUnderline = False
+    cItalic = False
+    
+    cMarking = -1
+    
     Set m_timer = New PerformanceTimer
     
     
@@ -1379,27 +1396,28 @@ Sub Redraw()
         '    UserControl.Line (LNW, TextOffsetY)-(UW - UWS - TSP, TextOffsetY), vbRed
         'End If
         
-        For cc = RowMap(i).startChar To RowMap(i).startChar + RowMap(i).NumChars - 1
+        For CC = RowMap(i).startChar To RowMap(i).startChar + RowMap(i).NumChars - 1
+            If CC = TL Then GoTo DoneRefreshing 'do not draw the last character
             
-            TextOffsetX = CharMap(cc).x
+            TextOffsetX = CharMap(CC).x
             
-            If cBold <> MarkupS(cc).lBold Then
-                cBold = MarkupS(cc).lBold
+            If cBold <> MarkupS(CC).lBold Then
+                cBold = MarkupS(CC).lBold
                 UserControl.FontBold = cBold
             End If
     
-            If cUnderline <> MarkupS(cc).lUnderline Then
-                cUnderline = MarkupS(cc).lUnderline
+            If cUnderline <> MarkupS(CC).lUnderline Then
+                cUnderline = MarkupS(CC).lUnderline
                 UserControl.FontUnderline = cUnderline
             End If
     
-            If cItalic <> MarkupS(cc).lItalic Then
-                cItalic = MarkupS(cc).lItalic
+            If cItalic <> MarkupS(CC).lItalic Then
+                cItalic = MarkupS(CC).lItalic
                 UserControl.FontItalic = cItalic
             End If
     
-            If cFontSize <> MarkupS(cc).lFontSize Then
-                cFontSize = MarkupS(cc).lFontSize
+            If cFontSize <> MarkupS(CC).lFontSize Then
+                cFontSize = MarkupS(CC).lFontSize
                 If cFontSize = -1 Then
                     UserControl.FontSize = m_StdFont.Size
                 Else
@@ -1407,34 +1425,34 @@ Sub Redraw()
                 End If
             End If
     
-            If cStrikeThrough <> MarkupS(cc).lStrikeThrough Then
-                cStrikeThrough = MarkupS(cc).lStrikeThrough
+            If cStrikeThrough <> MarkupS(CC).lStrikeThrough Then
+                cStrikeThrough = MarkupS(CC).lStrikeThrough
                 UserControl.FontStrikethru = cStrikeThrough
             End If
     
             
             
-            If TextOffsetY - RowMap(i).Height < UH And TextOffsetX - TSP < UW And TextOffsetX + CharMap(cc).W > 0 And TextOffsetY >= 0 Then  '
+            If TextOffsetY - RowMap(i).Height < UH And TextOffsetX - TSP < UW And TextOffsetX + CharMap(CC).W > 0 And TextOffsetY >= 0 Then  '
                 Dim jj As Long
                 Dim kk As Long
     
-                If cMarking <> MarkupS(cc).lMarking Then
-                    cMarking = MarkupS(cc).lMarking
+                If cMarking <> MarkupS(CC).lMarking Then
+                    cMarking = MarkupS(CC).lMarking
                     If cMarking <> -1 Then
-                        UserControl.FillColor = MarkupS(cc).lMarking
+                        UserControl.FillColor = MarkupS(CC).lMarking
                     End If
                 End If
     
     
                 If cMarking <> -1 Then
                     pts(0).x = TextOffsetX
-                    pts(0).y = TextOffsetY + CharMap(cc).d
+                    pts(0).y = TextOffsetY + CharMap(CC).d
     
-                    pts(1).x = TextOffsetX + CharMap(cc).W
+                    pts(1).x = TextOffsetX + CharMap(CC).W
                     pts(1).y = pts(0).y
     
                     pts(2).x = pts(1).x
-                    pts(2).y = pts(0).y - CharMap(cc).H 'TextOffsetY - CharMap(CC).H + CharMap(CC).d
+                    pts(2).y = pts(0).y - CharMap(CC).H 'TextOffsetY - CharMap(CC).H + CharMap(CC).d
     
                     pts(3).x = pts(0).x
                     pts(3).y = pts(2).y
@@ -1444,7 +1462,7 @@ Sub Redraw()
                     'UserControl.DrawMode = 13
                 End If
     
-                cLine = MarkupS(cc).lLine
+                cLine = MarkupS(CC).lLine
     
     
                 If cLine <> -1 Then
@@ -1454,7 +1472,7 @@ Sub Redraw()
                     End If
     
                     
-                    CTP = ChrW(m_byteText(cc))
+                    CTP = ChrW(m_byteText(CC))
                     For jj = -1 To 1
                         For kk = -1 To 1
                             If Not (jj = 0 And kk = 0) Then
@@ -1473,8 +1491,8 @@ Sub Redraw()
                     ''UserControl.CurrentY = TextOffsetY    ' - CharMap(CC).H
                 End If
     
-                If cForeColor <> MarkupS(cc).lForeColor Then
-                    cForeColor = MarkupS(cc).lForeColor
+                If cForeColor <> MarkupS(CC).lForeColor Then
+                    cForeColor = MarkupS(CC).lForeColor
                     If cForeColor = -1 Then
                         UserControl.ForeColor = m_OleForeColor
                     Else
@@ -1483,20 +1501,20 @@ Sub Redraw()
                 End If
                 
                 
-                If m_byteText(cc) <> 10 And m_byteText(cc) <> 13 Then TextOut UserControl.hdc, TextOffsetX, TextOffsetY, ChrW(m_byteText(cc)), 1
+                If m_byteText(CC) <> 10 And m_byteText(CC) <> 13 Then TextOut UserControl.hdc, TextOffsetX, TextOffsetY, ChrW(m_byteText(CC)), 1
 
                 'UserControl.Print Chr(m_byteText(cc));
     
-                If cc >= m_SelStart And cc < m_SelEnd And m_byteText(cc) <> 10 Then
+                If CC >= m_SelStart And CC < m_SelEnd And m_byteText(CC) <> 10 Then
     
                     pts(0).x = TextOffsetX
-                    pts(0).y = TextOffsetY + CharMap(cc).d
+                    pts(0).y = TextOffsetY + CharMap(CC).d
     
-                    pts(1).x = TextOffsetX + CharMap(cc).W
+                    pts(1).x = TextOffsetX + CharMap(CC).W
                     pts(1).y = pts(0).y
     
                     pts(2).x = pts(1).x
-                    pts(2).y = TextOffsetY - RowMap(i).Height + IIf(m_bMultiLine, CharMap(cc).d, 0)
+                    pts(2).y = TextOffsetY - RowMap(i).Height + IIf(m_bMultiLine, CharMap(CC).d, 0)
     
                     pts(3).x = TextOffsetX
                     pts(3).y = pts(2).y
@@ -1519,7 +1537,7 @@ Sub Redraw()
             'TextOffsetX = TextOffsetX + CharMap(cc).W
     
 NextChar:
-        Next cc
+        Next CC
     Next i
 DoneRefreshing:
     
@@ -1690,61 +1708,6 @@ endff:
 End Sub
 
 
-'Sub ReCalculateWords1()
-'    Dim WC As Long 'word count
-'    Dim WH As Long 'word height
-'    Dim WW As Long 'word width
-'    Dim WL As Long 'word length
-'
-'    Dim TL As Long 'text length
-'    'Dim MS As String 'mid string
-'
-'    'TLength = Len(m_StrText)
-'    On Error GoTo endff
-'    ReDim WordMap(0 To UBound(m_byteText) + 2)
-'
-'    'WordMap(0).S = 0
-'
-'    For TL = 0 To UBound(m_byteText)
-'        'MSL = Asc(Mid$(m_StrText, TL + 1, 1))
-'
-'        If m_byteText(TL) = 32 Or m_byteText(TL) = 13 Or m_byteText(TL) = 10 Or m_byteText(TL) = 45 Then ' a space
-'            If WordMap(WC).L > 0 Then
-''                WordMap(WC).H = WH
-''                WordMap(WC).W = WW
-''                WordMap(WC).L = WL
-'                WC = WC + 1
-''                WH = 0
-''                WW = 0
-''                WL = 0
-'
-'                WordMap(WC).S = TL + 1
-'                MarkupS(TL).p = -1
-'            End If
-'        Else
-'            MarkupS(TL).p = WC
-'            If CharMap(TL).H > WordMap(WC).H Then
-'                WordMap(WC).H = CharMap(TL).H
-'            End If
-'            WordMap(WC).W = WordMap(WC).W + CharMap(TL).W
-'            WordMap(WC).L = WordMap(WC).L + 1
-'
-'        End If
-'
-'
-'
-'    Next TL
-'
-''    WordMap(WC).H = WH
-''    WordMap(WC).W = WW
-''    WordMap(WC).L = WL
-'
-'    'ReDim Preserve WordMap(0 To WC + 2)
-'
-'    WordCount = WC
-'endff:
-'End Sub
-
 
 Function InstrByte(lStart As Long, ByRef lBytes() As Byte, lSearch As Byte) As Long
     Dim i As Long
@@ -1786,22 +1749,216 @@ Public Sub Clear()
     AddCharAtCursor , True
     
     If Not m_bStarting Then Redraw
+    
+    ClearMarkup
 End Sub
 
 
-Function AddCharAtCursor(Optional sChar As String = "", Optional noevents As Boolean = False) As Boolean
+Private Function parseConsoleColors(ByRef bytes() As Byte, ByRef styleArr() As MarkupStyles, ByRef byteText() As Byte) As String
+
+    'Dim strSplit() As String
+    Dim i As Long 'primary index
+    Dim j As Long 'to check what the rest of the command contains
+    
+    Dim lCommand As Long
+    Dim posCommand As Long
+    Dim isCommand As Boolean
+    Dim UB As Long 'upper bound
+    Dim CL As Long 'command length
+    Dim CN As Long 'command number
+    Dim CC As Boolean 'complete command
+
+    UB = UBound(bytes)
+    'strSplit = Split(str, Chr(&H1B))
+    
+    Dim ATL As Long 'actual text length
+    
+    For i = 0 To UB
+        
+check_for_next_color:
+        
+        If bytes(i) = 27 Then
+            If i < UB Then
+                If bytes(i + 1) = 91 Then
+                    If i + 1 < UB Then
+                        CN = 0
+                        CL = 0
+                        CC = False
+                        
+                        For j = i + 2 To UB 'just run to the end of the command
+                            CL = CL + 1
+                            Select Case bytes(j)
+                                Case 109 'm' end of command
+                                    CC = True
+                                    Exit For
+                                    
+                                Case 48 To 57 '0' to '9'
+                                    CN = CN * 10 + (bytes(j) - 48)
+                                    
+                            End Select
+                            
+                            If CL > 3 Then
+                                GoTo process_as_normal_char
+                            End If
+                        Next j
+                        
+                        If CC Then
+                            'If ATL > 0 Then styleArr(ATL) = styleArr(ATL - 1)
+                            
+                            Select Case CN
+                                Case 30 To 37
+                                    styleArr(ATL).lForeColor = m_OleConsoleColors(CN - 30)
+                                Case 40 To 47
+                                    styleArr(ATL).lMarking = m_OleConsoleColors(CN - 40)
+                            End Select
+                            i = i + CL + 2
+                            If i <= UB Then
+                                GoTo check_for_next_color
+                            Else
+                                GoTo end_of_parsing
+                            End If
+                            
+                        Else 'this happens if the command was not finnished before the ubound of bytes
+                            For j = i To UB
+                                parseConsoleColors = parseConsoleColors & ChrW(bytes(j))
+                            Next j
+                            GoTo end_of_parsing
+                        End If
+                        
+                    Else
+                        parseConsoleColors = ChrW(bytes(i)) & ChrW(bytes(i + 1))
+                        GoTo end_of_parsing
+                    End If
+                Else
+                    GoTo process_as_normal_char
+                End If
+                
+            Else
+                parseConsoleColors = ChrW(bytes(i))
+                GoTo end_of_parsing
+            End If
+            
+        Else
+            
+process_as_normal_char:
+            
+            byteText(ATL) = bytes(i)
+            ATL = ATL + 1
+            styleArr(ATL) = styleArr(ATL - 1)
+        End If
+        
+        
+        'posCommand = InStr(1, strSplit(i), "m")
+        'isCommand = (Left$(strSplit(i), 1) = "[")
+        
+'        If i = UBound(strSplit) Then
+'            If Len(strSplit(i)) = 0 And (posCommand = 0 Or isCommand = False) Then
+'                parseAndAddText = Chr$(&H1B) & strSplit(i)
+'                Exit Function
+'            End If
+'        End If
+'
+'        If posCommand > 0 And isCommand Then
+'            lCommand = Val(Mid(strSplit(i), 2, posCommand))
+'
+'            Dim TL As Long
+'            TL = txtReceived.TextLength
+'            If TL < 0 Then TL = 0
+'
+'            Select Case lCommand
+'                Case 30 To 37
+'                    txtReceived.setCharForeColor TL, CLng(ConsoleColors(lCommand - 30))
+'
+'                Case 40 To 47
+'                    txtReceived.setCharBackColor TL, CLng(ConsoleColors(lCommand - 40))
+'
+'                Case 0
+'                    txtReceived.setCharForeColor TL, -1
+'            End Select
+'
+'            Dim strToAdd As String
+'
+'            strToAdd = Right(strSplit(i), Len(strSplit(i)) - posCommand)
+'
+'            txtReceived.AddCharAtCursor strToAdd
+'        Else
+'            If Len(strSplit(i)) > 0 Then
+'                txtReceived.AddCharAtCursor strSplit(i), True
+'            End If
+'        End If
+        
+        'If Len(strToAdd) <> 5 Then
+        '    Debug.Print strToAdd
+        'End If
+        
+        'Debug.Assert Len(strToAdd) = 5
+        
+    Next i
+    
+    
+    parseConsoleColors = ""
+    
+end_of_parsing:
+    If ATL > 0 Then
+        ReDim Preserve byteText(0 To ATL - 1)
+        ReDim Preserve styleArr(0 To ATL)
+    Else
+        ReDim byteText(0)
+        Erase styleArr 'way to check if there are no chars to add, only a buffer
+    End If
+    
+    
+End Function
+
+Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents As Boolean = False) As Boolean
     Dim lLength As Long
     Dim i As Long
 
     Dim lInsertLength As Long
     Dim lLengthDifference As Long
     Dim reCalculateFromWhere As Long
+    Dim distanceFromEnd As Long
     Dim CursorToEnd As Long
     
-   ' performance.StartTimer
+    Dim byteText() As Byte
+    Dim newByteText() As Byte
+    Dim newMarkupStyles() As MarkupStyles
     
-    lInsertLength = Len(sChar)
-    If lInsertLength = 0 And m_SelStart = m_SelEnd Then Exit Function
+
+    'performance.StartTimer
+    
+    If m_bConsoleColors Then
+        byteText = StrConv(m_sConsoleColorBuffer & sChar, vbFromUnicode)
+        
+        ReDim newMarkupStyles(0 To UBound(byteText) + 1)
+        ReDim newByteText(0 To UBound(byteText) + 1)
+        
+        If m_SelStart = 0 And m_SelEnd = 0 Then
+            newMarkupStyles(0) = MarkupS(UBound(MarkupS))
+        ElseIf m_SelStart > 0 Then
+            newMarkupStyles(0) = MarkupS(m_SelStart)
+        End If
+        
+        'Debug.Print newMarkupStyles(0).lFontSize
+        
+        m_sConsoleColorBuffer = parseConsoleColors(byteText, newMarkupStyles, newByteText)
+        
+        lInsertLength = UBound(newByteText) + 1
+        
+        If (Not (Not newMarkupStyles)) = 0 Then
+            lInsertLength = 0
+        End If
+        If lInsertLength = 0 And m_SelStart = m_SelEnd Then Exit Function
+        
+    Else
+        newByteText = StrConv(sChar, vbFromUnicode)
+        
+        lInsertLength = Len(sChar)
+        If lInsertLength = 0 And m_SelStart = m_SelEnd Then Exit Function
+    End If
+    
+    
+    
 
     If m_SelStart <> m_SelEnd Then
         lLengthDifference = lInsertLength - (m_SelEnd - m_SelStart)
@@ -1810,6 +1967,7 @@ Function AddCharAtCursor(Optional sChar As String = "", Optional noevents As Boo
     End If
     
     reCalculateFromWhere = IIf(m_SelStart < m_SelEnd, m_SelStart, m_SelEnd)
+    distanceFromEnd = UBound(m_byteText) - reCalculateFromWhere
     
     CursorToEnd = UBound(CharMap) - m_SelEnd + 1
     
@@ -1834,37 +1992,47 @@ Function AddCharAtCursor(Optional sChar As String = "", Optional noevents As Boo
         ReDim Preserve m_byteText(0 To UBound(m_byteText) + lLengthDifference)
         ReDim Preserve MarkupS(0 To UBound(MarkupS) + lLengthDifference)
     End If
-
-    For i = 1 To lInsertLength
-        m_byteText(m_SelStart + i - 1) = Asc(Mid$(sChar, i, 1))
-        
-        'If reCalculateFromWhere + i - 2 > 0 Then
-        '    MarkupS(reCalculateFromWhere + i - 1) = MarkupS((reCalculateFromWhere + i - 2))
-        'End If
-        
-        'If m_SelStart + i - 2 > 0 Then
-        'CharMap(m_SelStart + i - 1) = CharMap(m_SelStart + i - 2)
-        'End If
-        'MarkupS(m_SelStart + i - 1) = MarkupS(m_SelStart + i - 2)
-        'Else
-
-        'End If
-        If m_SelStart + i - 2 >= 0 Then
-            MarkupS((m_SelStart + i - 1)) = MarkupS((m_SelStart + i - 2))
+    
+    If lInsertLength > 0 Then
+        CopyMemory m_byteText(m_SelStart), newByteText(0), lInsertLength * LenB(m_byteText(0))
+        If m_bConsoleColors Then
+            'Debug.Print MarkupS(m_SelStart).lForeColor
+            CopyMemory MarkupS(m_SelStart), newMarkupStyles(0), (lInsertLength + 1) * LenB(MarkupS(0))
         Else
-            With MarkupS(m_SelStart + i - 1)
-                .lStrikeThrough = m_StdFont.Strikethrough
-                .lFontSize = -1
-                .lUnderline = m_StdFont.Underline
-                .lItalic = m_StdFont.Italic
-                .lBold = m_StdFont.Bold
-                .lMarking = -1
-                .lForeColor = -1
-                .lLine = -1
-            End With
+            If distanceFromEnd = 0 Then
+                For i = 0 To lInsertLength - 1
+                    'm_byteText(m_SelStart + i) = newByteText(i) 'Asc(Mid$(sChar, i, 1))
+                    MarkupS((m_SelStart + i)) = MarkupS(UBound(MarkupS))
+                Next i
+            Else
+                For i = 0 To lInsertLength - 1
+                    'm_byteText(m_SelStart + i) = newByteText(i) 'Asc(Mid$(sChar, i, 1))
+                    
+                    If m_SelStart + i - 1 >= 0 Then
+                        MarkupS((m_SelStart + i)) = MarkupS((m_SelStart + i - 1))
+                    ElseIf m_SelStart = 0 And m_SelEnd = 0 Then
+                        MarkupS(0) = MarkupS(UBound(MarkupS))
+                    Else
+                        With MarkupS(m_SelStart + i)
+                            .lStrikeThrough = m_StdFont.Strikethrough
+                            .lFontSize = -1
+                            .lUnderline = m_StdFont.Underline
+                            .lItalic = m_StdFont.Italic
+                            .lBold = m_StdFont.Bold
+                            .lMarking = -1
+                            .lForeColor = -1
+                            .lLine = -1
+                        End With
+                    End If
+            
+                 Next i
+            End If
         End If
+    End If
+    
+    
+    
 
-    Next i
     
     CheckCharSize m_SelStart, lInsertLength
 
@@ -1895,9 +2063,6 @@ Function AddCharAtCursor(Optional sChar As String = "", Optional noevents As Boo
     m_bRowMapCalculated = False
     'CalculateUserControlWidthHeight
     'UserControl_KeyDown vbKeyRight, 0
-    
-    
-    
     
     AddCharAtCursor = True
     If Not noevents Then RaiseEvent Changed
@@ -2058,6 +2223,10 @@ Dim i As Long
     Next i
 End Function
 
+
+Private Sub UserControl_KeyUp(KeyCode As Integer, Shift As Integer)
+    RaiseEvent KeyUp(KeyCode, Shift)
+End Sub
 
 Private Sub UserControl_LostFocus()
     DestroyCaret
@@ -3154,6 +3323,7 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "LineNumbers", m_bLineNumbers, False
         .WriteProperty "LineNumberForeColor", m_OleLineNumberForeColor, vbWhite
         .WriteProperty "LineNumberBackground", m_OleLineNumberBackground, vbBlack
+        .WriteProperty "ConsoleColors", m_bConsoleColors, True
         
         .WriteProperty "RowLines", m_bRowLines, False
         .WriteProperty "RowLineColor", m_OleRowLineColor, &HEEEEEE
@@ -3181,6 +3351,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         m_bLineNumbers = .ReadProperty("LineNumbers", False)
         m_OleLineNumberForeColor = .ReadProperty("LineNumberForeColor", vbWhite)
         m_OleLineNumberBackground = .ReadProperty("LineNumberBackground", vbBlack)
+        m_bConsoleColors = .ReadProperty("ConsoleColors", True)
         
         m_bRowLines = .ReadProperty("RowLines", False)
         m_OleRowLineColor = .ReadProperty("RowLineColor", &HEEEEEE)

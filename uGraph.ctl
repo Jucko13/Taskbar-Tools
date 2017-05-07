@@ -10,31 +10,6 @@ Begin VB.UserControl uGraph
    ScaleHeight     =   257
    ScaleMode       =   3  'Pixel
    ScaleWidth      =   801
-   Begin VB.PictureBox picGraph 
-      Appearance      =   0  'Flat
-      AutoRedraw      =   -1  'True
-      BackColor       =   &H00000000&
-      BorderStyle     =   0  'None
-      FillStyle       =   0  'Solid
-      BeginProperty Font 
-         Name            =   "Consolas"
-         Size            =   8.25
-         Charset         =   0
-         Weight          =   400
-         Underline       =   0   'False
-         Italic          =   0   'False
-         Strikethrough   =   0   'False
-      EndProperty
-      ForeColor       =   &H0000FF00&
-      Height          =   3540
-      Left            =   630
-      ScaleHeight     =   236
-      ScaleMode       =   3  'Pixel
-      ScaleWidth      =   701
-      TabIndex        =   0
-      Top             =   165
-      Width           =   10515
-   End
 End
 Attribute VB_Name = "uGraph"
 Attribute VB_GlobalNameSpace = False
@@ -81,22 +56,21 @@ Dim mouseX As Double
 
 Private unitNames() As String
 Private Const unitNamesConst As String = ",k,m,t"
+Private mouseMoveEvent As Boolean
+Private Const offsetX As Long = 30
 
-
-Private Sub picGraph_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
     Dragging = True
     DraggingX = DragX
     DragTmpX = x
 End Sub
 
-Private Sub picGraph_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
 
-    Static stillDragging As Boolean
-    
+    If mouseMoveEvent = True Then Exit Sub
+    mouseMoveEvent = True
     
     If Dragging = True Then
-        If stillDragging = True Then Exit Sub
-        stillDragging = True
         DragX = DraggingX + ((DragTmpX - x) * ScaleX)
         If ScaleX > 1 Then
             DragX = DragX - (DragX Mod ScaleX)
@@ -104,7 +78,7 @@ Private Sub picGraph_MouseMove(Button As Integer, Shift As Integer, x As Single,
         If DragX < 0 Then DragX = 0
         If DragX > tmpDragX Then DragX = tmpDragX
         'Scroll.Value = 30000 / tmpDragX * DragX
-        stillDragging = False
+        
     End If
     
     mouseX = x
@@ -118,9 +92,12 @@ Private Sub picGraph_MouseMove(Button As Integer, Shift As Integer, x As Single,
     'lnLine.Visible = True
     
     Refresh
+    
+    DoEvents
+    mouseMoveEvent = False
 End Sub
 
-Private Sub picGraph_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
 Dragging = False
 End Sub
 
@@ -246,7 +223,7 @@ Sub ScrollToLastItem(LineNumber As Long, Optional ForceScroll As Boolean = False
     
     Dim lEnd As Single
     
-    If (lWidth * ScaleX) + DragX < picGraph.Width - 1 Then
+    If (lWidth * ScaleX) + DragX < UserControl.ScaleWidth - 1 Then
         lEnd = (lWidth * ScaleX)
         If lEnd > UBound(Lines(0).lPoints) Then
             lEnd = UBound(Lines(0).lPoints)
@@ -348,14 +325,14 @@ Sub Refresh()
     Dim highestPoint As Long
     Dim tmpHighestPoint As Long
     
-    lHeight = picGraph.Height
-    lWidth = picGraph.Width
+    lHeight = UserControl.ScaleHeight
+    lWidth = UserControl.ScaleWidth - offsetX
     ScaleY = lHeight / Range
     tmpDragX = ((MostItems) - (lWidth * ScaleX))
     If tmpDragX < 0 Then tmpDragX = 0
     
-    picGraph.Cls
-    UserControl.Cls
+    UserControl.Picture = LoadPicture()
+    
     DrawGrid
     Dim i As Long
     For i = 0 To UBound(Lines)
@@ -375,7 +352,7 @@ Sub Refresh()
     
     DrawLine
     
-    DoEvents
+    'DoEvents
     
     If highestPoint <> MaxY And highestPoint > 0 Then
         MaxY = highestPoint
@@ -386,14 +363,16 @@ Sub Refresh()
 End Sub
 
 Sub DrawLine()
-    picGraph.Line (mouseX, 0)-(mouseX, picGraph.Height), vbBlue
+    UserControl.Line (mouseX, 0)-(mouseX, UserControl.ScaleHeight), vbBlue
+    
+    
     
     Dim i As Long
     Dim tmpLeft As Long
     Dim tmpTop As Long
     Dim tmptest As Long
     
-    tmptest = DragX + (mouseX * ScaleX)
+    tmptest = DragX + ((mouseX - offsetX) * ScaleX)
     If tmptest < 0 Then tmptest = 0
     'On Error Resume Next
     
@@ -405,15 +384,15 @@ Sub DrawLine()
             
             
             If tmptest < UBound(Lines(i).lPoints) Then
-                tmpLineText = Format$(Format$(Lines(i).lPoints(tmptest), "0"), "@@@") & " Bps"
+                tmpLineText = Round(Lines(i).lPoints(tmptest)) & " Bps" 'Format$(Format$(Lines(i).lPoints(tmptest), "0"), "@@@") & " Bps"
             Else
                 tmpLineText = "  0 Bps"
             End If
             
-            tmpLineTextWidth = picGraph.TextWidth(tmpLineText)
-            tmpLineTextHeight = picGraph.TextHeight(tmpLineText)
+            tmpLineTextWidth = UserControl.TextWidth(tmpLineText)
+            tmpLineTextHeight = UserControl.TextHeight(tmpLineText)
             
-            If mouseX + tmpLineTextWidth < picGraph.ScaleWidth - 1 Then
+            If mouseX + tmpLineTextWidth < UserControl.ScaleWidth - 1 Then
                 tmpLeft = mouseX + 1 ' lblLine(i).Width
             Else
                 tmpLeft = (mouseX - tmpLineTextWidth)
@@ -441,25 +420,25 @@ Sub DrawLine()
             
             Dim x As Long
             Dim y As Long
-            
-            picGraph.ForeColor = vbBlack
+'
+            UserControl.ForeColor = vbBlack
             For x = -1 To 1
                 For y = -1 To 1
                     If y <> 0 And x <> 0 Then
-                        picGraph.CurrentX = tmpLeft + x
-                        picGraph.CurrentY = tmpTop + y
-                        picGraph.Print tmpLineText
+                        UserControl.CurrentX = tmpLeft + x
+                        UserControl.CurrentY = tmpTop + y
+                        UserControl.Print tmpLineText;
                     End If
                 Next y
             Next x
-            
-            picGraph.ForeColor = Lines(i).lColor
-            
-            picGraph.CurrentX = tmpLeft
-            picGraph.CurrentY = tmpTop
-            picGraph.Print tmpLineText
+
+            UserControl.ForeColor = Lines(i).lColor
+
+            UserControl.CurrentX = tmpLeft
+            UserControl.CurrentY = tmpTop
+            UserControl.Print tmpLineText;
                        
-            picGraph.ForeColor = vbBlack
+            UserControl.ForeColor = vbBlack
             
             tmpTop = tmpTop + tmpLineTextHeight + 5
         End If
@@ -493,14 +472,15 @@ Sub DrawGrid()
     Dim tmpLineUp As Long
     Dim tmpColor As Long
     
-    tmpColor = &H24211E   ' picGraph.ForeColor
+    tmpColor = RGB(100, 100, 100) '&H24211E   ' picGraph.ForeColor
+    UserControl.ForeColor = vbGreen
     
-    txtHeight = (picGraph.Top + picGraph.Height + 10) - (UserControl.TextHeight("H") / 2)
+    'txtHeight = (UserControl.ScaleHeight) - (UserControl.TextHeight("H") * 1.5)
     Verschuiving = (LineEveryX) - ((DragX / ScaleX) Mod (LineEveryX / ScaleX))
     
     For i = (-LineEveryX + (Verschuiving)) To lWidth + LineEveryX / ScaleX Step (LineEveryX / ScaleX)
         If i > 0 Then
-            picGraph.Line (i, 0)-(i, lHeight), tmpColor
+            UserControl.Line (i + offsetX, 0)-(i + offsetX, lHeight), tmpColor
         End If
         'Char = CStr((DragX + i * ScaleX) / MessureRate)
         'UserControl.CurrentY = txtHeight
@@ -510,8 +490,8 @@ Sub DrawGrid()
         'End If
     Next i
     
-    CharLeft = picGraph.Left - 5
-    txtHeight = (UserControl.TextHeight("H") / 2) - (picGraph.Top)
+    CharLeft = offsetX - 10
+    'txtHeight = '(UserControl.TextHeight("H") / 2) - (picGraph.Top)
     Zero = (Range - MaxY)
     
     Char = "0"
@@ -519,15 +499,15 @@ Sub DrawGrid()
     'picGraph.Line (0, picGraph.ScaleHeight - 1)-(lWidth, picGraph.ScaleHeight - 1), tmpColor
     'picGraph.Line (0, 0)-(lWidth, 0), tmpColor
     
-    UserControl.CurrentY = picGraph.Height + picGraph.Top - UserControl.TextHeight(Char)
+    UserControl.CurrentY = UserControl.ScaleHeight - UserControl.TextHeight(Char) '+ picGraph.Top - UserControl.TextHeight(Char)
     UserControl.CurrentX = CharLeft - UserControl.TextWidth(Char)
-    UserControl.Print Char
+    UserControl.Print Char;
     
     Char = getShortName(MaxY)
     
     UserControl.CurrentY = 0 'picGraph.Height + picGraph.Top - UserControl.TextHeight(Char)
     UserControl.CurrentX = CharLeft - UserControl.TextWidth(Char)
-    UserControl.Print Char
+    UserControl.Print Char;
     
     
 '    For i = 0 To Range Step LineEveryY
@@ -622,8 +602,8 @@ Private Function DrawPoints(ByRef LineDraw As vLine, Optional Test As Boolean = 
 '    Dim isOmhoogGeweest As Boolean
     
     
-    tmpLineThickness = picGraph.DrawWidth
-    picGraph.DrawWidth = LineDraw.lThickness
+    tmpLineThickness = UserControl.DrawWidth
+    UserControl.DrawWidth = LineDraw.lThickness
     
     lStart = DragX
     lEnd = (lWidth * ScaleX) + lStart
@@ -635,7 +615,7 @@ Private Function DrawPoints(ByRef LineDraw As vLine, Optional Test As Boolean = 
     
     PrevPointX = 0
     PrevPointY = 0
-    tmpStep = 0
+    tmpStep = 0 ' * ScaleX
     For i = lStart To lEnd
         If LineDraw.lPoints(i) > 0 Then
             tmpY = lHeight - ((LineDraw.lPoints(i) + Abs(MinY)) * ScaleY)
@@ -688,7 +668,7 @@ Private Function DrawPoints(ByRef LineDraw As vLine, Optional Test As Boolean = 
 '
 '        End If
         
-        picGraph.Line (PrevPointX, PrevPointY)-(tmpX, tmpY), LineDraw.lColor
+        UserControl.Line (PrevPointX + offsetX, PrevPointY)-(tmpX + offsetX, tmpY), LineDraw.lColor
         
         PrevPointX = tmpX
         PrevPointY = tmpY
@@ -696,7 +676,7 @@ Private Function DrawPoints(ByRef LineDraw As vLine, Optional Test As Boolean = 
         
     Next i
 
-    picGraph.DrawWidth = tmpLineThickness
+    UserControl.DrawWidth = tmpLineThickness
     
 End Function
 
@@ -710,14 +690,14 @@ End Function
 
 Private Sub Usercontrol_Resize()
     On Error Resume Next
-    picGraph.Top = 5
-    picGraph.Height = UserControl.ScaleHeight - picGraph.Top * 2 ' - (Scroll.Height * 2)
+    'picGraph.Top = 5
+    'picGraph.Height = UserControl.ScaleHeight - picGraph.Top * 2 ' - (Scroll.Height * 2)
     'Scroll.Top = UserControl.ScaleHeight - Scroll.Height - 1
-    picGraph.Width = UserControl.ScaleWidth - picGraph.Left
+    'picGraph.Width = UserControl.ScaleWidth - picGraph.Left
     'Scroll.Width = picGraph.Width
     'Scroll.Left = picGraph.Left
     
-    mouseX = picGraph.Width - 1 ' / Screen.TwipsPerPixelX
+    mouseX = UserControl.ScaleWidth - 1 ' / Screen.TwipsPerPixelX
     
     'lblInfo.Top = picGraph.Top + (picGraph.Height / 2) - (lblInfo.Height / 2)
     
