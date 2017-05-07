@@ -386,16 +386,16 @@ Sub DrawLine()
             If tmptest < UBound(Lines(i).lPoints) Then
                 tmpLineText = Round(Lines(i).lPoints(tmptest)) & " Bps" 'Format$(Format$(Lines(i).lPoints(tmptest), "0"), "@@@") & " Bps"
             Else
-                tmpLineText = "  0 Bps"
+                tmpLineText = "0 Bps"
             End If
             
             tmpLineTextWidth = UserControl.TextWidth(tmpLineText)
             tmpLineTextHeight = UserControl.TextHeight(tmpLineText)
             
-            If mouseX + tmpLineTextWidth < UserControl.ScaleWidth - 1 Then
-                tmpLeft = mouseX + 1 ' lblLine(i).Width
+            If mouseX + tmpLineTextWidth < UserControl.ScaleWidth - 5 Then
+                tmpLeft = mouseX + 4 ' lblLine(i).Width
             Else
-                tmpLeft = (mouseX - tmpLineTextWidth)
+                tmpLeft = (mouseX - tmpLineTextWidth) - 4
             End If
             
             
@@ -424,7 +424,7 @@ Sub DrawLine()
             UserControl.ForeColor = vbBlack
             For x = -1 To 1
                 For y = -1 To 1
-                    If y <> 0 And x <> 0 Then
+                    If y <> 0 Or x <> 0 Then
                         UserControl.CurrentX = tmpLeft + x
                         UserControl.CurrentY = tmpTop + y
                         UserControl.Print tmpLineText;
@@ -500,13 +500,13 @@ Sub DrawGrid()
     'picGraph.Line (0, 0)-(lWidth, 0), tmpColor
     
     UserControl.CurrentY = UserControl.ScaleHeight - UserControl.TextHeight(Char) '+ picGraph.Top - UserControl.TextHeight(Char)
-    UserControl.CurrentX = CharLeft - UserControl.TextWidth(Char)
+    UserControl.CurrentX = 4 'CharLeft - UserControl.TextWidth(Char)
     UserControl.Print Char;
     
     Char = getShortName(MaxY)
     
     UserControl.CurrentY = 0 'picGraph.Height + picGraph.Top - UserControl.TextHeight(Char)
-    UserControl.CurrentX = CharLeft - UserControl.TextWidth(Char)
+    UserControl.CurrentX = 4 'CharLeft - UserControl.TextWidth(Char)
     UserControl.Print Char;
     
     
