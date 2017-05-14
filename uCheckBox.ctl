@@ -265,11 +265,11 @@ Public Property Let ForeColor(ByVal OleValue As OLE_COLOR)
     If Not m_bStarting Then Redraw
 End Property
 
-Public Property Get BackGroundColor() As OLE_COLOR
-    BackGroundColor = m_OleBackgroundColor
+Public Property Get BackgroundColor() As OLE_COLOR
+    BackgroundColor = m_OleBackgroundColor
 End Property
 
-Public Property Let BackGroundColor(ByVal OleValue As OLE_COLOR)
+Public Property Let BackgroundColor(ByVal OleValue As OLE_COLOR)
     m_OleBackgroundColor = OleValue
     PropertyChanged "BackgroundColor"
     If Not m_bStarting Then Redraw
@@ -327,8 +327,6 @@ Sub Redraw()
     UserControl.Cls
 
     ReDim pts(0 To 20) As POINTAPI
-
-
 
     If m_bBorder And m_LonBorderThickness > 0 Then
         UserControl.BackColor = m_OleBorderColor

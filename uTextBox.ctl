@@ -195,6 +195,8 @@ Private m_OleLineNumberBackground As OLE_COLOR
 Private m_OleLineNumberForeColor As OLE_COLOR
 Private m_bRowNumberOnEveryLine As Boolean
 
+Private m_bHasFocus As Boolean
+
 Public Enum ScrollBarStyle
     lNone = 0
     lVertical = 1
@@ -329,7 +331,8 @@ End Function
 
 
 Sub updateCaretPos()
-
+    If Not m_bHasFocus Then Exit Sub
+    
     If Not Screen.ActiveControl Is Nothing Then
         If Not UserControl.Extender Is Screen.ActiveControl Then
             DestroyCaret
@@ -708,6 +711,7 @@ Private Sub UserControl_DblClick()
 End Sub
 
 Private Sub UserControl_GotFocus()
+    m_bHasFocus = True
     updateCaretPos
 End Sub
 
@@ -1938,6 +1942,8 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
             newMarkupStyles(0) = MarkupS(UBound(MarkupS))
         ElseIf m_SelStart > 0 Then
             newMarkupStyles(0) = MarkupS(m_SelStart)
+        Else
+            newMarkupStyles(0) = MarkupS(m_SelEnd)
         End If
         
         'Debug.Print newMarkupStyles(0).lFontSize
@@ -2117,9 +2123,9 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
             If .lFontSize <> cFontSize Then
                 cFontSize = .lFontSize
                 If .lFontSize = -1 Then
-                    UserControl.FontSize = m_StdFont.Size
+                    UserControl.Font.Size = m_StdFont.Size
                 Else
-                    UserControl.FontSize = cFontSize
+                    UserControl.Font.Size = cFontSize
                 End If
 
                 GetTextMetrics UserControl.hdc, cTextMetric
@@ -2129,27 +2135,27 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
             If .lBold <> cBold Then
                 cBold = .lBold
                 If cBold = -1 Then
-                    UserControl.FontBold = m_StdFont.Bold
+                    UserControl.Font.Bold = m_StdFont.Bold
                 Else
-                    UserControl.FontBold = cBold
+                    UserControl.Font.Bold = cBold
                 End If
             End If
 
             If .lItalic <> cItalic Then
                 cItalic = .lItalic
                 If cItalic = -1 Then
-                    UserControl.FontItalic = m_StdFont.Italic
+                    UserControl.Font.Italic = m_StdFont.Italic
                 Else
-                    UserControl.FontItalic = cItalic
+                    UserControl.Font.Italic = cItalic
                 End If
             End If
 
             If .lUnderline <> cUnderline Then
                 cUnderline = .lUnderline
                 If .lUnderline = -1 Then
-                    UserControl.FontUnderline = m_StdFont.Underline
+                    UserControl.Font.Underline = m_StdFont.Underline
                 Else
-                    UserControl.FontUnderline = cUnderline
+                    UserControl.Font.Underline = cUnderline
                 End If
             End If
 
@@ -2230,6 +2236,7 @@ Private Sub UserControl_KeyUp(KeyCode As Integer, Shift As Integer)
 End Sub
 
 Private Sub UserControl_LostFocus()
+    m_bHasFocus = False
     DestroyCaret
 End Sub
 
