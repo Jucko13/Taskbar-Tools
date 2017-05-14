@@ -360,17 +360,17 @@ Sub Redraw()
             UserControl.FillStyle = 0
             UserControl.DrawStyle = 5
 
-            pts(0).X = m_LonBorderThickness
-            pts(0).Y = m_LonBorderThickness
+            pts(0).x = m_LonBorderThickness
+            pts(0).y = m_LonBorderThickness
 
-            pts(1).X = UserControl.ScaleWidth - m_LonBorderThickness
-            pts(1).Y = m_LonBorderThickness
+            pts(1).x = UserControl.ScaleWidth - m_LonBorderThickness
+            pts(1).y = m_LonBorderThickness
 
-            pts(2).X = UserControl.ScaleWidth - m_LonBorderThickness
-            pts(2).Y = UserControl.ScaleHeight - m_LonBorderThickness
+            pts(2).x = UserControl.ScaleWidth - m_LonBorderThickness
+            pts(2).y = UserControl.ScaleHeight - m_LonBorderThickness
 
-            pts(3).X = m_LonBorderThickness
-            pts(3).Y = UserControl.ScaleHeight - m_LonBorderThickness
+            pts(3).x = m_LonBorderThickness
+            pts(3).y = UserControl.ScaleHeight - m_LonBorderThickness
 
             Polygon UserControl.hdc, pts(0), 4    ': UserControl.Picture = UserControl.Image
 
@@ -488,7 +488,7 @@ Sub Redraw()
 End Sub
 
 
-Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
     Dim tmpCancel As Boolean
     Dim tmpNewState As uOptionBoxConstants
 
@@ -511,7 +511,7 @@ Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single
     If Not m_bStarting Then Redraw
 End Sub
 
-Private Sub UserControl_Resize()
+Private Sub Usercontrol_Resize()
     If Not m_bStarting Then Redraw
 End Sub
 

@@ -325,7 +325,7 @@ Sub Refresh()
     Dim highestPoint As Long
     Dim tmpHighestPoint As Long
     
-    lHeight = UserControl.ScaleHeight
+    lHeight = UserControl.ScaleHeight - 1
     lWidth = UserControl.ScaleWidth - offsetX
     ScaleY = lHeight / Range
     tmpDragX = ((MostItems) - (lWidth * ScaleX))
@@ -617,7 +617,7 @@ Private Function DrawPoints(ByRef LineDraw As vLine, Optional Test As Boolean = 
     PrevPointY = 0
     tmpStep = 0 ' * ScaleX
     For i = lStart To lEnd
-        If LineDraw.lPoints(i) > 0 Then
+        If LineDraw.lPoints(i) >= 0 Then
             tmpY = lHeight - ((LineDraw.lPoints(i) + Abs(MinY)) * ScaleY)
         Else
             tmpY = lHeight - ((LineDraw.lPoints(i) + Abs(MinY)) * ScaleY)

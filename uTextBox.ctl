@@ -542,7 +542,7 @@ Public Property Let SelLength(LonValue As Long)
 End Property
 
 Public Property Get SelLength() As Long
-    SelStart = m_SelEnd - m_SelStart
+    SelLength = m_SelEnd - m_SelStart
 End Property
 
 Public Property Let MarkupText(StrValue As String)
@@ -663,11 +663,11 @@ Public Property Let ForeColor(ByVal OleValue As OLE_COLOR)
 End Property
 
 
-Public Property Get BackGroundColor() As OLE_COLOR
-    BackGroundColor = m_OleBackgroundColor
+Public Property Get BackgroundColor() As OLE_COLOR
+    BackgroundColor = m_OleBackgroundColor
 End Property
 
-Public Property Let BackGroundColor(ByVal OleValue As OLE_COLOR)
+Public Property Let BackgroundColor(ByVal OleValue As OLE_COLOR)
     m_OleBackgroundColor = OleValue
     PropertyChanged "BackgroundColor"
     If Not m_bStarting Then Redraw
@@ -1042,6 +1042,7 @@ Sub ReCalculateRowMap(Optional fromWhere As Long = 0)
     
     TextOffsetX = TextOffsetX - m_lScrollLeft
     
+    If UW - UWS - LNW < 5 Then Exit Sub
     
     ReDim pts(0 To 3)
     'ReDim RowMap(0 To 200)
@@ -2829,6 +2830,8 @@ Private Sub Usercontrol_Resize()
     If Not m_bStarting Then
         Redraw
     End If
+    
+    
     
     '    Dim j As Long
     '    Dim b() As Byte
