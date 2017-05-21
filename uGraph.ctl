@@ -91,7 +91,7 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Sing
 
     'lnLine.Visible = True
     
-    Refresh
+    Redraw
     
     DoEvents
     mouseMoveEvent = False
@@ -122,7 +122,7 @@ End Sub
 '    'Next i
 '    'lnLine.Visible = False
 '
-'    Refresh
+'    Redraw
 '
 '    StillScrolling = False
 'End Sub
@@ -154,31 +154,31 @@ Private Sub UserControl_Initialize()
     Usercontrol_Resize
 End Sub
 
-Sub SetGrafiekEenheid(NieuweEenheid As String, Optional bRefresh As Boolean = False)
+Sub SetGrafiekEenheid(NieuweEenheid As String, Optional bRedraw As Boolean = False)
     GrafiekEenheid = NieuweEenheid
     
-    If bRefresh Then
-        Refresh
+    If bRedraw Then
+        Redraw
     End If
 End Sub
 
-Sub SetMaxY(dValue As Double, Optional bRefresh As Boolean = True)
+Sub SetMaxY(dValue As Double, Optional bRedraw As Boolean = True)
     MaxY = dValue
     
     Range = (MaxY) - (MinY)
     
-    If bRefresh Then
-        Refresh
+    If bRedraw Then
+        Redraw
     End If
 End Sub
 
-Sub SetMinY(dValue As Double, Optional bRefresh As Boolean = True)
+Sub SetMinY(dValue As Double, Optional bRedraw As Boolean = True)
     MinY = dValue
     
     Range = (MaxY) - (MinY)
     
-    If bRefresh Then
-        Refresh
+    If bRedraw Then
+        Redraw
     End If
 End Sub
 
@@ -255,23 +255,23 @@ Sub Clear(Optional LineNumber As Long = -1)
         Next i
     End If
     
-    Refresh
+    Redraw
 End Sub
 
-Function AddItems(LineNumber As Long, Items() As Double, Optional bRefresh As Boolean = True)
+Function AddItems(LineNumber As Long, Items() As Double, Optional bRedraw As Boolean = True)
     Dim i As Long
     
     For i = LBound(Items) To UBound(Items)
         AddItem LineNumber, Items(i), False
     Next i
     
-    If bRefresh Then
-        Refresh
+    If bRedraw Then
+        Redraw
     End If
 End Function
 
 
-Function AddItem(LineNumber As Long, ItemValue As Double, Optional bRefresh As Boolean = True)
+Function AddItem(LineNumber As Long, ItemValue As Double, Optional bRedraw As Boolean = True)
     Dim NewId As Long
     NewId = -1
     newItemAdded = True
@@ -303,8 +303,8 @@ Function AddItem(LineNumber As Long, ItemValue As Double, Optional bRefresh As B
     End If
     
     AddItem = NewId
-    If bRefresh Then
-        Refresh
+    If bRedraw Then
+        Redraw
     End If
 End Function
 
@@ -321,7 +321,7 @@ Property Let LineVisible(LineNumber As Long, lVisible As Boolean)
     Lines(LineNumber).Visible = lVisible
 End Property
 
-Sub Refresh()
+Sub Redraw()
     Dim highestPoint As Long
     Dim tmpHighestPoint As Long
     
@@ -359,7 +359,7 @@ Sub Refresh()
         Range = MaxY
     End If
     
-    'lnLine.Refresh
+    'lnLine.Redraw
 End Sub
 
 Sub DrawLine()
@@ -701,5 +701,5 @@ Private Sub Usercontrol_Resize()
     
     'lblInfo.Top = picGraph.Top + (picGraph.Height / 2) - (lblInfo.Height / 2)
     
-    Refresh
+    Redraw
 End Sub
