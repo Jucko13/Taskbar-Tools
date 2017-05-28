@@ -297,6 +297,10 @@ Public Property Let BackgroundColor(ByVal OleValue As OLE_COLOR)
     If Not m_bStarting Then Redraw
 End Property
 
+Private Sub UserControl_Click()
+
+End Sub
+
 Private Sub UserControl_Initialize()
     m_bStarting = True
     m_OleForeColor = &H0

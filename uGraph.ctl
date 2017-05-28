@@ -59,6 +59,10 @@ Private Const unitNamesConst As String = ",k,m,t"
 Private mouseMoveEvent As Boolean
 Private Const offsetX As Long = 30
 
+
+
+
+
 Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
     Dragging = True
     DraggingX = DragX
