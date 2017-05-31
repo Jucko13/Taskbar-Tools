@@ -408,7 +408,7 @@ End Sub
 
 Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optional Index As Long = -1, Optional lItemBackColor As OLE_COLOR = -1, Optional lItemForeColor As OLE_COLOR = -1, Optional lAlignment As AlignmentConstants = vbLeftJustify) As Long
 
-    If Index = -1 Then
+    If Index = -1 Or m_LonItemCount = 0 Then
         ReDim Preserve Items(0 To m_LonItemCount) As Item
         With Items(m_LonItemCount)
             .Text = sText
@@ -506,29 +506,29 @@ Public Function Cell(row As Long, column As Long) As String
 End Function
 
 
-Sub CheckScrollButtons(Button As Integer, Shift As Integer, x As Single, y As Single)
+Sub CheckScrollButtons(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpL As Long
 
-    m_PoiMenuMouse.x = x
-    m_PoiMenuMouse.y = y
+    m_PoiMenuMouse.X = X
+    m_PoiMenuMouse.Y = Y
 
     m_bScrollArrowUp = False
     m_bScrollArrowDown = False
 
     If Button = 1 And m_bScrollHandleVisible Then
-        If x >= UserControl.ScaleWidth - m_LonScrollBarWidth + 2 And x <= UserControl.ScaleWidth - 3 Then
+        If X >= UserControl.ScaleWidth - m_LonScrollBarWidth + 2 And X <= UserControl.ScaleWidth - 3 Then
             'mouse is above scrollbar
 
-            If y >= 2 And y < m_LonScrollBarWidth - 2 Then
+            If Y >= 2 And Y < m_LonScrollBarWidth - 2 Then
                 m_bScrollArrowUp = True
             End If
 
-            If y >= UserControl.ScaleHeight - m_LonScrollBarWidth + 3 And y < UserControl.ScaleHeight - 1 Then
+            If Y >= UserControl.ScaleHeight - m_LonScrollBarWidth + 3 And Y < UserControl.ScaleHeight - 1 Then
                 m_bScrollArrowDown = True
             End If
 
             tmpL = m_LonScrollTop + ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible) * m_LonItemAtTop)
-            If y >= tmpL And y < tmpL + m_LonScrollHeight Then
+            If Y >= tmpL And Y < tmpL + m_LonScrollHeight Then
                 m_bScrollHandleDown = True
 
             End If
@@ -542,19 +542,19 @@ Public Property Get hWnd() As Long
 End Property
 
 Private Sub UserControl_DblClick()
-    UserControl_MouseDown 1, 0, CInt(m_PoiMenuMouse.x), CInt(m_PoiMenuMouse.y)
+    UserControl_MouseDown 1, 0, CInt(m_PoiMenuMouse.X), CInt(m_PoiMenuMouse.Y)
     RaiseEvent DblClick
 End Sub
 
-Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
-    CheckScrollButtons Button, Shift, x, y
+Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    CheckScrollButtons Button, Shift, X, Y
     Redraw
     
     If m_bScrollArrowUp Or m_bScrollArrowDown Then
         m_tmrScroll.Interval = 500
         m_tmrScroll.Enabled = True
     ElseIf m_bScrollHandleDown Then
-        m_LonScrollHandleDragY = y - (m_LonScrollTop + ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible) * m_LonItemAtTop))
+        m_LonScrollHandleDragY = Y - (m_LonScrollTop + ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible) * m_LonItemAtTop))
     ElseIf m_LonListIndexMouseOver <> -1 Then
         m_LonListIndex = m_LonListIndexMouseOver
         'm_StrText = Items(m_LonListIndex).Text
@@ -568,15 +568,15 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Sing
     
 End Sub
 
-Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpL As Long
     If m_bMouseMoving Then Exit Sub
     m_bMouseMoving = True
     
-    CheckScrollButtons Button, Shift, x, y
+    CheckScrollButtons Button, Shift, X, Y
 
     If m_bScrollHandleDown Then
-        tmpL = (y - m_LonScrollHandleDragY - m_LonScrollTop) / ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible))
+        tmpL = (Y - m_LonScrollHandleDragY - m_LonScrollTop) / ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible))
         If tmpL < 0 Then tmpL = 0
         If tmpL > m_LonItemCount - m_LonItemsVisible Then tmpL = m_LonItemCount - m_LonItemsVisible
 
@@ -599,8 +599,8 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Sing
     m_bMouseMoving = False
 End Sub
 
-Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
-    CheckScrollButtons Button, Shift, x, y
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    CheckScrollButtons Button, Shift, X, Y
     If m_bScrollArrowUp Then
         m_LonItemAtTop = m_LonItemAtTop - 1
         If m_LonItemAtTop < 0 Then m_LonItemAtTop = 0
@@ -877,10 +877,10 @@ Sub Redraw()
     UserControl.FillStyle = 0
     UserControl.BackColor = m_OleBackgroundColor
     If m_bBorder Then
-        pts(0).x = 0: pts(0).y = 0
-        pts(1).x = UserControl.ScaleWidth - 1: pts(1).y = 0
-        pts(2).x = UserControl.ScaleWidth - 1: pts(2).y = UserControl.ScaleHeight - 1
-        pts(3).x = 0: pts(3).y = UserControl.ScaleHeight - 1
+        pts(0).X = 0: pts(0).Y = 0
+        pts(1).X = UserControl.ScaleWidth - 1: pts(1).Y = 0
+        pts(2).X = UserControl.ScaleWidth - 1: pts(2).Y = UserControl.ScaleHeight - 1
+        pts(3).X = 0: pts(3).Y = UserControl.ScaleHeight - 1
 
         UserControl.FillColor = m_OleBackgroundColor
         UserControl.ForeColor = m_OleBorderColor
@@ -901,13 +901,13 @@ Sub Redraw()
 
     While tmpPrintTop < UserControl.ScaleHeight - m_LonItemHeight And i < m_LonItemCount And (i + m_LonItemAtTop) < m_LonItemCount
 
-        pts(0).x = 2: pts(0).y = tmpPrintTop + 1
-        pts(1).x = UserControl.ScaleWidth - tmpScrollbarWidth - 2: pts(1).y = tmpPrintTop + 1
-        pts(2).x = UserControl.ScaleWidth - tmpScrollbarWidth - 2: pts(2).y = tmpPrintTop + m_LonItemHeight
-        pts(3).x = 2: pts(3).y = tmpPrintTop + m_LonItemHeight
+        pts(0).X = 2: pts(0).Y = tmpPrintTop + 1
+        pts(1).X = UserControl.ScaleWidth - tmpScrollbarWidth - 2: pts(1).Y = tmpPrintTop + 1
+        pts(2).X = UserControl.ScaleWidth - tmpScrollbarWidth - 2: pts(2).Y = tmpPrintTop + m_LonItemHeight
+        pts(3).X = 2: pts(3).Y = tmpPrintTop + m_LonItemHeight
 
-        If m_PoiMenuMouse.x >= 0 And m_PoiMenuMouse.x <= UserControl.ScaleWidth - tmpScrollbarWidth And _
-           m_PoiMenuMouse.y > tmpPrintTop And m_PoiMenuMouse.y < tmpPrintTop + m_LonItemHeight + 1 Then
+        If m_PoiMenuMouse.X >= 0 And m_PoiMenuMouse.X <= UserControl.ScaleWidth - tmpScrollbarWidth And _
+           m_PoiMenuMouse.Y > tmpPrintTop And m_PoiMenuMouse.Y < tmpPrintTop + m_LonItemHeight + 1 Then
             m_LonListIndexMouseOver = m_LonItemAtTop + i
         Else
             UserControl.ForeColor = m_OleBackgroundColor
@@ -1021,10 +1021,10 @@ Sub Redraw()
     If m_bScrollHandleVisible Then
         'The ScrollBar
         UserControl.DrawStyle = 0
-        pts(0).x = UserControl.ScaleWidth - m_LonScrollBarWidth: pts(0).y = 0
-        pts(1).x = UserControl.ScaleWidth - 1: pts(1).y = 0
-        pts(2).x = UserControl.ScaleWidth - 1: pts(2).y = UserControl.ScaleHeight - 1
-        pts(3).x = UserControl.ScaleWidth - m_LonScrollBarWidth: pts(3).y = UserControl.ScaleHeight - 1
+        pts(0).X = UserControl.ScaleWidth - m_LonScrollBarWidth: pts(0).Y = 0
+        pts(1).X = UserControl.ScaleWidth - 1: pts(1).Y = 0
+        pts(2).X = UserControl.ScaleWidth - 1: pts(2).Y = UserControl.ScaleHeight - 1
+        pts(3).X = UserControl.ScaleWidth - m_LonScrollBarWidth: pts(3).Y = UserControl.ScaleHeight - 1
         UserControl.ForeColor = m_OleBorderColor
         UserControl.FillColor = m_OleBackgroundColor
         Polygon UserControl.hdc, pts(0), 4
@@ -1037,10 +1037,10 @@ Sub Redraw()
             tmpArrowUpOffset = 1
             UserControl.DrawStyle = 2
         End If
-        pts(0).x = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).y = 2
-        pts(1).x = UserControl.ScaleWidth - 3: pts(1).y = 2
-        pts(2).x = UserControl.ScaleWidth - 3: pts(2).y = m_LonScrollBarWidth - 3
-        pts(3).x = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(3).y = m_LonScrollBarWidth - 3
+        pts(0).X = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).Y = 2
+        pts(1).X = UserControl.ScaleWidth - 3: pts(1).Y = 2
+        pts(2).X = UserControl.ScaleWidth - 3: pts(2).Y = m_LonScrollBarWidth - 3
+        pts(3).X = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(3).Y = m_LonScrollBarWidth - 3
         Polygon UserControl.hdc, pts(0), 4
 
 
@@ -1053,19 +1053,19 @@ Sub Redraw()
             tmpArrowDownOffset = 1
             UserControl.DrawStyle = 2
         End If
-        pts(0).x = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).y = UserControl.ScaleHeight - m_LonScrollBarWidth + 2
-        pts(1).x = UserControl.ScaleWidth - 3: pts(1).y = pts(0).y
-        pts(2).x = pts(1).x: pts(2).y = UserControl.ScaleHeight - 3
-        pts(3).x = pts(0).x: pts(3).y = UserControl.ScaleHeight - 3
+        pts(0).X = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).Y = UserControl.ScaleHeight - m_LonScrollBarWidth + 2
+        pts(1).X = UserControl.ScaleWidth - 3: pts(1).Y = pts(0).Y
+        pts(2).X = pts(1).X: pts(2).Y = UserControl.ScaleHeight - 3
+        pts(3).X = pts(0).X: pts(3).Y = UserControl.ScaleHeight - 3
         Polygon UserControl.hdc, pts(0), 4
 
 
         'Middle Bar
         UserControl.DrawStyle = IIf(m_bScrollHandleDown = True, 2, 0)
-        pts(0).x = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).y = m_LonScrollTop + ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible) * m_LonItemAtTop)
-        pts(1).x = UserControl.ScaleWidth - 3: pts(1).y = pts(0).y
-        pts(2).x = UserControl.ScaleWidth - 3: pts(2).y = pts(0).y + m_LonScrollHeight
-        pts(3).x = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(3).y = pts(0).y + m_LonScrollHeight
+        pts(0).X = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).Y = m_LonScrollTop + ((m_LonScrollMax - m_LonScrollHeight) / (m_LonItemCount - m_LonItemsVisible) * m_LonItemAtTop)
+        pts(1).X = UserControl.ScaleWidth - 3: pts(1).Y = pts(0).Y
+        pts(2).X = UserControl.ScaleWidth - 3: pts(2).Y = pts(0).Y + m_LonScrollHeight
+        pts(3).X = UserControl.ScaleWidth - m_LonScrollBarWidth + 2: pts(3).Y = pts(0).Y + m_LonScrollHeight
         Polygon UserControl.hdc, pts(0), 4
 
         UserControl.ForeColor = m_OleBorderColor

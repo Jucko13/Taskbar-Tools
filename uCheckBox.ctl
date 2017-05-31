@@ -336,17 +336,17 @@ Sub Redraw()
             UserControl.FillStyle = 0
             UserControl.DrawStyle = 5
 
-            pts(0).x = m_LonBorderThickness
-            pts(0).y = m_LonBorderThickness
+            pts(0).X = m_LonBorderThickness
+            pts(0).Y = m_LonBorderThickness
 
-            pts(1).x = UserControl.ScaleWidth - m_LonBorderThickness
-            pts(1).y = m_LonBorderThickness
+            pts(1).X = UserControl.ScaleWidth - m_LonBorderThickness
+            pts(1).Y = m_LonBorderThickness
 
-            pts(2).x = UserControl.ScaleWidth - m_LonBorderThickness
-            pts(2).y = UserControl.ScaleHeight - m_LonBorderThickness
+            pts(2).X = UserControl.ScaleWidth - m_LonBorderThickness
+            pts(2).Y = UserControl.ScaleHeight - m_LonBorderThickness
 
-            pts(3).x = m_LonBorderThickness
-            pts(3).y = UserControl.ScaleHeight - m_LonBorderThickness
+            pts(3).X = m_LonBorderThickness
+            pts(3).Y = UserControl.ScaleHeight - m_LonBorderThickness
 
             Polygon UserControl.hdc, pts(0), 4
         End If
@@ -368,30 +368,30 @@ Sub Redraw()
     tmpX = Fix(UserControl.ScaleHeight / 2) - tmpHeight
     tmpY = Fix(UserControl.ScaleHeight / 2)
 
-    pts(0).x = tmpX
-    pts(0).y = tmpY - tmpHeight
+    pts(0).X = tmpX
+    pts(0).Y = tmpY - tmpHeight
 
-    pts(1).x = tmpX + tmpWidth
-    pts(1).y = tmpY - tmpHeight
+    pts(1).X = tmpX + tmpWidth
+    pts(1).Y = tmpY - tmpHeight
 
-    pts(2).x = tmpX + tmpWidth
-    pts(2).y = tmpY + tmpHeight
+    pts(2).X = tmpX + tmpWidth
+    pts(2).Y = tmpY + tmpHeight
 
-    pts(3).x = tmpX
-    pts(3).y = tmpY + tmpHeight
+    pts(3).X = tmpX
+    pts(3).Y = tmpY + tmpHeight
 
     If m_LonCheckBorderThickness > 0 Then
-        pts(4).x = pts(0).x - m_LonCheckBorderThickness
-        pts(4).y = pts(0).y - m_LonCheckBorderThickness
+        pts(4).X = pts(0).X - m_LonCheckBorderThickness
+        pts(4).Y = pts(0).Y - m_LonCheckBorderThickness
 
-        pts(5).x = pts(1).x + m_LonCheckBorderThickness
-        pts(5).y = pts(1).y - m_LonCheckBorderThickness
+        pts(5).X = pts(1).X + m_LonCheckBorderThickness
+        pts(5).Y = pts(1).Y - m_LonCheckBorderThickness
 
-        pts(6).x = pts(2).x + m_LonCheckBorderThickness
-        pts(6).y = pts(2).y + m_LonCheckBorderThickness
+        pts(6).X = pts(2).X + m_LonCheckBorderThickness
+        pts(6).Y = pts(2).Y + m_LonCheckBorderThickness
 
-        pts(7).x = pts(3).x - m_LonCheckBorderThickness
-        pts(7).y = pts(3).y + m_LonCheckBorderThickness
+        pts(7).X = pts(3).X - m_LonCheckBorderThickness
+        pts(7).Y = pts(3).Y + m_LonCheckBorderThickness
 
         UserControl.ForeColor = m_OleCheckBorderColor
         UserControl.FillColor = m_OleCheckBorderColor
@@ -429,79 +429,79 @@ Sub Redraw()
     UserControl.FillColor = m_OleCheckSelectionColor
 
     If m_UChValue = u_Checked Then
-        pts(0).x = tmpX - tmpOffsetAdj1
-        pts(0).y = tmpY - tmpHeight - tmpOffsetAdj1
+        pts(0).X = tmpX - tmpOffsetAdj1
+        pts(0).Y = tmpY - tmpHeight - tmpOffsetAdj1
 
-        pts(1).x = tmpX + (tmpWidth / 2) + tmpOffsetAdj1
-        pts(1).y = tmpY + tmpOffsetAdj1
+        pts(1).X = tmpX + (tmpWidth / 2) + tmpOffsetAdj1
+        pts(1).Y = tmpY + tmpOffsetAdj1
 
         '(IIf(UserControl.ScaleHeight Mod 4 = 0, 1, 0)) + IIf((UserControl.ScaleHeight - 1) Mod 4 = 0, 1, 0)
 
-        pts(2).x = tmpX + tmpWidth
-        pts(2).y = tmpY - tmpHeight + tmpOffsetAdj2
-        If m_UChCheckSize = u_Smalllest Then pts(2).y = pts(2).y + 1
+        pts(2).X = tmpX + tmpWidth
+        pts(2).Y = tmpY - tmpHeight + tmpOffsetAdj2
+        If m_UChCheckSize = u_Smalllest Then pts(2).Y = pts(2).Y + 1
 
-        pts(3).x = pts(2).x + tmpOffsetAdj3
-        pts(3).y = pts(2).y + tmpOffsetAdj3
+        pts(3).X = pts(2).X + tmpOffsetAdj3
+        pts(3).Y = pts(2).Y + tmpOffsetAdj3
 
-        pts(4).x = pts(1).x
-        pts(4).y = pts(1).y + (tmpOffsetAdj1 * 3)
+        pts(4).X = pts(1).X
+        pts(4).Y = pts(1).Y + (tmpOffsetAdj1 * 3)
 
-        pts(5).x = pts(0).x - tmpOffsetAdj3
-        pts(5).y = tmpY - tmpHeight + (tmpHeight / 10)
+        pts(5).X = pts(0).X - tmpOffsetAdj3
+        pts(5).Y = tmpY - tmpHeight + (tmpHeight / 10)
 
         Polygon UserControl.hdc, pts(0), 6
     ElseIf m_UChValue = u_PartialChecked Then
-        pts(0).x = tmpX + 1
-        pts(0).y = tmpY - tmpHeight + 1
+        pts(0).X = tmpX + 1
+        pts(0).Y = tmpY - tmpHeight + 1
 
-        pts(1).x = tmpX + tmpWidth - 1
-        pts(1).y = tmpY - tmpHeight + 1
+        pts(1).X = tmpX + tmpWidth - 1
+        pts(1).Y = tmpY - tmpHeight + 1
 
-        pts(2).x = tmpX + tmpWidth - 1
-        pts(2).y = tmpY + tmpHeight - 1
+        pts(2).X = tmpX + tmpWidth - 1
+        pts(2).Y = tmpY + tmpHeight - 1
 
-        pts(3).x = tmpX + 1
-        pts(3).y = tmpY + tmpHeight - 1
+        pts(3).X = tmpX + 1
+        pts(3).Y = tmpY + tmpHeight - 1
 
         Polygon UserControl.hdc, pts(0), 4
 
     ElseIf m_UChValue = u_Cross Then
-        pts(0).x = tmpX
-        pts(0).y = tmpY - tmpHeight - tmpOffsetAdj2
+        pts(0).X = tmpX
+        pts(0).Y = tmpY - tmpHeight - tmpOffsetAdj2
 
-        pts(1).x = tmpX + (tmpWidth / 2)
-        pts(1).y = tmpY - tmpOffsetAdj2
+        pts(1).X = tmpX + (tmpWidth / 2)
+        pts(1).Y = tmpY - tmpOffsetAdj2
 
-        pts(2).x = tmpX + tmpWidth
-        pts(2).y = tmpY - tmpHeight - tmpOffsetAdj2
+        pts(2).X = tmpX + tmpWidth
+        pts(2).Y = tmpY - tmpHeight - tmpOffsetAdj2
 
-        pts(3).x = tmpX + tmpWidth + tmpOffsetAdj2
-        pts(3).y = tmpY - tmpHeight
+        pts(3).X = tmpX + tmpWidth + tmpOffsetAdj2
+        pts(3).Y = tmpY - tmpHeight
 
-        pts(4).x = tmpX + (tmpWidth / 2) + tmpOffsetAdj2
-        pts(4).y = tmpY
+        pts(4).X = tmpX + (tmpWidth / 2) + tmpOffsetAdj2
+        pts(4).Y = tmpY
 
-        pts(5).x = tmpX + tmpWidth + tmpOffsetAdj2
-        pts(5).y = tmpY + tmpHeight
+        pts(5).X = tmpX + tmpWidth + tmpOffsetAdj2
+        pts(5).Y = tmpY + tmpHeight
 
-        pts(6).x = tmpX + tmpWidth
-        pts(6).y = tmpY + tmpHeight + tmpOffsetAdj2
+        pts(6).X = tmpX + tmpWidth
+        pts(6).Y = tmpY + tmpHeight + tmpOffsetAdj2
 
-        pts(7).x = tmpX + tmpWidth / 2
-        pts(7).y = tmpY + tmpOffsetAdj2
+        pts(7).X = tmpX + tmpWidth / 2
+        pts(7).Y = tmpY + tmpOffsetAdj2
 
-        pts(8).x = tmpX
-        pts(8).y = tmpY + tmpHeight + tmpOffsetAdj2
+        pts(8).X = tmpX
+        pts(8).Y = tmpY + tmpHeight + tmpOffsetAdj2
 
-        pts(9).x = tmpX - tmpOffsetAdj2
-        pts(9).y = tmpY + tmpHeight
+        pts(9).X = tmpX - tmpOffsetAdj2
+        pts(9).Y = tmpY + tmpHeight
 
-        pts(10).x = tmpX + tmpWidth / 2 - tmpOffsetAdj2
-        pts(10).y = tmpY
+        pts(10).X = tmpX + tmpWidth / 2 - tmpOffsetAdj2
+        pts(10).Y = tmpY
 
-        pts(11).x = tmpX - tmpOffsetAdj2
-        pts(11).y = tmpY - tmpHeight
+        pts(11).X = tmpX - tmpOffsetAdj2
+        pts(11).Y = tmpY - tmpHeight
 
         Polygon UserControl.hdc, pts(0), 12
     End If
@@ -511,7 +511,7 @@ Sub Redraw()
 End Sub
 
 
-Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpCancel As Boolean
     Dim tmpNewState As uCheckboxConstants
 
