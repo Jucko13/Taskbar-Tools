@@ -146,6 +146,15 @@ Private Type MarkupStyles
     
 End Type
 
+
+Public Enum ScrollBarStyle
+    lNone = 0
+    lVertical = 1
+    lHorizontal = 2
+    lBoth = 3
+End Enum
+
+
 Private MarkupS() As MarkupStyles
 Private CharMap() As WH    'width and hight of the characters
 Private WordMap() As WHSL
@@ -197,12 +206,6 @@ Private m_bRowNumberOnEveryLine As Boolean
 
 Private m_bHasFocus As Boolean
 
-Public Enum ScrollBarStyle
-    lNone = 0
-    lVertical = 1
-    lHorizontal = 2
-    lBoth = 3
-End Enum
 
 Private m_sScrollBars As ScrollBarStyle
 
@@ -279,26 +282,34 @@ Public Sub ClearMarkup()
     
     For i = 0 To UBound(MarkupS)
         With MarkupS(i)
-            .lBold = False
+            .lBold = 255
             .lFontSize = -1
             .lForeColor = -1
-            .lItalic = False
+            .lItalic = 255
             .lLine = -1
             .lMarking = -1
-            .lStrikeThrough = False
-            .lUnderline = False
+            .lStrikeThrough = 255
+            .lUnderline = 255
         End With
     Next i
     'MarkupS(Char).lItalic = bValue
 End Sub
 
 
-Public Sub setCharItallic(Char As Long, bValue As Boolean)
+Public Sub setCharItallic(Char As Long, bValue As Byte)
     MarkupS(Char).lItalic = bValue
 End Sub
 
-Public Sub setCharBold(Char As Long, bValue As Boolean)
+Public Sub setCharBold(Char As Long, bValue As Byte)
     MarkupS(Char).lBold = bValue
+    CheckCharSize Char, 1
+    
+    m_lRefreshFromCharAt = Char
+    m_bWordsCalculated = False
+    m_bRowMapCalculated = False
+    
+    If Not m_bStarting Then Redraw
+    
 End Sub
 
 Public Sub setCharForeColor(Char As Long, OleValue As OLE_COLOR)
@@ -313,12 +324,12 @@ Public Sub setCharBorderColor(Char As Long, OleValue As OLE_COLOR)
     MarkupS(Char).lLine = IIf(OleValue >= 0, OleValue, -1)
 End Sub
 
-Public Function getCharItallic(Char As Long) As Boolean
-    getCharItallic = MarkupS(Char).lItalic
+Public Function getCharItallic(Char As Long) As Byte
+    getCharItallic = IIf(MarkupS(Char).lItalic = 255, m_StdFont.Italic, CBool(MarkupS(Char).lItalic))
 End Function
 
-Public Function getCharBold(Char As Long) As Boolean
-    getCharBold = MarkupS(Char).lBold
+Public Function getCharBold(Char As Long) As Byte
+    getCharBold = IIf(MarkupS(Char).lBold = 255, m_StdFont.Bold, CBool(MarkupS(Char).lBold))
 End Function
 
 Public Function getCharForeColor(Char As Long) As OLE_COLOR
@@ -342,9 +353,9 @@ Sub updateCaretPos()
     
     If m_bHideCursor Then Exit Sub
     
-    CreateCaret UserControl.hWnd, 0, 2, CharMap(m_CursorPos).H
+    CreateCaret UserControl.hWnd, 0, 1, CharMap(m_CursorPos).H
 
-    setCaretPos CharMap(m_CursorPos).x - 1, CharMap(m_CursorPos).y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d - SYT
+    setCaretPos CharMap(m_CursorPos).x, CharMap(m_CursorPos).y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d - SYT
     ShowCaret UserControl.hWnd
     
     RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).r, m_CursorPos - RowMap(CharMap(m_CursorPos).r).startChar, m_byteText(m_CursorPos))
@@ -365,8 +376,6 @@ Public Property Let AutoResize(ByVal bValue As Boolean)
     PropertyChanged "AutoResize"
     If Not m_bStarting Then Redraw
 End Property
-
-
 
 
 Public Property Get RowNumberOnEveryLine() As Boolean
@@ -1297,12 +1306,12 @@ Sub Redraw()
     
     'currentStyle values
     Dim cForeColor As Long
-    Dim cUnderline As Boolean
-    Dim cItalic As Boolean
-    Dim cBold As Boolean
+    Dim cUnderline As Byte
+    Dim cItalic As Byte
+    Dim cBold As Byte
     Dim cMarking As Long
     Dim cFontSize As Long
-    Dim cStrikeThrough As Boolean
+    Dim cStrikeThrough As Byte
     Dim cLine As Long
     
     Dim POWC As Long    'part of word checked
@@ -1312,10 +1321,9 @@ Sub Redraw()
     UserControl.FillStyle = vbFSSolid
     UserControl.DrawStyle = 5
     UserControl.DrawMode = 13
+    UserControl.BackColor = m_OleBackgroundColor
     
-    
-
-    SetTextAlign UserControl.hdc, 24
+    SetTextAlign UserControl.hdc, 24  ' 24 = TA_BASELINE
     
     If m_bRowMapCalculated = False Then
         CalculateUserControlWidthHeight
@@ -1357,14 +1365,13 @@ Sub Redraw()
     UserControl.FontUnderline = m_StdFont.Underline
     UserControl.FontItalic = m_StdFont.Italic
     
-    UserControl.BackColor = m_OleBackgroundColor
     cForeColor = MarkupS(0).lForeColor: UserControl.ForeColor = IIf(cForeColor <> -1, cForeColor, m_OleForeColor)
     cFontSize = MarkupS(0).lFontSize: UserControl.FontSize = IIf(cFontSize <> -1, cFontSize, m_StdFont.Size)
     
-    cStrikeThrough = False
-    cBold = False
-    cUnderline = False
-    cItalic = False
+    cStrikeThrough = 255
+    cBold = 255
+    cUnderline = 255
+    cItalic = 255
     
     cMarking = -1
     
@@ -1408,17 +1415,29 @@ Sub Redraw()
             
             If cBold <> MarkupS(CC).lBold Then
                 cBold = MarkupS(CC).lBold
-                UserControl.FontBold = cBold
+                If cBold = 255 Then
+                    UserControl.FontBold = m_StdFont.Bold
+                Else
+                    UserControl.FontBold = CBool(cBold)
+                End If
             End If
     
             If cUnderline <> MarkupS(CC).lUnderline Then
                 cUnderline = MarkupS(CC).lUnderline
-                UserControl.FontUnderline = cUnderline
+                If cUnderline = 255 Then
+                    UserControl.FontUnderline = m_StdFont.Underline
+                Else
+                    UserControl.FontUnderline = CBool(cUnderline)
+                End If
             End If
     
             If cItalic <> MarkupS(CC).lItalic Then
                 cItalic = MarkupS(CC).lItalic
-                UserControl.FontItalic = cItalic
+                If cItalic = 255 Then
+                    UserControl.FontItalic = m_StdFont.Italic
+                Else
+                    UserControl.FontItalic = CBool(cItalic)
+                End If
             End If
     
             If cFontSize <> MarkupS(CC).lFontSize Then
@@ -1432,7 +1451,12 @@ Sub Redraw()
     
             If cStrikeThrough <> MarkupS(CC).lStrikeThrough Then
                 cStrikeThrough = MarkupS(CC).lStrikeThrough
-                UserControl.FontStrikethru = cStrikeThrough
+                If cStrikeThrough = 255 Then
+                    UserControl.FontStrikethru = m_StdFont.Strikethrough
+                Else
+                    UserControl.FontStrikethru = CBool(cStrikeThrough)
+                End If
+                
             End If
     
             
@@ -2023,9 +2047,9 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
                         With MarkupS(m_SelStart + i)
                             .lStrikeThrough = m_StdFont.Strikethrough
                             .lFontSize = -1
-                            .lUnderline = m_StdFont.Underline
-                            .lItalic = m_StdFont.Italic
-                            .lBold = m_StdFont.Bold
+                            .lUnderline = 255
+                            .lItalic = 255
+                            .lBold = 255
                             .lMarking = -1
                             .lForeColor = -1
                             .lLine = -1
@@ -2085,12 +2109,12 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
     Dim uSize As Long
     
     Dim cForeColor As Long
-    Dim cUnderline As Boolean
-    Dim cItalic As Boolean
-    Dim cBold As Boolean
+    Dim cUnderline As Byte
+    Dim cItalic As Byte
+    Dim cBold As Byte
     Dim cMarking As Long
     Dim cFontSize As Long
-    Dim cStrikeThrough As Boolean
+    Dim cStrikeThrough As Byte
     Dim cLine As Long
     Dim cDescendHeight As Long
     Dim cTextMetric As TEXTMETRIC
@@ -2105,13 +2129,13 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
     UserControl.FontBold = m_StdFont.Bold
 
     cForeColor = -1
-    cUnderline = m_StdFont.Underline
-    cItalic = m_StdFont.Italic
-    cBold = m_StdFont.Bold
+    cUnderline = 255
+    cItalic = 255
+    cBold = 255
     cFontSize = -1
     cMarking = -1
     cLine = -1
-    cStrikeThrough = m_StdFont.Strikethrough
+    cStrikeThrough = 255
 
     GetTextMetrics UserControl.hdc, cTextMetric
     cDescendHeight = cTextMetric.tmDescent
@@ -2134,16 +2158,16 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
 
             If .lBold <> cBold Then
                 cBold = .lBold
-                If cBold = -1 Then
+                If cBold = 255 Then
                     UserControl.Font.Bold = m_StdFont.Bold
                 Else
-                    UserControl.Font.Bold = cBold
+                    UserControl.Font.Bold = CBool(cBold)
                 End If
             End If
 
             If .lItalic <> cItalic Then
                 cItalic = .lItalic
-                If cItalic = -1 Then
+                If cItalic = 255 Then
                     UserControl.Font.Italic = m_StdFont.Italic
                 Else
                     UserControl.Font.Italic = cItalic
@@ -2152,13 +2176,22 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
 
             If .lUnderline <> cUnderline Then
                 cUnderline = .lUnderline
-                If .lUnderline = -1 Then
+                If .lUnderline = 255 Then
                     UserControl.Font.Underline = m_StdFont.Underline
                 Else
                     UserControl.Font.Underline = cUnderline
                 End If
             End If
 
+            If .lStrikeThrough <> cStrikeThrough Then
+                cStrikeThrough = .lStrikeThrough
+                If .lStrikeThrough = 255 Then
+                    UserControl.Font.Strikethrough = m_StdFont.Strikethrough
+                Else
+                    UserControl.Font.Strikethrough = cStrikeThrough
+                End If
+            End If
+            
 
             If Not (m_byteText(i) = 13 Or m_byteText(i) = 10) Then
                 GetTextSize Chr(m_byteText(i)), CharMap(i)
@@ -2474,13 +2507,20 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     Dim tmpCursor As Long
     Dim tmpString As String
     Dim tmpCursorUpDown As Boolean
+    Dim tmpStarting As Boolean
     
     getSelectionChanged True
     
+    tmpStarting = m_bStarting
+    m_bStarting = True
     RaiseEvent KeyDown(KeyCode, Shift)
+    m_bStarting = tmpStarting
     
-    If (KeyCode = 0 And Shift = 0) Or Locked Then m_bBlockNextKeyPress = True
     
+    If (KeyCode = 0 And Shift = 0) Or Locked Then
+        m_bBlockNextKeyPress = True
+        mustRedraw = True
+    End If
     
     
     Select Case KeyCode
@@ -2943,12 +2983,12 @@ Sub ReCalculateMarkup()
 
     'currentStyle values
     Dim cForeColor As Long
-    Dim cUnderline As Boolean
-    Dim cItalic As Boolean
-    Dim cBold As Boolean
+    Dim cUnderline As Byte
+    Dim cItalic As Byte
+    Dim cBold As Byte
     Dim cMarking As Long
     Dim cFontSize As Long
-    Dim cStrikeThrough As Boolean
+    Dim cStrikeThrough As Byte
     Dim cLine As Long
     Dim cDescendHeight As Long
     Dim cTextMetric As TEXTMETRIC
