@@ -44,7 +44,7 @@ Option Explicit
 
 Private Declare Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (hpvDest As Any, hpvSource As Any, ByVal cbCopy As Long)
 'Private Declare Function DrawText Lib "user32" Alias "DrawTextA" (ByVal hdc As Long, ByVal lpStr As String, ByVal nCount As Long, lpRect As RECT, ByVal wFormat As Long) As Long
-Private Declare Function TextOut Lib "gdi32" Alias "TextOutA" (ByVal hdc As Long, ByVal x As Long, ByVal y As Long, ByVal lpString As String, ByVal nCount As Long) As Long
+Private Declare Function TextOut Lib "gdi32" Alias "TextOutA" (ByVal hdc As Long, ByVal X As Long, ByVal Y As Long, ByVal lpString As String, ByVal nCount As Long) As Long
 
 Private Type TEXTMETRIC
     tmHeight As Long
@@ -112,8 +112,8 @@ Private Type WH
     W As Long 'char width
     H As Long 'char height
     d As Long 'divider height
-    x As Long 'x position
-    y As Long 'y position
+    X As Long 'x position
+    Y As Long 'y position
     r As Long 'belongs to what row?
     p As Long 'part of word
 End Type
@@ -253,8 +253,8 @@ Private m_bBlockNextKeyPress As Boolean 'for things like ctrl+space autocomplete
 Private Declare Function GetTextExtentPoint32 Lib "gdi32" Alias "GetTextExtentPoint32A" (ByVal hdc As Long, ByVal lpsz As String, ByVal cbString As Long, lpSize As WH) As Long
 Private Declare Function SetTextAlign Lib "gdi32.dll" (ByVal hdc As Long, ByVal wFlags As Long) As Long
 
-Private Declare Function CreateCaret Lib "user32" (ByVal hWnd As Long, ByVal hBitmap As Long, ByVal x As Long, ByVal y As Long) As Long
-Private Declare Function setCaretPos Lib "user32" Alias "SetCaretPos" (ByVal x As Long, ByVal y As Long) As Long
+Private Declare Function CreateCaret Lib "user32" (ByVal hWnd As Long, ByVal hBitmap As Long, ByVal X As Long, ByVal Y As Long) As Long
+Private Declare Function setCaretPos Lib "user32" Alias "SetCaretPos" (ByVal X As Long, ByVal Y As Long) As Long
 Private Declare Function ShowCaret Lib "user32" (ByVal hWnd As Long) As Long
 Private Declare Function DestroyCaret Lib "user32" () As Long
 
@@ -355,7 +355,7 @@ Sub updateCaretPos()
     
     CreateCaret UserControl.hWnd, 0, 1, CharMap(m_CursorPos).H
 
-    setCaretPos CharMap(m_CursorPos).x, CharMap(m_CursorPos).y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d - SYT
+    setCaretPos CharMap(m_CursorPos).X, CharMap(m_CursorPos).Y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d - SYT
     ShowCaret UserControl.hWnd
     
     RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).r, m_CursorPos - RowMap(CharMap(m_CursorPos).r).startChar, m_byteText(m_CursorPos))
@@ -855,17 +855,17 @@ Sub DrawScrollBars()
     
     If m_sScrollBars = lVertical Or m_sScrollBars = lBoth Then
         
-        pts(0).x = UW - UWS
-        pts(0).y = 0
+        pts(0).X = UW - UWS
+        pts(0).Y = 0
 
-        pts(1).x = UW - 1
-        pts(1).y = 0
+        pts(1).X = UW - 1
+        pts(1).Y = 0
         
-        pts(2).x = UW - 1
-        pts(2).y = UH - 1
+        pts(2).X = UW - 1
+        pts(2).Y = UH - 1
 
-        pts(3).x = UW - UWS
-        pts(3).y = UH - 1
+        pts(3).X = UW - UWS
+        pts(3).Y = UH - 1
     
         UserControl.FillColor = m_OleBackgroundColor
         Polygon UserControl.hdc, pts(0), 4
@@ -903,17 +903,17 @@ Sub DrawScrollBars()
         m_lScrollTopBarY = UHS + scrollPosition - 1
         
         'draggable block
-        pts(0).x = UW - UWS
-        pts(0).y = m_lScrollTopBarY
+        pts(0).X = UW - UWS
+        pts(0).Y = m_lScrollTopBarY
 
-        pts(1).x = UW - 1
-        pts(1).y = m_lScrollTopBarY
+        pts(1).X = UW - 1
+        pts(1).Y = m_lScrollTopBarY
         
-        pts(2).x = UW - 1
-        pts(2).y = m_lScrollTopBarY + m_lScrollTopBarHeight
+        pts(2).X = UW - 1
+        pts(2).Y = m_lScrollTopBarY + m_lScrollTopBarHeight
 
-        pts(3).x = UW - UWS
-        pts(3).y = m_lScrollTopBarY + m_lScrollTopBarHeight
+        pts(3).X = UW - UWS
+        pts(3).Y = m_lScrollTopBarY + m_lScrollTopBarHeight
         
         UserControl.FillColor = m_OleLineNumberBackground
         Polygon UserControl.hdc, pts(0), 4
@@ -946,20 +946,20 @@ Sub DrawScrollBars()
         
         
         If m_lScrollLeftMax > 0 Then 'bar
-            pts(0).x = UWS + 2
-            pts(0).y = UH - UHS + 2
+            pts(0).X = UWS + 2
+            pts(0).Y = UH - UHS + 2
     
-            pts(1).x = pts(0).x
-            pts(1).y = UH - 3
+            pts(1).X = pts(0).X
+            pts(1).Y = UH - 3
             
-            pts(2).x = (UW - UWS * IIf(m_sScrollBars = lBoth, 3, 2) - 3) - (UW - UWS * IIf(m_sScrollBars = lBoth, 3, 2) - 3) * (1 / (m_lScrollLeftMax + UW) * m_lScrollLeftMax)
-            If pts(2).x < 10 Then pts(2).x = 10
-            pts(2).x = pts(2).x + pts(0).x
+            pts(2).X = (UW - UWS * IIf(m_sScrollBars = lBoth, 3, 2) - 3) - (UW - UWS * IIf(m_sScrollBars = lBoth, 3, 2) - 3) * (1 / (m_lScrollLeftMax + UW) * m_lScrollLeftMax)
+            If pts(2).X < 10 Then pts(2).X = 10
+            pts(2).X = pts(2).X + pts(0).X
             
-            pts(2).y = pts(1).y
+            pts(2).Y = pts(1).Y
     
-            pts(3).x = pts(2).x
-            pts(3).y = pts(0).y
+            pts(3).X = pts(2).X
+            pts(3).Y = pts(0).Y
             
             Polygon UserControl.hdc, pts(0), 4
         End If
@@ -1082,8 +1082,8 @@ checkNextChar:
                 CharMap(CC).r = NRC
                 
             Case 10
-                CharMap(CC).x = TextOffsetX
-                CharMap(CC).y = TextOffsetY
+                CharMap(CC).X = TextOffsetX
+                CharMap(CC).Y = TextOffsetY
                 CharMap(CC).r = NRC
                 GoTo NextChar
             Case 32
@@ -1176,8 +1176,8 @@ MakeNewRule:
         RowMap(NRC).Height = RH
         RowMap(NRC).NumChars = RowMap(NRC).NumChars + 1
         
-        CharMap(CC).x = TextOffsetX
-        CharMap(CC).y = TextOffsetY
+        CharMap(CC).X = TextOffsetX
+        CharMap(CC).Y = TextOffsetY
         CharMap(CC).r = NRC
         TextOffsetX = TextOffsetX + CharMap(CC).W
         
@@ -1230,7 +1230,7 @@ Sub CalculateUserControlWidthHeight()
             SC = UBound(CharMap)
         End If
         
-        SYT = CharMap(SC).y
+        SYT = CharMap(SC).Y
         TW = TextWidth(m_lScrollTop & "0")
     Else
         SYT = 0
@@ -1383,7 +1383,7 @@ Sub Redraw()
     NRC = m_lScrollTopMax
     
     If m_lScrollTop - 1 >= 0 Then
-        SYT = CharMap(RowMap(m_lScrollTop - 1).startChar).y
+        SYT = CharMap(RowMap(m_lScrollTop - 1).startChar).Y
     Else
         SYT = 0
     End If
@@ -1393,7 +1393,7 @@ Sub Redraw()
 
     For i = m_lScrollTop To NRC
         'Debug.Print m_byteText(CC);
-        TextOffsetY = CharMap(RowMap(i).startChar).y - SYT 'RowMap(i).StartY
+        TextOffsetY = CharMap(RowMap(i).startChar).Y - SYT 'RowMap(i).StartY
         
         If m_bRowLines Then
             If TextOffsetY < UH Then
@@ -1411,7 +1411,7 @@ Sub Redraw()
         For CC = RowMap(i).startChar To RowMap(i).startChar + RowMap(i).NumChars - 1
             If CC = TL Then GoTo DoneRefreshing 'do not draw the last character
             
-            TextOffsetX = CharMap(CC).x
+            TextOffsetX = CharMap(CC).X
             
             If cBold <> MarkupS(CC).lBold Then
                 cBold = MarkupS(CC).lBold
@@ -1474,17 +1474,17 @@ Sub Redraw()
     
     
                 If cMarking <> -1 Then
-                    pts(0).x = TextOffsetX
-                    pts(0).y = TextOffsetY + CharMap(CC).d
+                    pts(0).X = TextOffsetX
+                    pts(0).Y = TextOffsetY + CharMap(CC).d
     
-                    pts(1).x = TextOffsetX + CharMap(CC).W
-                    pts(1).y = pts(0).y
+                    pts(1).X = TextOffsetX + CharMap(CC).W
+                    pts(1).Y = pts(0).Y
     
-                    pts(2).x = pts(1).x
-                    pts(2).y = pts(0).y - CharMap(CC).H 'TextOffsetY - CharMap(CC).H + CharMap(CC).d
+                    pts(2).X = pts(1).X
+                    pts(2).Y = pts(0).Y - CharMap(CC).H 'TextOffsetY - CharMap(CC).H + CharMap(CC).d
     
-                    pts(3).x = pts(0).x
-                    pts(3).y = pts(2).y
+                    pts(3).X = pts(0).X
+                    pts(3).Y = pts(2).Y
                     'UserControl.DrawMode = 15
     
                     Polygon UserControl.hdc, pts(0), 4
@@ -1536,17 +1536,17 @@ Sub Redraw()
     
                 If CC >= m_SelStart And CC < m_SelEnd And m_byteText(CC) <> 10 Then
     
-                    pts(0).x = TextOffsetX
-                    pts(0).y = TextOffsetY + CharMap(CC).d
+                    pts(0).X = TextOffsetX
+                    pts(0).Y = TextOffsetY + CharMap(CC).d
     
-                    pts(1).x = TextOffsetX + CharMap(CC).W
-                    pts(1).y = pts(0).y
+                    pts(1).X = TextOffsetX + CharMap(CC).W
+                    pts(1).Y = pts(0).Y
     
-                    pts(2).x = pts(1).x
-                    pts(2).y = TextOffsetY - RowMap(i).Height + IIf(m_bMultiLine, CharMap(CC).d, 0)
+                    pts(2).X = pts(1).X
+                    pts(2).Y = TextOffsetY - RowMap(i).Height + IIf(m_bMultiLine, CharMap(CC).d, 0)
     
-                    pts(3).x = TextOffsetX
-                    pts(3).y = pts(2).y
+                    pts(3).X = TextOffsetX
+                    pts(3).Y = pts(2).Y
                     
                     UserControl.DrawMode = 6 '6
                     Polygon UserControl.hdc, pts(0), 4
@@ -1599,10 +1599,10 @@ DoneRefreshing:
     'ReDim Preserve RowMap(0 To NRC)
     
     If m_bLineNumbers Then
-        pts(0).x = 0:         pts(0).y = 0
-        pts(1).x = LNR + TSP: pts(1).y = 0
-        pts(2).x = pts(1).x:  pts(2).y = UH
-        pts(3).x = 0:         pts(3).y = UH
+        pts(0).X = 0:         pts(0).Y = 0
+        pts(1).X = LNR + TSP: pts(1).Y = 0
+        pts(2).X = pts(1).X:  pts(2).Y = UH
+        pts(3).X = 0:         pts(3).Y = UH
         Polygon UserControl.hdc, pts(0), 4
         
         For i = m_lScrollTop To NRC
@@ -2209,7 +2209,7 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
 
 End Sub
 
-Function getCharAtCursor(x As Long, y As Long) As Long
+Function getCharAtCursor(X As Long, Y As Long) As Long
 Dim i As Long
 
     Dim TTW     As Long    'total text width
@@ -2223,7 +2223,7 @@ Dim i As Long
     CR = UB
     
     For i = m_lScrollTop To UB    'number of rows
-        If y < RowMap(i).StartY - SYT Then 'And RowMap(i).NumChars <> 1
+        If Y < RowMap(i).StartY - SYT Then 'And RowMap(i).NumChars <> 1
             CR = i
             Exit For
         End If
@@ -2238,7 +2238,7 @@ Dim i As Long
     'If CharMap(RowMap(CR).startChar).x > x Then
     '    getCharAtCursor = RowMap(CR).startChar
     '    Exit Function
-    If CharMap(RowMap(CR).startChar + RowMap(CR).NumChars - 1).x < x Then
+    If CharMap(RowMap(CR).startChar + RowMap(CR).NumChars - 1).X < X Then
         getCharAtCursor = EOR
         Exit Function
     End If
@@ -2246,15 +2246,15 @@ Dim i As Long
     'TS = CharMap(RowMap(CR).StartChar).X
     For i = RowMap(CR).startChar To EOR
         If m_byteText(i) <> 10 And m_byteText(i) <> 13 Then
-            If x > CharMap(i).x And x <= CharMap(i).x + CharMap(i).W Then
-                If x < CharMap(i).x + CharMap(i).W / 2 Then
+            If X > CharMap(i).X And X <= CharMap(i).X + CharMap(i).W Then
+                If X < CharMap(i).X + CharMap(i).W / 2 Then
                     getCharAtCursor = i
                 Else
                     getCharAtCursor = i + 1
                     If getCharAtCursor > UBound(m_byteText) Then getCharAtCursor = UBound(m_byteText)
                 End If
                 Exit Function
-            ElseIf CharMap(i).x > x Then
+            ElseIf CharMap(i).X > X Then
                 getCharAtCursor = i
                 Exit Function
             End If
@@ -2273,17 +2273,17 @@ Private Sub UserControl_LostFocus()
     DestroyCaret
 End Sub
 
-Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpSwapSel As Long
     Dim mustRedraw As Boolean
     
     m_lMouseDown = m_lMouseDown Or Button
-    m_lMouseDownX = x ' - m_lScrollLeft
-    m_lMouseDownY = y ' - m_lScrollTop
-    m_lMouseX = x ' - m_lScrollLeft
-    m_lMouseY = y ' - m_lScrollTop
+    m_lMouseDownX = X ' - m_lScrollLeft
+    m_lMouseDownY = Y ' - m_lScrollTop
+    m_lMouseX = X ' - m_lScrollLeft
+    m_lMouseY = Y ' - m_lScrollTop
     
-    If x > UserControl.ScaleWidth - 15 And m_sScrollBars <> lNone Then
+    If X > UserControl.ScaleWidth - 15 And m_sScrollBars <> lNone Then
         If m_lMouseDownY >= m_lScrollTopBarY And m_lMouseDownY <= m_lScrollTopBarY + m_lScrollTopBarHeight Then
             m_bScrollingTopBar = True
             m_lScrollTopDragStartY = m_lMouseDownY - m_lScrollTopBarY
@@ -2328,17 +2328,17 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Sing
 End Sub
 
 
-Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpSwapSel As Long
     Dim mustRedraw As Boolean
     
     Dim scrollTopDifference As Long
     Dim scrollTopNewPosition As Long
             
-    m_lMouseX = x ' - m_lScrollLeft
-    m_lMouseY = y ' - m_lScrollTop
+    m_lMouseX = X ' - m_lScrollLeft
+    m_lMouseY = Y ' - m_lScrollTop
     
-    If x > UserControl.ScaleWidth - 15 And m_lMouseDownY >= m_lScrollTopBarY And m_lMouseDownY <= m_lScrollTopBarY + m_lScrollTopBarHeight Then
+    If X > UW - UWS And ((Y >= m_lScrollTopBarY And Y <= m_lScrollTopBarY + m_lScrollTopBarHeight) Or Y < UWS Or Y > UH - UWS) Then
         UserControl.MousePointer = 0
     Else
         UserControl.MousePointer = 3
@@ -2385,11 +2385,11 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Sing
                 RaiseEvent SelectionChanged
             End If
             
-            If CharMap(m_CursorPos).x >= m_lUsercontrolWidth Then
-                m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).x - m_lUsercontrolWidth)
+            If CharMap(m_CursorPos).X >= m_lUsercontrolWidth Then
+                m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolWidth)
                 mustRedraw = True
-            ElseIf CharMap(m_CursorPos).x <= m_lUsercontrolLeft Then
-                m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).x - m_lUsercontrolLeft)
+            ElseIf CharMap(m_CursorPos).X <= m_lUsercontrolLeft Then
+                m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolLeft)
                 mustRedraw = True
             End If
             
@@ -2399,10 +2399,23 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Sing
     End If
 End Sub
 
-Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     m_lMouseDown = m_lMouseDown And Not Button
     m_bScrollingTopBar = False
     'Debug.Print m_lMouseDown
+
+    If X > UserControl.ScaleWidth - 15 And m_sScrollBars <> lNone Then
+        If Y < UWS Then
+            m_lScrollTop = m_lScrollTop - 1
+            If m_lScrollTop < 0 Then m_lScrollTop = 0
+        ElseIf Y > UH - UWS Then
+            m_lScrollTop = m_lScrollTop + 1
+            If m_lScrollTop > UBound(RowMap) Then m_lScrollTop = UBound(RowMap)
+        End If
+        DrawScrollBars
+    End If
+        
+        
     If Not m_bStarting Then Redraw
 End Sub
 
@@ -2534,7 +2547,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
                 m_lScrollTop = m_lScrollTop - 1
                 If m_lScrollTop < 0 Then m_lScrollTop = 0
                 mustRedraw = True
-            ElseIf CharMap(m_SelStart).y - SYT > UH Then
+            ElseIf CharMap(m_SelStart).Y - SYT > UH Then
                 m_lScrollTop = m_lScrollTop + 1
                 If m_lScrollTop > m_lScrollTopMax Then m_lScrollTop = m_lScrollTopMax
                 mustRedraw = True
@@ -2728,11 +2741,11 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     If m_CursorPos > UBound(CharMap) Then m_CursorPos = UBound(CharMap)
     
 
-    If CharMap(m_CursorPos).x >= m_lUsercontrolWidth Then
-        m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).x - m_lUsercontrolWidth)
+    If CharMap(m_CursorPos).X >= m_lUsercontrolWidth Then
+        m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolWidth)
         mustRedraw = True
-    ElseIf CharMap(m_CursorPos).x <= m_lUsercontrolLeft Then
-        m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).x - m_lUsercontrolLeft)
+    ElseIf CharMap(m_CursorPos).X <= m_lUsercontrolLeft Then
+        m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolLeft)
         mustRedraw = True
     End If
 
