@@ -306,8 +306,8 @@ Private Sub m_tmrLoad_Timer()
 
     Else
         m_DouLoadPosition = m_DouLoadPosition + m_LonLoadingSpeed
-        If m_DouLoadPosition > 61 Then
-            m_DouLoadPosition = (CLng(m_DouLoadPosition) Mod 61)
+        If m_DouLoadPosition > 60 Then
+            m_DouLoadPosition = (CLng(m_DouLoadPosition) Mod 60)
         End If
 
     End If
@@ -621,26 +621,28 @@ Skip_Plotting:
 
     tmpX = Round(UserControl.ScaleWidth / 2 - UserControl.TextWidth(tmpCaptionToPrint) / 2)
     tmpY = Round(UserControl.ScaleHeight / 2 - UserControl.TextHeight(tmpCaptionToPrint) / 2)
-
-    If m_bCaptionBorder And tmpCaptionToPrint <> "" Then
-        UserControl.ForeColor = m_OleCaptionBorderColor
-
-        For i = -1 To 1
-            For j = -1 To 1
-                If Not (i = 0 And j = 0) Then
-                    UserControl.CurrentX = tmpX + i
-                    UserControl.CurrentY = tmpY + j
-                    UserControl.Print tmpCaptionToPrint
-                End If
-            Next j
-        Next i
+    
+    If tmpCaptionToPrint <> "" Then
+        If m_bCaptionBorder Then
+            UserControl.ForeColor = m_OleCaptionBorderColor
+    
+            For i = -1 To 1
+                For j = -1 To 1
+                    If Not (i = 0 And j = 0) Then
+                        UserControl.CurrentX = tmpX + i
+                        UserControl.CurrentY = tmpY + j
+                        UserControl.Print tmpCaptionToPrint
+                    End If
+                Next j
+            Next i
+        End If
+    
+        UserControl.ForeColor = m_OleForeColor
+        UserControl.CurrentX = tmpX
+        UserControl.CurrentY = tmpY
+        UserControl.Print tmpCaptionToPrint
     End If
-
-    UserControl.ForeColor = m_OleForeColor
-    UserControl.CurrentX = tmpX
-    UserControl.CurrentY = tmpY
-    UserControl.Print tmpCaptionToPrint
-
+    
 
 End_of_sub:
     m_bRefreshing = False

@@ -20,17 +20,19 @@ Option Explicit
 Private Declare Function GetCursorPos Lib "user32" (lpPoint As POINTAPI) As Long
 Private Declare Function WindowFromPoint Lib "user32" (ByVal xPoint As Long, ByVal yPoint As Long) As Long
 Private Type POINTAPI
-    x As Long
-    y As Long
+    X As Long
+    Y As Long
 End Type
 
 
 
 
-Public Event Click(Button As Integer, x As Single, y As Single)
-Public Event MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
-Public Event MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
-Public Event MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Public Event Click(Button As Integer, X As Single, Y As Single)
+Public Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Public Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Public Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Public Event MouseEnter()
+Public Event MouseLeave()
 
 Public Enum ButtonOnClick
     [Move Text]
@@ -47,7 +49,7 @@ End Enum
 
 
 Private m_bStarting As Boolean
-Private m_strCaption As String
+Private m_StrCaption As String
 Private m_bButtonDown As Boolean
 
 Private m_OleBackgroundColor As OLE_COLOR
@@ -364,22 +366,25 @@ End Property
 Public Property Get Caption() As String
 Attribute Caption.VB_ProcData.VB_Invoke_Property = ";Text"
 Attribute Caption.VB_UserMemId = -518
-    Caption = m_strCaption
+    Caption = m_StrCaption
 End Property
 
 Public Property Let Caption(ByVal StrValue As String)
-    m_strCaption = StrValue
+    m_StrCaption = StrValue
     PropertyChanged "Caption"
     If Not m_bStarting Then Redraw
 End Property
 
-Private Sub m_tmrMouseOver_Timer()
+Function isMouseOverControl() As Boolean
     GetCursorPos m_PoiMousePosition
-    Dim tmpX As Long
-    Dim tmpY As Long
-    If WindowFromPoint(m_PoiMousePosition.x, m_PoiMousePosition.y) <> UserControl.hWnd Then
+    isMouseOverControl = CBool(WindowFromPoint(m_PoiMousePosition.X, m_PoiMousePosition.Y) = UserControl.hWnd)
+End Function
+
+Private Sub m_tmrMouseOver_Timer()
+    If Not isMouseOverControl Then
         m_tmrMouseOver.Enabled = False
         m_bMouseOver = False
+        RaiseEvent MouseLeave
         Redraw
     End If
 End Sub
@@ -403,7 +408,7 @@ Private Sub UserControl_Initialize()
     m_bStarting = True
     m_OleBackgroundColor = &HE18700
     m_OleForeColor = &H800000
-    m_strCaption = "Button"
+    m_StrCaption = "Button"
     m_OleBorderColor = &HFFFFFF
     m_bBorder = True
     'm_ButButtonAnimation = [Move Border In]
@@ -512,10 +517,10 @@ Sub Redraw()
         tmpY = Fix((UserControl.ScaleHeight / 2 - (t_StdPicture.Height + tmpTextHeight) / 2)) + t_StdPicture.Height + tmpTextOffset
     End If
     
-    tmpCaptionSplit = Split(m_strCaption, vbCrLf)
+    tmpCaptionSplit = Split(m_StrCaption, vbCrLf)
     
-    tmpTextWidth = UserControl.TextWidth(m_strCaption)
-    tmpTextHeight = UserControl.TextHeight(m_strCaption)
+    tmpTextWidth = UserControl.TextWidth(m_StrCaption)
+    tmpTextHeight = UserControl.TextHeight(m_StrCaption)
         
     
     tmpTextStartY = UserControl.ScaleHeight / 2 - tmpTextHeight / 2
@@ -557,16 +562,16 @@ Private Sub UserControl_KeyPress(KeyAscii As Integer)
     If KeyAscii = vbKeyReturn Or KeyAscii = vbKeySpace Then RaiseEvent Click(-1, -1, -1)
 End Sub
 
-Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
     m_bButtonDown = True
 
     Redraw
-    RaiseEvent MouseDown(Button, Shift, x, y)
+    RaiseEvent MouseDown(Button, Shift, X, Y)
     'Debug.Print "down"
 End Sub
 
-Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
-    If x < 0 Or y < 0 Or x > UserControl.ScaleWidth Or y > UserControl.ScaleHeight Then
+Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If X < 0 Or Y < 0 Or X > UserControl.ScaleWidth Or Y > UserControl.ScaleHeight Then
         m_bButtonDown = False
     Else
         m_bButtonDown = IIf(Not Button = 0, True, False)
@@ -575,24 +580,25 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Sing
             m_bMouseOver = True
             m_tmrMouseOver.Interval = 40
             m_tmrMouseOver.Enabled = True
+            RaiseEvent MouseEnter
         End If
     End If
 
-    RaiseEvent MouseMove(Button, Shift, x, y)
+    RaiseEvent MouseMove(Button, Shift, X, Y)
     Redraw
 End Sub
 
-Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
-    RaiseEvent MouseUp(Button, Shift, x, y)
+    RaiseEvent MouseUp(Button, Shift, X, Y)
 
-    If x > UserControl.ScaleWidth Or y > UserControl.ScaleHeight Or x < 0 Or y < 0 Then
+    If X > UserControl.ScaleWidth Or Y > UserControl.ScaleHeight Or X < 0 Or Y < 0 Then
         GoTo NoClick
     End If
 
 
     If m_bButtonDown Then
-        RaiseEvent Click(Button, x, y)
+        RaiseEvent Click(Button, X, Y)
     End If
 
 NoClick:
@@ -625,7 +631,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         
         
         m_bFocusVisible = .ReadProperty("FocusVisible", True)
-        m_strCaption = .ReadProperty("Caption", "Button")
+        m_StrCaption = .ReadProperty("Caption", "Button")
         m_bBorder = .ReadProperty("Border", True)
         m_ButButtonAnimation = .ReadProperty("BorderAnimation", [Move Border In])
         MousePointer = .ReadProperty("MousePointer", 0)
@@ -667,7 +673,7 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         
         
         .WriteProperty "FocusVisible", m_bFocusVisible, True
-        .WriteProperty "Caption", m_strCaption, "Button"
+        .WriteProperty "Caption", m_StrCaption, "Button"
         .WriteProperty "Border", m_bBorder, True
         .WriteProperty "BorderAnimation", m_ButButtonAnimation, [Move Border In]
         .WriteProperty "Picture", m_StdPicture, Nothing
