@@ -76,9 +76,9 @@ Public Event OnDropdown(ByRef cancel As Boolean)
 
 Private WithEvents m_picMenu As PictureBox
 Attribute m_picMenu.VB_VarHelpID = -1
-Private WithEvents m_tmrFocus As timer
+Private WithEvents m_tmrFocus As Timer
 Attribute m_tmrFocus.VB_VarHelpID = -1
-Private WithEvents m_tmrScroll As timer
+Private WithEvents m_tmrScroll As Timer
 Attribute m_tmrScroll.VB_VarHelpID = -1
 
 Private m_OleBackgroundColor As OLE_COLOR
@@ -196,8 +196,8 @@ Public Property Set Font(ByVal StdValue As StdFont)
 End Property
 
 
-Public Property Get listCount() As Long
-    listCount = m_LonItemCount
+Public Property Get ListCount() As Long
+    ListCount = m_LonItemCount
 End Property
 
 
@@ -620,6 +620,9 @@ Not_Supported:
     
 End Sub
 
+Public Property Get hWnd() As Long
+    hWnd = UserControl.hWnd
+End Property
 
 Private Sub m_tmrScroll_Timer()
     m_tmrScroll.Interval = 1

@@ -103,6 +103,11 @@ Public Property Let BackgroundColor(ByVal OleValue As OLE_COLOR)
     If Not m_bStarting Then Redraw
 End Property
 
+
+Public Property Get hWnd() As Long
+    hWnd = UserControl.hWnd
+End Property
+
 Private Sub UserControl_Initialize()
     m_bStarting = True
     m_OleForeColor = &H0
@@ -117,9 +122,7 @@ Private Sub UserControl_Initialize()
 
 End Sub
 
-Public Function hWnd() As Long
-    hWnd = UserControl.hWnd
-End Function
+
 Sub Redraw()
     If m_bRefreshing Then Exit Sub
     m_bRefreshing = True

@@ -63,8 +63,9 @@ Private m_bCaptionBorder As Boolean
 Private m_OleCaptionBorderColor As OLE_COLOR
 Private m_intCaptionOffsetLeft As Integer
 Private m_intCaptionOffsetTop As Integer
+Private m_intCheckOffsetLeft As Integer
 Private m_StdFont As StdFont
-
+Private m_bAutoSize As Boolean
 
 Public Property Get BorderThickness() As Long
     BorderThickness = m_LonBorderThickness
@@ -96,6 +97,18 @@ Public Property Let CaptionOffsetLeft(ByVal intValue As Integer)
     PropertyChanged "CaptionOffsetLeft"
     If Not m_bStarting Then Redraw
 End Property
+
+
+Public Property Get CheckOffsetLeft() As Integer
+    CheckOffsetLeft = m_intCheckOffsetLeft
+End Property
+
+Public Property Let CheckOffsetLeft(ByVal intValue As Integer)
+    m_intCheckOffsetLeft = intValue
+    PropertyChanged "CheckOffsetLeft"
+    If Not m_bStarting Then Redraw
+End Property
+
 
 Public Property Get Font() As StdFont
 Attribute Font.VB_ProcData.VB_Invoke_Property = ";Font"
@@ -233,6 +246,23 @@ Public Property Let Border(ByVal bValue As Boolean)
     If Not m_bStarting Then Redraw
 End Property
 
+
+
+Public Property Get AutoSize() As Boolean
+    AutoSize = m_bAutoSize
+End Property
+
+Public Property Let AutoSize(ByVal bValue As Boolean)
+    m_bAutoSize = bValue
+    PropertyChanged "AutoSize"
+    If Not m_bStarting Then Redraw
+End Property
+
+
+
+
+
+
 Public Property Get BorderColor() As OLE_COLOR
     BorderColor = m_OleBorderColor
 End Property
@@ -275,6 +305,11 @@ Public Property Let BackgroundColor(ByVal OleValue As OLE_COLOR)
     If Not m_bStarting Then Redraw
 End Property
 
+
+Public Property Get hWnd() As Long
+    hWnd = UserControl.hWnd
+End Property
+
 Private Sub UserControl_Initialize()
     m_bStarting = True
     m_OleForeColor = &H0
@@ -294,12 +329,13 @@ Private Sub UserControl_Initialize()
     m_UChCheckSize = uCheckSizes.u_Normal
     m_bCaptionBorder = False
     m_OleCaptionBorderColor = &HFFFFFF
-
+    m_intCheckOffsetLeft = -1
 
     m_bStarting = False
     m_intCaptionOffsetLeft = 0
     m_intCaptionOffsetTop = 0
     m_LonBorderThickness = 1
+    m_bAutoSize = True
 End Sub
 
 
@@ -320,7 +356,8 @@ Sub Redraw()
     Dim tmpCapY As Long
     Dim i As Long
     Dim j As Long
-
+    Dim k As Long
+    
     tmpTextHeight = UserControl.TextHeight(m_StrCaption)
     tmpTextWidth = UserControl.TextWidth(m_StrCaption)
 
@@ -364,8 +401,13 @@ Sub Redraw()
     tmpOffsetAdj1 = (tmpHeight / 5)
     tmpOffsetAdj2 = (tmpHeight / 2.5)
     tmpOffsetAdj3 = (tmpHeight / (10 / 3))
-
-    tmpX = Fix(UserControl.ScaleHeight / 2) - tmpHeight
+    
+    If m_intCheckOffsetLeft <= -1 Then
+        tmpX = Fix(UserControl.ScaleHeight / 2) - tmpHeight
+    Else
+        tmpX = m_intCheckOffsetLeft
+    End If
+    
     tmpY = Fix(UserControl.ScaleHeight / 2)
 
     pts(0).X = tmpX
@@ -406,25 +448,47 @@ Sub Redraw()
 
     tmpCapX = tmpX + tmpWidth + 5 + m_intCaptionOffsetLeft
     tmpCapY = tmpY - Fix(UserControl.TextHeight(m_StrCaption) / 2) - 1 + m_intCaptionOffsetTop
-    If m_bCaptionBorder Then
-        UserControl.ForeColor = m_OleCaptionBorderColor
-        For i = -1 To 1
-            For j = -1 To 1
-                If i <> 0 Or j <> 0 Then
-                    UserControl.CurrentX = tmpCapX + i
-                    UserControl.CurrentY = tmpCapY + j
-                    UserControl.Print m_StrCaption
-                End If
-            Next j
-        Next i
+    
+    If m_bAutoSize = True Then
+        Dim usercontrolWidth As Long
+        usercontrolWidth = tmpCapX + UserControl.TextWidth(m_StrCaption) + CaptionOffsetLeft
+        If UserControl.ScaleWidth <> usercontrolWidth Then
+            'Debug.Print Extender.Name; ScaleX(usercontrolWidth, vbPixels, UserControl.Parent.ScaleMode); UserControl.Parent.ScaleMode
+            
+            UserControl.Width = ScaleX(usercontrolWidth, vbPixels, vbTwips)
+            If UserControl.Width = ScaleX(usercontrolWidth, vbPixels, vbTwips) Then
+                m_bRefreshing = False
+                Redraw
+                Exit Sub
+            End If
+        End If
     End If
-
-    UserControl.ForeColor = m_OleForeColor
-    UserControl.CurrentX = tmpCapX
-    UserControl.CurrentY = tmpCapY
-
-    UserControl.Print m_StrCaption
-
+    
+    
+    Dim captionSplit() As String
+    captionSplit = Split(m_StrCaption, vbCrLf)
+    For k = 0 To UBound(captionSplit)
+        If m_bCaptionBorder Then
+            UserControl.ForeColor = m_OleCaptionBorderColor
+            For i = -1 To 1
+                For j = -1 To 1
+                    If i <> 0 Or j <> 0 Then
+                        UserControl.CurrentX = tmpCapX + i
+                        UserControl.CurrentY = tmpCapY + j
+                        UserControl.Print m_StrCaption
+                    End If
+                Next j
+            Next i
+        End If
+        
+        UserControl.ForeColor = m_OleForeColor
+        UserControl.CurrentX = tmpCapX
+        UserControl.CurrentY = tmpCapY
+    
+        UserControl.Print captionSplit(k)
+        tmpCapY = tmpCapY + UserControl.TextHeight(captionSplit(k))
+    Next k
+    
     UserControl.ForeColor = m_OleCheckSelectionColor
     UserControl.FillColor = m_OleCheckSelectionColor
 
@@ -507,6 +571,7 @@ Sub Redraw()
     End If
 
 
+    
     m_bRefreshing = False
 End Sub
 
@@ -534,7 +599,7 @@ Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single
     If Not m_bStarting Then Redraw
 End Sub
 
-Private Sub Usercontrol_Resize()
+Private Sub UserControl_Resize()
     If Not m_bStarting Then Redraw
 End Sub
 
@@ -558,13 +623,14 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         m_OleCheckBorderColor = .ReadProperty("CheckBorderColor", &H0)
         m_LonCheckBorderThickness = .ReadProperty("CheckBorderThickness", 1)
         m_OleCheckSelectionColor = .ReadProperty("CheckSelectionColor", &HFF00FF)
+        m_intCheckOffsetLeft = .ReadProperty("CheckOffsetLeft", -1)
         CheckSize = .ReadProperty("CheckSize", uCheckSizes.u_Normal)
 
         Set Font = .ReadProperty("Font", Ambient.Font)
         m_OleForeColor = .ReadProperty("ForeColor", &H0)
         MousePointer = .ReadProperty("MousePointer", 0)
         m_UChValue = .ReadProperty("Value", uCheckboxConstants.u_unChecked)
-
+        m_bAutoSize = .ReadProperty("AutoSize", True)
 
     End With
     m_bStarting = False
@@ -591,11 +657,15 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "CheckBorderThickness", m_LonCheckBorderThickness, 1
         .WriteProperty "CheckSelectionColor", m_OleCheckSelectionColor, &HFF00FF
         .WriteProperty "CheckSize", m_UChCheckSize, uCheckSizes.u_Normal
+        .WriteProperty "CheckOffsetLeft", m_intCheckOffsetLeft, -1
 
         .WriteProperty "Font", m_StdFont, Ambient.Font
         .WriteProperty "ForeColor", m_OleForeColor, &H0
         .WriteProperty "MousePointer", m_MouMousePointer, 0
         .WriteProperty "Value", m_UChValue, uCheckboxConstants.u_unChecked
+        .WriteProperty "AutoSize", m_bAutoSize, True
+        
+        
     End With
 
 

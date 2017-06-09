@@ -394,6 +394,11 @@ Private Sub UserControl_DblClick()
     If Not m_bStarting Then Redraw
 End Sub
 
+
+Public Property Get hWnd() As Long
+    hWnd = UserControl.hWnd
+End Property
+
 Private Sub UserControl_EnterFocus()
     m_bHasFocus = True
     If Not m_bStarting Then Redraw
@@ -444,7 +449,7 @@ Sub Redraw()
     Dim tmpY As Long
     Dim i As Long
     Dim j As Long
-    Dim K As Long
+    Dim k As Long
     Dim t_StdPicture As StdPicture
     
     
@@ -525,9 +530,9 @@ Sub Redraw()
     
     tmpTextStartY = UserControl.ScaleHeight / 2 - tmpTextHeight / 2
     
-    For K = 0 To UBound(tmpCaptionSplit)
+    For k = 0 To UBound(tmpCaptionSplit)
         
-        tmpX = Fix(UserControl.ScaleWidth / 2 - UserControl.TextWidth(tmpCaptionSplit(K)) / 2) + tmpTextOffset
+        tmpX = Fix(UserControl.ScaleWidth / 2 - UserControl.TextWidth(tmpCaptionSplit(k)) / 2) + tmpTextOffset
         tmpY = tmpTextStartY + tmpTextOffset
     
         tmpX = tmpX + m_intCaptionOffsetLeft
@@ -540,7 +545,7 @@ Sub Redraw()
                     If i <> 0 Or j <> 0 Then
                         UserControl.CurrentX = tmpX + i
                         UserControl.CurrentY = tmpY + j
-                        UserControl.Print tmpCaptionSplit(K)
+                        UserControl.Print tmpCaptionSplit(k)
                     End If
                 Next j
             Next i
@@ -549,10 +554,10 @@ Sub Redraw()
         UserControl.CurrentX = tmpX
         UserControl.CurrentY = tmpY
         UserControl.ForeColor = IIf(m_bEnabled, m_OleForeColor, m_OleForeColorDisabled)
-        UserControl.Print tmpCaptionSplit(K)
+        UserControl.Print tmpCaptionSplit(k)
         
-        tmpTextStartY = tmpTextStartY + UserControl.TextHeight(tmpCaptionSplit(K))
-    Next K
+        tmpTextStartY = tmpTextStartY + UserControl.TextHeight(tmpCaptionSplit(k))
+    Next k
     
     m_bRefreshing = False
 End Sub
@@ -607,7 +612,7 @@ NoClick:
     'Debug.Print "up"
 End Sub
 
-Private Sub Usercontrol_Resize()
+Private Sub UserControl_Resize()
     If Not m_bStarting Then Redraw
 End Sub
 
