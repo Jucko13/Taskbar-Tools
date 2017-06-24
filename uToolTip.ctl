@@ -114,7 +114,7 @@ Public Sub setForm(frm As Form)
 End Sub
 
 Public Sub Add(hWnd As Long, txt As String)
-    Debug.Print "added:" & hWnd
+    'Debug.Print "added:" & hWnd
     m_colData.Add txt, CStr(hWnd)
 End Sub
 
@@ -177,7 +177,7 @@ Private Sub UserControl_Initialize()
     
     SetWindowLong picTooltip.hWnd, -20, GetWindowLong(picTooltip.hWnd, -20) Or &H80&
     
-    Debug.Print Screen.Width; Screen.Height
+    'Debug.Print Screen.Width; Screen.Height
 End Sub
 
 Sub StartTimer()

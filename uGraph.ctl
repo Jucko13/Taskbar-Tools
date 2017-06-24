@@ -18,6 +18,13 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
+Private Declare Function GetCursorPos Lib "user32" (lpPoint As POINTAPI) As Long
+Private Declare Function WindowFromPoint Lib "user32" (ByVal xPoint As Long, ByVal yPoint As Long) As Long
+Private Type POINTAPI
+    X As Long
+    Y As Long
+End Type
+
 Private Type vLine
     lPoints() As Double
     lColor As Long
@@ -59,23 +66,42 @@ Private Const unitNamesConst As String = ",k,m,t"
 Private mouseMoveEvent As Boolean
 Private Const offsetX As Long = 30
 
+Private WithEvents m_tmrMouseOver As Timer
+Attribute m_tmrMouseOver.VB_VarHelpID = -1
+Private m_PoiMousePosition As POINTAPI
+Private m_bMouseOver As Boolean
+Public Event MouseEnter()
+Public Event MouseLeave()
 
 
+Function isMouseOverControl() As Boolean
+    GetCursorPos m_PoiMousePosition
+    isMouseOverControl = CBool(WindowFromPoint(m_PoiMousePosition.X, m_PoiMousePosition.Y) = UserControl.hWnd)
+End Function
 
-
-Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
-    Dragging = True
-    DraggingX = DragX
-    DragTmpX = x
+Private Sub m_tmrMouseOver_Timer()
+    If Not isMouseOverControl Then
+        m_tmrMouseOver.Enabled = False
+        m_bMouseOver = False
+        RaiseEvent MouseLeave
+        Redraw
+    End If
 End Sub
 
-Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+
+Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Dragging = True
+    DraggingX = DragX
+    DragTmpX = X
+End Sub
+
+Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
     If mouseMoveEvent = True Then Exit Sub
     mouseMoveEvent = True
     
     If Dragging = True Then
-        DragX = DraggingX + ((DragTmpX - x) * ScaleX)
+        DragX = DraggingX + ((DragTmpX - X) * ScaleX)
         If ScaleX > 1 Then
             DragX = DragX - (DragX Mod ScaleX)
         End If
@@ -85,8 +111,15 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Sing
         
     End If
     
-    mouseX = x
+    mouseX = X
     
+    If m_bMouseOver = False Then
+        m_bMouseOver = True
+        m_tmrMouseOver.Interval = 40
+        m_tmrMouseOver.Enabled = True
+        RaiseEvent MouseEnter
+    End If
+        
     'lnLine.Y1 = 0
     'lnLine.Y2 = picGraph.Height
     'lnLine.X1 = x
@@ -101,7 +134,7 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Sing
     mouseMoveEvent = False
 End Sub
 
-Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 Dragging = False
 End Sub
 
@@ -149,13 +182,15 @@ Private Sub UserControl_Initialize()
     LineEveryX = 10
     LineEveryY = 8
     
+    Set m_tmrMouseOver = UserControl.Controls.Add("VB.Timer", "m_tmrMouseOver")
+    
     MessureRate = 20
     MaxY = 1
     MinY = 0
     Range = (MaxY) - (MinY)
     ScaleX = 0.5
     GrafiekEenheid = "ms"
-    Usercontrol_Resize
+    UserControl_Resize
 End Sub
 
 Sub SetGrafiekEenheid(NieuweEenheid As String, Optional bRedraw As Boolean = False)
@@ -204,7 +239,7 @@ Sub ScrollToLastItem(LineNumber As Long, Optional ForceScroll As Boolean = False
     If newItemAdded = False And ForceScroll = False Then Exit Sub
     'tmpValue = tmpDragX
     
-    tmpDragX = ((UBound(Lines(LineNumber).lPoints)) - Fix(lWidth * ScaleX)) - 1
+    tmpDragX = (MostItems - Fix(lWidth * ScaleX))
     If tmpDragX < 0 Then tmpDragX = 0
     
     If tmpDragX < 0 Then
@@ -237,6 +272,7 @@ Sub ScrollToLastItem(LineNumber As Long, Optional ForceScroll As Boolean = False
     Else
         'picGraph_MouseMove 0, 0, picGraph.Width, 0
     End If
+    
 End Sub
 
 Sub Clear(Optional LineNumber As Long = -1)
@@ -335,6 +371,9 @@ Sub Redraw()
     tmpDragX = ((MostItems) - (lWidth * ScaleX))
     If tmpDragX < 0 Then tmpDragX = 0
     
+
+    
+    
     UserControl.Picture = LoadPicture()
     
     DrawGrid
@@ -354,6 +393,7 @@ Sub Redraw()
         End If
     Next i
     
+
     DrawLine
     
     'DoEvents
@@ -367,17 +407,26 @@ Sub Redraw()
 End Sub
 
 Sub DrawLine()
-    UserControl.Line (mouseX, 0)-(mouseX, UserControl.ScaleHeight), vbBlue
-    
-    
     
     Dim i As Long
     Dim tmpLeft As Long
     Dim tmpTop As Long
     Dim tmptest As Long
     
+    
+    If Not m_bMouseOver Then
+        mouseX = offsetX + MostItems / ScaleX - DragX / ScaleX
+    End If
+    
+    UserControl.Line (mouseX, 0)-(mouseX, UserControl.ScaleHeight), vbBlue
+    
     tmptest = DragX + ((mouseX - offsetX) * ScaleX)
+    
+    'Debug.Print Lines(1).lPoints(tmptest)
+    
     If tmptest < 0 Then tmptest = 0
+    
+
     'On Error Resume Next
     
     For i = 0 To UBound(Lines)
@@ -387,7 +436,7 @@ Sub DrawLine()
             Dim tmpLineTextHeight As Long
             
             
-            If tmptest < UBound(Lines(i).lPoints) Then
+            If tmptest <= UBound(Lines(i).lPoints) Then
                 tmpLineText = Round(Lines(i).lPoints(tmptest)) & " Bps" 'Format$(Format$(Lines(i).lPoints(tmptest), "0"), "@@@") & " Bps"
             Else
                 tmpLineText = "0 Bps"
@@ -422,19 +471,19 @@ Sub DrawLine()
 '            Polygon picGraph.hdc, pts(0), 4
 '            picGraph.DrawStyle = 0
             
-            Dim x As Long
-            Dim y As Long
+            Dim X As Long
+            Dim Y As Long
 '
             UserControl.ForeColor = vbBlack
-            For x = -1 To 1
-                For y = -1 To 1
-                    If y <> 0 Or x <> 0 Then
-                        UserControl.CurrentX = tmpLeft + x
-                        UserControl.CurrentY = tmpTop + y
+            For X = -1 To 1
+                For Y = -1 To 1
+                    If Y <> 0 Or X <> 0 Then
+                        UserControl.CurrentX = tmpLeft + X
+                        UserControl.CurrentY = tmpTop + Y
                         UserControl.Print tmpLineText;
                     End If
-                Next y
-            Next x
+                Next Y
+            Next X
 
             UserControl.ForeColor = Lines(i).lColor
 
@@ -605,7 +654,6 @@ Private Function DrawPoints(ByRef LineDraw As vLine, Optional Test As Boolean = 
 '    Dim MagGaanMeten As Boolean
 '    Dim isOmhoogGeweest As Boolean
     
-    
     tmpLineThickness = UserControl.DrawWidth
     UserControl.DrawWidth = LineDraw.lThickness
     
@@ -692,7 +740,7 @@ Function getUbound(LineNumber As Long) As Long
     getUbound = UBound(Lines(LineNumber).lPoints)
 End Function
 
-Private Sub Usercontrol_Resize()
+Private Sub UserControl_Resize()
     On Error Resume Next
     'picGraph.Top = 5
     'picGraph.Height = UserControl.ScaleHeight - picGraph.Top * 2 ' - (Scroll.Height * 2)

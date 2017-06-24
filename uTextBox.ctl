@@ -1112,9 +1112,13 @@ MakeNewRule:
                             POWC = 0
                         End If
                         
+                        If POWC <> -1 Then
+                            RH = WordMap(POWC).H
+                        End If
+                        
                         For RL = POWC To WordCount
                             TTW = TTW + WordMap(RL).W
-                            If TTW > UW - UWS And RL > POWC Then Exit For
+                            If TTW > UW - UWS And RL >= POWC Then Exit For
                             If WordMap(RL).H > RH Then RH = WordMap(RL).H
                         Next RL
                         
@@ -1169,7 +1173,7 @@ MakeNewRule:
                 End If
 
                 'if the word started on the previous row check to break again for really long words!
-            ElseIf m_bWordWrap And TextOffsetX + CharMap(CC).W > UW - UWS Then
+            ElseIf m_bWordWrap And TextOffsetX + CharMap(CC).W > UW - UWS And RowMap(NRC).NumChars > 0 Then
                 GoTo MakeNewRule
             End If
         End If
@@ -1380,7 +1384,7 @@ Sub Redraw()
     
     m_timer.StartTimer
     
-    NRC = m_lScrollTopMax
+    NRC = IIf(m_lScrollTopMax > UBound(RowMap), UBound(RowMap), m_lScrollTopMax)
     
     If m_lScrollTop - 1 >= 0 Then
         SYT = CharMap(RowMap(m_lScrollTop - 1).startChar).Y
@@ -1393,6 +1397,9 @@ Sub Redraw()
 
     For i = m_lScrollTop To NRC
         'Debug.Print m_byteText(CC);
+        'If i > UBound(RowMap) Then GoTo DoneRefreshing
+        
+        
         TextOffsetY = CharMap(RowMap(i).startChar).Y - SYT 'RowMap(i).StartY
         
         If m_bRowLines Then
@@ -2884,7 +2891,7 @@ Function getPreviousChar(lStart As Long) As Long
 End Function
 
 
-Private Sub Usercontrol_Resize()
+Private Sub UserControl_Resize()
     m_bRowMapCalculated = False
     
     If Not m_bStarting Then
