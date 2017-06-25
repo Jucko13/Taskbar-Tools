@@ -207,6 +207,8 @@ Private m_bRowNumberOnEveryLine As Boolean
 Private m_bHasFocus As Boolean
 
 
+Private WithEvents m_uMouseWheel As uMouseWheel
+Attribute m_uMouseWheel.VB_VarHelpID = -1
 Private m_sScrollBars As ScrollBarStyle
 
 Private m_lScrollLeft As Long
@@ -700,6 +702,15 @@ Function hWnd() As Long
     hWnd = UserControl.hWnd
 End Function
 
+Private Sub m_uMouseWheel_onMouseWheel(direction As Long)
+    Debug.Print direction
+    
+    m_lScrollTop = m_lScrollTop - direction
+    If m_lScrollTop < 0 Then m_lScrollTop = 0
+    If m_lScrollTop > UBound(RowMap) Then m_lScrollTop = UBound(RowMap)
+    If Not m_bStarting Then Redraw
+End Sub
+
 Private Sub UserControl_DblClick()
     Dim word As Long
     
@@ -834,6 +845,9 @@ Private Sub UserControl_Initialize()
     
     'Debug.Print "initialize"
     'CalculateUserControlWidthHeight
+    
+    Set m_uMouseWheel = New uMouseWheel
+    m_uMouseWheel.hWnd = UserControl.hWnd
     
     Set performance = New PerformanceTimer
 End Sub
@@ -3340,14 +3354,14 @@ End Sub
 
 
 
-Function Fmat(str As String, Length As Long) As String
+Function Fmat(str As String, length As Long) As String
     Dim strLength As Long
     strLength = Len(str)
 
-    If strLength > Length Then
-        Fmat = String(Length, "X")
-    ElseIf strLength < Length Then
-        Fmat = String(Length - strLength, "0") & str
+    If strLength > length Then
+        Fmat = String(length, "X")
+    ElseIf strLength < length Then
+        Fmat = String(length - strLength, "0") & str
     Else
         Fmat = str
     End If

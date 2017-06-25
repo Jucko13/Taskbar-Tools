@@ -122,6 +122,8 @@ Private m_LonScrollMax As Long
 Private m_bScrollHandleVisible As Boolean
 Private m_bScrollHandleDown As Boolean
 Private m_LonScrollHandleDragY As Long
+Private WithEvents m_uMouseWheel As uMouseWheel
+Attribute m_uMouseWheel.VB_VarHelpID = -1
 
 Private Items() As Item
 
@@ -134,7 +136,7 @@ Private m_LonDotsTextWidth As Long
 Private m_LonLastFormPosition As Long
 Private m_ObjParent As Object
 
-Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
+Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal length As Long)
 
 Function ShortenText(ByRef StrValue As String, LonLength As Long) As String
     Dim tmpStrPrint As String
@@ -581,8 +583,7 @@ Private Sub m_picMenu_MouseUp(Button As Integer, Shift As Integer, X As Single, 
         If m_LonItemAtTop > m_LonItemCount - m_LonItemsVisible Then m_LonItemAtTop = m_LonItemCount - m_LonItemsVisible
     ElseIf m_LonListIndexMouseOver <> -1 And m_bScrollHandleDown = False Then
         m_LonListIndex = m_LonListIndexMouseOver
-        m_StrText = Items(m_LonListIndex).Text
-        RaiseEvent ItemChange(m_LonListIndex)
+        setItemByIndex
         CloseMenu
         Redraw
     End If
@@ -592,6 +593,11 @@ Private Sub m_picMenu_MouseUp(Button As Integer, Shift As Integer, X As Single, 
     m_bScrollArrowDown = False
     m_bScrollHandleDown = False
     RedrawMenu
+End Sub
+
+Private Sub setItemByIndex()
+    m_StrText = Items(m_LonListIndex).Text
+    RaiseEvent ItemChange(m_LonListIndex)
 End Sub
 
 Private Sub m_tmrFocus_Timer()
@@ -634,6 +640,16 @@ Private Sub m_tmrScroll_Timer()
         If m_LonItemAtTop > m_LonItemCount - m_LonItemsVisible Then m_LonItemAtTop = m_LonItemCount - m_LonItemsVisible
     End If
     Redraw
+End Sub
+
+Private Sub m_uMouseWheel_onMouseWheel(direction As Long)
+    m_LonListIndex = m_LonListIndex + IIf(direction < 0, 1, -1)
+    If m_LonListIndex < 0 Then m_LonListIndex = 0
+    If m_LonListIndex > m_LonItemCount - 1 Then m_LonListIndex = m_LonItemCount - 1
+    
+    setItemByIndex
+    
+    If Not m_bStarting Then Redraw
 End Sub
 
 Private Sub UserControl_DblClick()
@@ -679,7 +695,9 @@ Private Sub UserControl_Initialize()
     Set m_picMenu = UserControl.Controls.Add("VB.PictureBox", "m_picMenu")
     Set m_tmrFocus = UserControl.Controls.Add("VB.Timer", "m_tmrFocus")
     Set m_tmrScroll = UserControl.Controls.Add("VB.Timer", "m_tmrScroll")
-
+    Set m_uMouseWheel = New uMouseWheel
+    m_uMouseWheel.hWnd = UserControl.hWnd
+    
     UserControl_Resize
     m_picMenu.BorderStyle = 0
     m_picMenu.AutoRedraw = True

@@ -39,11 +39,55 @@ Public Type Sel_Style
     Italic As Boolean
     Bold As Boolean
 End Type
-
-'--------- debug drawing ------------
-
-Global uDontDrawDots As Boolean
 '----------- uControls --------------
+
+
+'-------------- debug ---------------
+Global uDontDrawDots As Boolean
+Global uEnableMouseHooks As Boolean
+'-------------- debug ---------------
+
+
+'----------- uMouseWheel ------------
+Private Declare Function SetWindowSubclass Lib "comctl32" Alias "#410" (ByVal hWnd As Long, ByVal pfnSubclass As Long, ByVal uIdSubclass As Long, ByVal dwRefData As Long) As Long
+Private Declare Function GetWindowSubclass Lib "comctl32" Alias "#411" (ByVal hWnd As Long, ByVal pfnSubclass As Long, ByVal uIdSubclass As Long, pdwRefData As Long) As Long
+Private Declare Function RemoveWindowSubclass Lib "comctl32" Alias "#412" (ByVal hWnd As Long, ByVal pfnSubclass As Long, ByVal uIdSubclass As Long) As Long
+Private Declare Function DefSubclassProc Lib "comctl32" Alias "#413" (ByVal hWnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+
+Private Const WM_NCDESTROY As Long = &H82 ' RemoveWindowsHook must be called prior to destruction.
+
+Public Function HookSet(ByVal hWnd As Long, ByVal Thing As uMouseWheel, Optional dwRefData As Long) As Boolean ' http://msdn.microsoft.com/en-us/library/bb762102(VS.85).aspx
+    If uEnableMouseHooks Then
+        HookSet = CBool(SetWindowSubclass(hWnd, AddressOf SubclassProc, ObjPtr(Thing), dwRefData))
+    Else
+        HookSet = False
+    End If
+End Function
+
+Public Function HookGetData(ByVal hWnd As Long, ByVal Thing As uMouseWheel) As Long ' http://msdn.microsoft.com/en-us/library/bb776430(VS.85).aspx
+    Dim dwRefData As Long
+    If GetWindowSubclass(hWnd, AddressOf SubclassProc, ObjPtr(Thing), dwRefData) Then
+       HookGetData = dwRefData
+    End If
+End Function
+
+Public Function HookClear(ByVal hWnd As Long, ByVal Thing As uMouseWheel) As Boolean ' http://msdn.microsoft.com/en-us/library/bb762094(VS.85).aspx
+    HookClear = CBool(RemoveWindowSubclass(hWnd, AddressOf SubclassProc, ObjPtr(Thing)))
+End Function
+
+Public Function HookDefault(ByVal hWnd As Long, ByVal uiMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long ' http://msdn.microsoft.com/en-us/library/bb776403(VS.85).aspx
+    HookDefault = DefSubclassProc(hWnd, uiMsg, wParam, lParam)
+End Function
+
+Public Function SubclassProc(ByVal hWnd As Long, ByVal uiMsg As Long, ByVal wParam As Long, ByVal lParam As Long, ByVal uIdSubclass As uMouseWheel, ByVal dwRefData As Long) As Long ' http://msdn.microsoft.com/en-us/library/bb776774(VS.85).aspx
+    SubclassProc = uIdSubclass.Message(hWnd, uiMsg, wParam, lParam, dwRefData)
+    If uiMsg = WM_NCDESTROY Then ' This should *never* be necessary, but just in case client fails to...
+        Call HookClear(hWnd, uIdSubclass)
+    End If
+End Function
+'----------- uMouseWheel ------------
+
+
 
 
 Public Function SetTopMostWindow(hWnd As Long, Topmost As Boolean) _
