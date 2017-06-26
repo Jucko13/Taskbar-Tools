@@ -243,6 +243,7 @@ Private UH As Long      'usercontrol height without scrollbars
 Private UHS As Long     'usercontrol height
 Private TSP As Long     'text spacing
 Private SYT As Long     'ScrollYTop
+Private MTW As Long   'max text width
 
 Private m_lRefreshFromCharAt As Long
 Private m_lRefreshFromRowAt As Long
@@ -703,11 +704,23 @@ Function hWnd() As Long
 End Function
 
 Private Sub m_uMouseWheel_onMouseWheel(direction As Long)
-    Debug.Print direction
+    'Debug.Print direction
     
-    m_lScrollTop = m_lScrollTop - direction
-    If m_lScrollTop < 0 Then m_lScrollTop = 0
-    If m_lScrollTop > UBound(RowMap) Then m_lScrollTop = UBound(RowMap)
+    If MultiLine Then
+        m_lScrollTop = m_lScrollTop - direction * m_uMouseWheel.ScrollLines
+        If m_lScrollTop < 0 Then m_lScrollTop = 0
+        If m_lScrollTop > UBound(RowMap) Then m_lScrollTop = UBound(RowMap)
+    Else
+        m_lScrollLeft = m_lScrollLeft - direction * m_uMouseWheel.ScrollChars * TextWidth("W")
+        'Debug.Print m_lScrollLeftMax
+        'Debug.Print m_lScrollLeft
+        If m_lScrollLeft < 0 Then m_lScrollLeft = 0
+        If m_lScrollLeft > m_lScrollLeftMax Then m_lScrollLeft = m_lScrollLeftMax
+        
+        m_bRowMapCalculated = False
+    End If
+    
+    
     If Not m_bStarting Then Redraw
 End Sub
 
@@ -1017,7 +1030,6 @@ Sub ReCalculateRowMap(Optional fromWhere As Long = 0)
     
     Dim RL As Long    'row loop
     Dim TTW As Long    'temp text width
-    Dim MTW As Long   'max text width
 
     Dim NLNR As Boolean    'Next Loop goto NextRow
     Dim POWC As Long    'part of word checked
@@ -1078,6 +1090,7 @@ Sub ReCalculateRowMap(Optional fromWhere As Long = 0)
     'RH = 0
     'RD = 0
     
+    MTW = 0
     
     For CC = fromWhere To UBound(m_byteText)
 
@@ -1112,9 +1125,16 @@ checkNextChar:
         If CharMap(CC).p <> -1 Then
             If POWC <> CharMap(CC).p Then
                 POWC = CharMap(CC).p
-
+                'Debug.Print RowMap(NRC).startChar; WordMap(POWC).s
+                
+                Dim startedOnPreviousRow As Boolean
+                
+                startedOnPreviousRow = WordMap(POWC).s <= RowMap(NRC).startChar
+                
                 'does the current word fit?
-                If m_bWordWrap And TextOffsetX + WordMap(POWC).W > UW - UWS And POWC > 0 Or (NLNR = True And MultiLine = True And m_bWordWrap = False) Then
+                If (m_bWordWrap And TextOffsetX + WordMap(POWC).W > UW - UWS And POWC > 0 And Not startedOnPreviousRow) Or _
+                (NLNR = True And MultiLine = True And m_bWordWrap = False) Or _
+                (startedOnPreviousRow And TextOffsetX + CharMap(CC).W > UW - UWS) Then
 MakeNewRule:
                     TextOffsetX = LNW - m_lScrollLeft
                     TTW = TextOffsetX
@@ -1317,7 +1337,7 @@ Sub Redraw()
 
     Dim RL As Long    'row loop
     Dim TTW As Long    'temp text width
-    Dim MTW As Long   'max text width
+    'Dim MTW As Long   'max text width
 
     Dim NLNR As Boolean    'Next Loop goto NextRow
     Dim CTP As String 'char to print
@@ -1372,9 +1392,17 @@ Sub Redraw()
         Exit Sub
     End If
     
-    If m_bMarkupCalculated = False Then ReCalculateMarkup
-    If m_bWordsCalculated = False Then ReCalculateWords m_lRefreshFromCharAt
-    If m_bRowMapCalculated = False Then ReCalculateRowMap m_lRefreshFromRowAt
+    If m_bMarkupCalculated = False Then
+        ReCalculateMarkup
+    End If
+    
+    If m_bWordsCalculated = False Then
+        ReCalculateWords m_lRefreshFromCharAt
+    End If
+    
+    If m_bRowMapCalculated = False Then
+        ReCalculateRowMap m_lRefreshFromRowAt
+    End If
     
     'initialize colors to original color
     UserControl.Font = m_StdFont
@@ -2408,9 +2436,11 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Sing
             
             If CharMap(m_CursorPos).X >= m_lUsercontrolWidth Then
                 m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolWidth)
+                m_bRowMapCalculated = False
                 mustRedraw = True
             ElseIf CharMap(m_CursorPos).X <= m_lUsercontrolLeft Then
                 m_lScrollLeft = m_lScrollLeft + (CharMap(m_CursorPos).X - m_lUsercontrolLeft)
+                m_bRowMapCalculated = False
                 mustRedraw = True
             End If
             

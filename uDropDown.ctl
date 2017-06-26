@@ -207,60 +207,60 @@ Public Property Get ListIndex() As Long
     ListIndex = m_LonListIndex
 End Property
 
-Public Property Let ListIndex(Index As Long)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Exit Property 'Err.Raise 19444, "", "Array Out of Bound": Exit Property
+Public Property Let ListIndex(index As Long)
+    If index < 0 Or index > m_LonItemCount - 1 Then Exit Property 'Err.Raise 19444, "", "Array Out of Bound": Exit Property
     
-    m_LonListIndex = Index
+    m_LonListIndex = index
     m_StrText = Items(m_LonListIndex).Text
     RaiseEvent ItemChange(m_LonListIndex)
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get List(Index As Long) As String
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    List = Items(Index).Text
+Public Property Get List(index As Long) As String
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    List = Items(index).Text
 End Property
 
-Public Property Let List(Index As Long, ByVal StrValue As String)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(Index).Text = StrValue
+Public Property Let List(index As Long, ByVal StrValue As String)
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(index).Text = StrValue
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get ItemData(Index As Long) As Long
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemData = Items(Index).ItemData
+Public Property Get ItemData(index As Long) As Long
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemData = Items(index).ItemData
 End Property
 
-Public Property Let ItemData(Index As Long, ByVal LonValue As Long)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(Index).ItemData = LonValue
+Public Property Let ItemData(index As Long, ByVal LonValue As Long)
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(index).ItemData = LonValue
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get ItemAlignment(Index As Long) As Long
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemAlignment = Items(Index).TextAlignment
+Public Property Get ItemAlignment(index As Long) As Long
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemAlignment = Items(index).TextAlignment
 End Property
 
-Public Property Let ItemAlignment(Index As Long, ByVal AliValue As AlignmentConstants)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(Index).TextAlignment = AliValue
+Public Property Let ItemAlignment(index As Long, ByVal AliValue As AlignmentConstants)
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(index).TextAlignment = AliValue
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get ItemColor(Index As Long) As OLE_COLOR
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemColor = Items(Index).ItemColor
+Public Property Get ItemColor(index As Long) As OLE_COLOR
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemColor = Items(index).ItemColor
 End Property
 
-Public Property Let ItemColor(Index As Long, ByVal OleValue As OLE_COLOR)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(Index).ItemColor = OleValue
+Public Property Let ItemColor(index As Long, ByVal OleValue As OLE_COLOR)
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(index).ItemColor = OleValue
     If Not m_bStarting Then Redraw
 End Property
 
@@ -449,9 +449,9 @@ Sub RedrawResume()
     Redraw
 End Sub
 
-Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optional Index As Long = -1, Optional lItemColor As OLE_COLOR = -1, Optional lAlignment As AlignmentConstants = vbLeftJustify) As Long
+Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optional index As Long = -1, Optional lItemColor As OLE_COLOR = -1, Optional lAlignment As AlignmentConstants = vbLeftJustify) As Long
 
-    If Index = -1 Then
+    If index = -1 Then
         ReDim Preserve Items(0 To m_LonItemCount) As Item
         With Items(m_LonItemCount)
             .Text = sText
@@ -465,9 +465,9 @@ Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optiona
 
         ' We let VB evaluate the size of each item using LenB().
         ReDim Preserve Items(0 To m_LonItemCount) As Item
-        If Index < UBound(Items) Then
-            CopyMemory ByVal VarPtr(Items(Index + 1)), ByVal VarPtr(Items(Index)), (UBound(Items) - Index) * LenB(Items(Index))
-            With Items(Index)
+        If index < UBound(Items) Then
+            CopyMemory ByVal VarPtr(Items(index + 1)), ByVal VarPtr(Items(index)), (UBound(Items) - index) * LenB(Items(index))
+            With Items(index)
                 .Text = sText
                 .ItemData = lItemData
                 .ItemColor = lItemColor
@@ -481,20 +481,20 @@ Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optiona
 
 End Function
 
-Public Sub RemoveItem(Index As Long)
+Public Sub RemoveItem(index As Long)
 
-    If Index < 0 Or Index >= m_LonItemCount Then Err.Raise 19444, "", "Array Out of Bound": Exit Sub
+    If index < 0 Or index >= m_LonItemCount Then Err.Raise 19444, "", "Array Out of Bound": Exit Sub
 
     ' We let VB evaluate the size of each item using LenB().
     'm_LonItemCount = m_LonItemCount - 1
 
-    If Index < m_LonItemCount - 1 Then
-        CopyMemory ByVal VarPtr(Items(Index)), ByVal VarPtr(Items(Index + 1)), (UBound(Items) - Index) * LenB(Items(Index)) + 1
+    If index < m_LonItemCount - 1 Then
+        CopyMemory ByVal VarPtr(Items(index)), ByVal VarPtr(Items(index + 1)), (UBound(Items) - index) * LenB(Items(index)) + 1
 
         ReDim Preserve Items(0 To UBound(Items) - 1)
         m_LonItemCount = m_LonItemCount - 1
     Else
-        ReDim Preserve Items(0 To Index) As Item
+        ReDim Preserve Items(0 To index) As Item
     End If
 
 
@@ -643,7 +643,7 @@ Private Sub m_tmrScroll_Timer()
 End Sub
 
 Private Sub m_uMouseWheel_onMouseWheel(direction As Long)
-    m_LonListIndex = m_LonListIndex + IIf(direction < 0, 1, -1)
+    m_LonListIndex = m_LonListIndex - direction
     If m_LonListIndex < 0 Then m_LonListIndex = 0
     If m_LonListIndex > m_LonItemCount - 1 Then m_LonListIndex = m_LonItemCount - 1
     

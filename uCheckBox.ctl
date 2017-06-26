@@ -579,7 +579,9 @@ End Sub
 Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpCancel As Boolean
     Dim tmpNewState As uCheckboxConstants
-
+    
+    If X < 0 Or Y < 0 Then Exit Sub
+    
     tmpCancel = False
     tmpNewState = m_UChValue
     RaiseEvent ActivateNextState(tmpCancel, tmpNewState)

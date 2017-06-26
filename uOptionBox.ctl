@@ -180,8 +180,8 @@ Private Sub SetOtherControls()
     For Each m_Control In UserControl.Parent.Controls
         If TypeName(m_Control) = "uOptionBox" Then
             If m_Control.Name = UserControl.Extender.Name Then
-                If UserControl.Extender.Index <> m_Control.Index Then
-                    If Err.Number <> 0 Then Exit Sub
+                If UserControl.Extender.index <> m_Control.index Then
+                    If Err.number <> 0 Then Exit Sub
                     m_Control.Value = 0
                 End If
                 
@@ -297,10 +297,6 @@ Public Property Let BackgroundColor(ByVal OleValue As OLE_COLOR)
     If Not m_bStarting Then Redraw
 End Property
 
-Private Sub UserControl_Click()
-
-End Sub
-
 Private Sub UserControl_Initialize()
     m_bStarting = True
     m_OleForeColor = &H0
@@ -364,17 +360,17 @@ Sub Redraw()
             UserControl.FillStyle = 0
             UserControl.DrawStyle = 5
 
-            pts(0).x = m_LonBorderThickness
-            pts(0).y = m_LonBorderThickness
+            pts(0).X = m_LonBorderThickness
+            pts(0).Y = m_LonBorderThickness
 
-            pts(1).x = UserControl.ScaleWidth - m_LonBorderThickness
-            pts(1).y = m_LonBorderThickness
+            pts(1).X = UserControl.ScaleWidth - m_LonBorderThickness
+            pts(1).Y = m_LonBorderThickness
 
-            pts(2).x = UserControl.ScaleWidth - m_LonBorderThickness
-            pts(2).y = UserControl.ScaleHeight - m_LonBorderThickness
+            pts(2).X = UserControl.ScaleWidth - m_LonBorderThickness
+            pts(2).Y = UserControl.ScaleHeight - m_LonBorderThickness
 
-            pts(3).x = m_LonBorderThickness
-            pts(3).y = UserControl.ScaleHeight - m_LonBorderThickness
+            pts(3).X = m_LonBorderThickness
+            pts(3).Y = UserControl.ScaleHeight - m_LonBorderThickness
 
             Polygon UserControl.hdc, pts(0), 4    ': UserControl.Picture = UserControl.Image
 
@@ -492,7 +488,7 @@ Sub Redraw()
 End Sub
 
 
-Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim tmpCancel As Boolean
     Dim tmpNewState As uOptionBoxConstants
 
@@ -515,7 +511,7 @@ Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single
     If Not m_bStarting Then Redraw
 End Sub
 
-Private Sub Usercontrol_Resize()
+Private Sub UserControl_Resize()
     If Not m_bStarting Then Redraw
 End Sub
 

@@ -75,6 +75,13 @@ Public Property Get ScrollLines() As Long
    Call SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0&, ScrollLines, 0&)
 End Property
 
+Public Property Get ScrollChars() As Long
+   ' No OS support for hscroll until Vista.
+   If SystemParametersInfo(SPI_GETWHEELSCROLLCHARS, 0&, ScrollChars, 0&) = False Then
+      ' Err.LastDllError = 1439 (Invalid system-wide (SPI_*) parameter)
+      ScrollChars = 1
+   End If
+End Property
 
 Public Function Message(ByVal hWnd As Long, _
                         ByVal uiMsg As Long, _
@@ -86,7 +93,7 @@ Public Function Message(ByVal hWnd As Long, _
     Select Case uiMsg
         Case WM_MOUSEWHEEL, WM_MOUSEHWHEEL
              Delta = WordHi(wParam)
-             RaiseEvent onMouseWheel(ScrollLines * IIf(Delta > 0, 1, -1))
+             RaiseEvent onMouseWheel(IIf(Delta > 0, 1, -1))
              
         Case WM_NCDESTROY
             Call Unhook  ' !!!
