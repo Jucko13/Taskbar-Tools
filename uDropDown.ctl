@@ -74,12 +74,17 @@ End Type
 Public Event ItemChange(ItemIndex As Long)
 Public Event OnDropdown(ByRef cancel As Boolean)
 
+Private m_lPicMenuHeight As Long
+
 Private WithEvents m_picMenu As PictureBox
 Attribute m_picMenu.VB_VarHelpID = -1
 Private WithEvents m_tmrFocus As Timer
 Attribute m_tmrFocus.VB_VarHelpID = -1
 Private WithEvents m_tmrScroll As Timer
 Attribute m_tmrScroll.VB_VarHelpID = -1
+Private WithEvents m_tmrFoldOpenClose As Timer
+Attribute m_tmrFoldOpenClose.VB_VarHelpID = -1
+
 
 Private m_OleBackgroundColor As OLE_COLOR
 Private m_OleForeColor As OLE_COLOR
@@ -207,60 +212,60 @@ Public Property Get ListIndex() As Long
     ListIndex = m_LonListIndex
 End Property
 
-Public Property Let ListIndex(index As Long)
-    If index < 0 Or index > m_LonItemCount - 1 Then Exit Property 'Err.Raise 19444, "", "Array Out of Bound": Exit Property
+Public Property Let ListIndex(Index As Long)
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Exit Property 'Err.Raise 19444, "", "Array Out of Bound": Exit Property
     
-    m_LonListIndex = index
+    m_LonListIndex = Index
     m_StrText = Items(m_LonListIndex).Text
     RaiseEvent ItemChange(m_LonListIndex)
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get List(index As Long) As String
-    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    List = Items(index).Text
+Public Property Get List(Index As Long) As String
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    List = Items(Index).Text
 End Property
 
-Public Property Let List(index As Long, ByVal StrValue As String)
-    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(index).Text = StrValue
+Public Property Let List(Index As Long, ByVal StrValue As String)
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(Index).Text = StrValue
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get ItemData(index As Long) As Long
-    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemData = Items(index).ItemData
+Public Property Get ItemData(Index As Long) As Long
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemData = Items(Index).ItemData
 End Property
 
-Public Property Let ItemData(index As Long, ByVal LonValue As Long)
-    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(index).ItemData = LonValue
+Public Property Let ItemData(Index As Long, ByVal LonValue As Long)
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(Index).ItemData = LonValue
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get ItemAlignment(index As Long) As Long
-    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemAlignment = Items(index).TextAlignment
+Public Property Get ItemAlignment(Index As Long) As Long
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemAlignment = Items(Index).TextAlignment
 End Property
 
-Public Property Let ItemAlignment(index As Long, ByVal AliValue As AlignmentConstants)
-    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(index).TextAlignment = AliValue
+Public Property Let ItemAlignment(Index As Long, ByVal AliValue As AlignmentConstants)
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(Index).TextAlignment = AliValue
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get ItemColor(index As Long) As OLE_COLOR
-    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemColor = Items(index).ItemColor
+Public Property Get ItemColor(Index As Long) As OLE_COLOR
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemColor = Items(Index).ItemColor
 End Property
 
-Public Property Let ItemColor(index As Long, ByVal OleValue As OLE_COLOR)
-    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(index).ItemColor = OleValue
+Public Property Let ItemColor(Index As Long, ByVal OleValue As OLE_COLOR)
+    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(Index).ItemColor = OleValue
     If Not m_bStarting Then Redraw
 End Property
 
@@ -449,9 +454,9 @@ Sub RedrawResume()
     Redraw
 End Sub
 
-Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optional index As Long = -1, Optional lItemColor As OLE_COLOR = -1, Optional lAlignment As AlignmentConstants = vbLeftJustify) As Long
+Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optional Index As Long = -1, Optional lItemColor As OLE_COLOR = -1, Optional lAlignment As AlignmentConstants = vbLeftJustify) As Long
 
-    If index = -1 Then
+    If Index = -1 Then
         ReDim Preserve Items(0 To m_LonItemCount) As Item
         With Items(m_LonItemCount)
             .Text = sText
@@ -465,9 +470,9 @@ Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optiona
 
         ' We let VB evaluate the size of each item using LenB().
         ReDim Preserve Items(0 To m_LonItemCount) As Item
-        If index < UBound(Items) Then
-            CopyMemory ByVal VarPtr(Items(index + 1)), ByVal VarPtr(Items(index)), (UBound(Items) - index) * LenB(Items(index))
-            With Items(index)
+        If Index < UBound(Items) Then
+            CopyMemory ByVal VarPtr(Items(Index + 1)), ByVal VarPtr(Items(Index)), (UBound(Items) - Index) * LenB(Items(Index))
+            With Items(Index)
                 .Text = sText
                 .ItemData = lItemData
                 .ItemColor = lItemColor
@@ -481,20 +486,20 @@ Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optiona
 
 End Function
 
-Public Sub RemoveItem(index As Long)
+Public Sub RemoveItem(Index As Long)
 
-    If index < 0 Or index >= m_LonItemCount Then Err.Raise 19444, "", "Array Out of Bound": Exit Sub
+    If Index < 0 Or Index >= m_LonItemCount Then Err.Raise 19444, "", "Array Out of Bound": Exit Sub
 
     ' We let VB evaluate the size of each item using LenB().
     'm_LonItemCount = m_LonItemCount - 1
 
-    If index < m_LonItemCount - 1 Then
-        CopyMemory ByVal VarPtr(Items(index)), ByVal VarPtr(Items(index + 1)), (UBound(Items) - index) * LenB(Items(index)) + 1
+    If Index < m_LonItemCount - 1 Then
+        CopyMemory ByVal VarPtr(Items(Index)), ByVal VarPtr(Items(Index + 1)), (UBound(Items) - Index) * LenB(Items(Index)) + 1
 
         ReDim Preserve Items(0 To UBound(Items) - 1)
         m_LonItemCount = m_LonItemCount - 1
     Else
-        ReDim Preserve Items(0 To index) As Item
+        ReDim Preserve Items(0 To Index) As Item
     End If
 
 
@@ -630,6 +635,37 @@ Public Property Get hWnd() As Long
     hWnd = UserControl.hWnd
 End Property
 
+Private Sub m_tmrFoldOpenClose_Timer()
+    Dim tmpP As POINTAPI
+    
+    If Not m_picMenu.Visible Then
+        m_tmrFoldOpenClose.Enabled = False
+        Exit Sub
+    End If
+    
+    Dim tmpNewHeight As Long
+    
+    tmpNewHeight = m_picMenu.Height + m_lPicMenuHeight / 6
+    
+    If m_lPicMenuHeight - tmpNewHeight < 30 Then
+        m_picMenu.Height = m_lPicMenuHeight
+        m_tmrFoldOpenClose.Enabled = False
+    Else
+        m_picMenu.Height = tmpNewHeight
+    End If
+    
+    tmpP = CalculatePosition
+    m_picMenu.Left = tmpP.X
+    
+    If tmpP.Y + UserControl.Height - Screen.TwipsPerPixelY + m_lPicMenuHeight > Screen.Height Then
+        m_picMenu.Top = tmpP.Y - m_picMenu.Height + Screen.TwipsPerPixelY
+    Else
+        m_picMenu.Top = tmpP.Y + UserControl.Height - Screen.TwipsPerPixelY
+    End If
+    
+    RedrawMenu
+End Sub
+
 Private Sub m_tmrScroll_Timer()
     m_tmrScroll.Interval = 1
     If m_bScrollArrowUp Then
@@ -695,8 +731,12 @@ Private Sub UserControl_Initialize()
     Set m_picMenu = UserControl.Controls.Add("VB.PictureBox", "m_picMenu")
     Set m_tmrFocus = UserControl.Controls.Add("VB.Timer", "m_tmrFocus")
     Set m_tmrScroll = UserControl.Controls.Add("VB.Timer", "m_tmrScroll")
+    Set m_tmrFoldOpenClose = UserControl.Controls.Add("VB.Timer", "m_tmrFoldOpenClose")
     Set m_uMouseWheel = New uMouseWheel
     m_uMouseWheel.hWnd = UserControl.hWnd
+    
+    m_tmrFoldOpenClose.Interval = 1
+    m_tmrFoldOpenClose.Enabled = False
     
     UserControl_Resize
     m_picMenu.BorderStyle = 0
@@ -878,7 +918,11 @@ Sub RedrawMenu()
     Dim tmpSplitLength As Long
     Dim tmpShortText As String
     Dim tmpLeft As Long
-
+    Dim tmpMenuScaleHeight As Long
+    
+    tmpMenuScaleHeight = ScaleY(m_lPicMenuHeight, vbTwips, vbPixels)
+    
+    
     If m_bRefreshingMenu Then Exit Sub
     m_bRefreshingMenu = True
 
@@ -889,8 +933,8 @@ Sub RedrawMenu()
     m_picMenu.FillStyle = 0
     pts(0).X = 0: pts(0).Y = 0
     pts(1).X = m_picMenu.ScaleWidth - 1: pts(1).Y = 0
-    pts(2).X = m_picMenu.ScaleWidth - 1: pts(2).Y = m_picMenu.ScaleHeight - 1
-    pts(3).X = 0: pts(3).Y = m_picMenu.ScaleHeight - 1
+    pts(2).X = m_picMenu.ScaleWidth - 1: pts(2).Y = tmpMenuScaleHeight - 1
+    pts(3).X = 0: pts(3).Y = tmpMenuScaleHeight - 1
     
     
     m_picMenu.FillColor = IIf(m_bEnabled, m_OleBackgroundColor, m_OleBackgroundColorDisabled)
@@ -908,7 +952,7 @@ Sub RedrawMenu()
         tmpScrollbarWidth = 1
     End If
 
-    While tmpPrintTop < m_picMenu.ScaleHeight - m_LonItemHeight And i < m_LonItemCount And (i + m_LonItemAtTop) < m_LonItemCount
+    While tmpPrintTop < tmpMenuScaleHeight - m_LonItemHeight And i < m_LonItemCount And (i + m_LonItemAtTop) < m_LonItemCount
 
         pts(0).X = 2: pts(0).Y = tmpPrintTop + 1
         pts(1).X = m_picMenu.ScaleWidth - tmpScrollbarWidth - 2: pts(1).Y = tmpPrintTop + 1
@@ -986,8 +1030,8 @@ Sub RedrawMenu()
         m_picMenu.DrawStyle = 0
         pts(0).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth: pts(0).Y = 0
         pts(1).X = m_picMenu.ScaleWidth - 1: pts(1).Y = 0
-        pts(2).X = m_picMenu.ScaleWidth - 1: pts(2).Y = m_picMenu.ScaleHeight - 1
-        pts(3).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth: pts(3).Y = m_picMenu.ScaleHeight - 1
+        pts(2).X = m_picMenu.ScaleWidth - 1: pts(2).Y = tmpMenuScaleHeight - 1
+        pts(3).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth: pts(3).Y = tmpMenuScaleHeight - 1
         m_picMenu.ForeColor = IIf(m_bEnabled, m_OleBorderColor, m_OleBorderColorDisabled)
         m_picMenu.FillColor = IIf(m_bEnabled, m_OleBackgroundColor, m_OleBackgroundColorDisabled)
         Polygon m_picMenu.hdc, pts(0), 4
@@ -1016,10 +1060,10 @@ Sub RedrawMenu()
             tmpArrowDownOffset = 1
             m_picMenu.DrawStyle = 2
         End If
-        pts(0).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).Y = m_picMenu.ScaleHeight - m_LonScrollBarWidth + 2
+        pts(0).X = m_picMenu.ScaleWidth - m_LonScrollBarWidth + 2: pts(0).Y = tmpMenuScaleHeight - m_LonScrollBarWidth + 2
         pts(1).X = m_picMenu.ScaleWidth - 3: pts(1).Y = pts(0).Y
-        pts(2).X = pts(1).X: pts(2).Y = m_picMenu.ScaleHeight - 3
-        pts(3).X = pts(0).X: pts(3).Y = m_picMenu.ScaleHeight - 3
+        pts(2).X = pts(1).X: pts(2).Y = tmpMenuScaleHeight - 3
+        pts(3).X = pts(0).X: pts(3).Y = tmpMenuScaleHeight - 3
         Polygon m_picMenu.hdc, pts(0), 4
 
 
@@ -1038,7 +1082,7 @@ Sub RedrawMenu()
         m_picMenu.Print "5"
 
         m_picMenu.CurrentX = Round(m_picMenu.ScaleWidth - (m_LonScrollBarWidth / 2 + m_picMenu.TextWidth("6") / 2)) + tmpArrowDownOffset
-        m_picMenu.CurrentY = Round(m_picMenu.ScaleHeight - m_LonScrollBarWidth / 2 - m_picMenu.TextHeight("6") / 2 - 1) + tmpArrowDownOffset
+        m_picMenu.CurrentY = Round(tmpMenuScaleHeight - m_LonScrollBarWidth / 2 - m_picMenu.TextHeight("6") / 2 - 1) + tmpArrowDownOffset
         m_picMenu.Print "6"
 
     End If
@@ -1052,25 +1096,18 @@ End Sub
 
 
 Sub OpenMenu()
-    Dim tmpP As POINTAPI
 
     If m_LonItemCount = 0 Then Exit Sub
 
-    tmpP = CalculatePosition
-    m_picMenu.Height = (m_LonItemsVisible * m_LonItemHeight + 4) * Screen.TwipsPerPixelY
-    m_picMenu.Left = tmpP.X
-
-    If tmpP.Y + UserControl.Height - Screen.TwipsPerPixelY + m_picMenu.Height > Screen.Height Then
-        m_picMenu.Top = tmpP.Y - m_picMenu.Height + Screen.TwipsPerPixelY
-    Else
-        m_picMenu.Top = tmpP.Y + UserControl.Height - Screen.TwipsPerPixelY
-    End If
+    m_lPicMenuHeight = (m_LonItemsVisible * m_LonItemHeight + 4) * Screen.TwipsPerPixelY
+    m_picMenu.Height = 15
+    
 
     m_picMenu.Visible = True
     m_picMenu.ZOrder 0
 
     m_LonScrollTop = m_LonScrollBarWidth - 1
-    m_LonScrollMax = m_picMenu.ScaleHeight - m_LonScrollTop * 2 - 1
+    m_LonScrollMax = ScaleY(m_lPicMenuHeight, vbTwips, vbPixels) - m_LonScrollTop * 2 - 1
     m_LonScrollHeight = m_LonScrollMax / m_LonItemCount * m_LonItemsVisible  'UserControl.ScaleHeight - 6
     If m_LonScrollHeight < 6 Then m_LonScrollHeight = 6
 
@@ -1084,6 +1121,8 @@ Sub OpenMenu()
     
     Set m_ObjParent = UserControl.Parent
     m_LonLastFormPosition = m_ObjParent.Left + m_ObjParent.Top + m_ObjParent.Width + m_ObjParent.Height
+    
+    m_tmrFoldOpenClose.Enabled = True
 End Sub
 
 Sub CloseMenu()

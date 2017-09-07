@@ -69,8 +69,8 @@ Private m_OleFocusColorDisabled As OLE_COLOR
 Private m_bFocusVisible As Boolean
 Private m_bBorder As Boolean
 Private m_ButButtonAnimation As ButtonOnClick
-Private m_StdPicture As StdPicture
-Private m_StdPictureMouseOver As StdPicture
+Private m_StdPicture As IPictureDisp
+Private m_StdPictureMouseOver As IPictureDisp
 Private m_bAlignPictureInCorner As Boolean
 Private m_MouMousePointer As MousePointerConstants
 Private m_bRefreshing As Boolean
@@ -318,11 +318,11 @@ Public Property Let MousePointer(ByVal MouValue As MousePointerConstants)
 End Property
 
 
-Public Property Get PictureMouseOver() As StdPicture
+Public Property Get PictureMouseOver() As IPictureDisp
     Set PictureMouseOver = m_StdPictureMouseOver
 End Property
 
-Public Property Set PictureMouseOver(ByVal StdValue As StdPicture)
+Public Property Set PictureMouseOver(ByVal StdValue As IPictureDisp)
     Set m_StdPictureMouseOver = StdValue
 
     PropertyChanged "PictureMouseOver"
@@ -330,11 +330,11 @@ Public Property Set PictureMouseOver(ByVal StdValue As StdPicture)
 End Property
 
 
-Public Property Get Picture() As StdPicture
+Public Property Get Picture() As IPictureDisp
     Set Picture = m_StdPicture
 End Property
 
-Public Property Set Picture(ByVal StdValue As StdPicture)
+Public Property Set Picture(ByVal StdValue As IPictureDisp)
     Set m_StdPicture = StdValue
 
     PropertyChanged "Picture"
@@ -450,7 +450,7 @@ Sub Redraw()
     Dim i As Long
     Dim j As Long
     Dim k As Long
-    Dim t_StdPicture As StdPicture
+    Dim t_StdPicture As IPictureDisp
     
     
     Set UserControl.Font = m_StdFont
@@ -511,10 +511,11 @@ Sub Redraw()
             0, m_StdPicture.Height, t_StdPicture.Width, -t_StdPicture.Height, 0
             
         Else
+        
             t_StdPicture.Render UserControl.hdc, _
-                          Round(UserControl.ScaleWidth / 2 - ScaleX(t_StdPicture.Width, vbTwips, vbPixels) / 2) + tmpTextOffset, _
-                          Round(UserControl.ScaleHeight / 2 - (ScaleY(t_StdPicture.Height, vbTwips, vbPixels) + tmpTextHeight) / 2) + tmpTextOffset, _
-                          ScaleX(t_StdPicture.Width, vbTwips, vbPixels), ScaleY(t_StdPicture.Height, vbTwips, vbPixels), 0, 0, t_StdPicture.Width, t_StdPicture.Height, 0
+                          Round(UserControl.ScaleWidth / 2 - ScaleX(t_StdPicture.Width, vbHimetric, vbPixels) / 2) + tmpTextOffset, _
+                          Round(UserControl.ScaleHeight / 2 - (ScaleY(t_StdPicture.Height, vbHimetric, vbPixels) + tmpTextHeight) / 2) + tmpTextOffset, _
+                          ScaleX(t_StdPicture.Width, vbHimetric, vbPixels), ScaleY(t_StdPicture.Height, vbHimetric, vbPixels), 0, 0, t_StdPicture.Width, t_StdPicture.Height, 0
             
         End If
         

@@ -176,7 +176,7 @@ Begin VB.Form frmTempStart
          TabIndex        =   8
          Top             =   2685
          Width           =   1575
-         _ExtentX        =   2778
+         _ExtentX        =   2381
          _ExtentY        =   661
          BackgroundColor =   14474460
          BorderColor     =   10197915
@@ -281,7 +281,7 @@ Begin VB.Form frmTempStart
          TabIndex        =   9
          Top             =   2685
          Width           =   1575
-         _ExtentX        =   2778
+         _ExtentX        =   2381
          _ExtentY        =   661
          BackgroundColor =   14474460
          BorderColor     =   10197915
@@ -492,7 +492,7 @@ Private Sub Form_Resize()
         uListBox.AddItem "item nr" & i, , , RGB(Rnd * 255, Rnd * 255, Rnd * 255)
     Next i
     
-    HScroll1.Max = uTextBox1.m_lScrollLeftMax
+    'HScroll1.Max = uTextBox1.m_lScrollLeftMax
     
 End Sub
 
