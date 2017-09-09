@@ -40,6 +40,11 @@ Private Type RECT
     Bottom As Long
 End Type
 
+Private WithEvents m_uMouseWheel As uMouseWheel
+Attribute m_uMouseWheel.VB_VarHelpID = -1
+
+
+
 'Todo:
 'ScrollbarHeight instellen zodat je niet zo'n hele kleine scrollbar krijgt
 'Scroll Interval speed setting
@@ -131,7 +136,33 @@ Private m_StdStandardFont As New StdFont
 Private m_StdFontWebdings As New StdFont
 Private m_LonDotsTextWidth As Long
 
-Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
+Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal length As Long)
+
+
+
+Private Sub m_uMouseWheel_onMouseWheel(direction As Long)
+    m_LonListIndex = m_LonListIndex - direction
+    
+    If m_LonListIndex >= m_LonItemAtTop + m_LonItemsVisible Then
+        m_LonItemAtTop = m_LonListIndex - m_LonItemsVisible + 1
+        If m_LonItemAtTop + m_LonItemsVisible > m_LonItemCount Then m_LonItemAtTop = m_LonItemCount - m_LonItemsVisible
+    ElseIf m_LonListIndex < m_LonItemAtTop Then
+        m_LonItemAtTop = m_LonListIndex
+        If m_LonItemAtTop < 0 Then m_LonItemAtTop = 0
+        
+    End If
+    
+    
+    If m_LonListIndex < 0 Then m_LonListIndex = 0
+    If m_LonListIndex > m_LonItemCount - 1 Then m_LonListIndex = m_LonItemCount - 1
+    
+
+    
+    'setItemByIndex
+    
+    If Not m_bStarting Then Redraw
+End Sub
+
 
 Function ShortenText(ByRef StrValue As String, LonLength As Long) As String
     Dim tmpStrPrint As String
@@ -679,8 +710,11 @@ Private Sub UserControl_Initialize()
     'Set m_picMenu = UserControl.Controls.Add("VB.PictureBox", "m_picMenu")
     'Set m_tmrFocus = UserControl.Controls.Add("VB.Timer", "m_tmrFocus")
     Set m_tmrScroll = UserControl.Controls.Add("VB.Timer", "m_tmrScroll")
-
-    Usercontrol_Resize
+    Set m_uMouseWheel = New uMouseWheel
+    m_uMouseWheel.hWnd = UserControl.hWnd
+    
+    
+    UserControl_Resize
     '    m_picMenu.BorderStyle = 0
     '    m_picMenu.AutoRedraw = True
     '    m_picMenu.ScaleMode = vbPixels
@@ -1215,7 +1249,7 @@ End Sub
 
 
 
-Private Sub Usercontrol_Resize()
+Private Sub UserControl_Resize()
 'CalculateScroll
 
 '    m_picOpen.Width = UserControl.ScaleHeight - 2
