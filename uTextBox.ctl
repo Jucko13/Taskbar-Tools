@@ -155,7 +155,6 @@ Public Enum ScrollBarStyle
     lBoth = 3
 End Enum
 
-
 Private MarkupS() As MarkupStyles
 Private CharMap() As WH    'width and hight of the characters
 Private WordMap() As WHSL
@@ -1198,7 +1197,7 @@ MakeNewRule:
                         If m_bMultiLine Then
                             TextOffsetY = RH 'TSP + RH
                         Else
-                            Debug.Print UH; RD; RH
+                            'Debug.Print UH; RD; RH
                             TextOffsetY = Fix(UH / 2 + (RH - RD) / 2) + 1    ' - RD / 2 ' / -(RH + RD) / 2
                         End If
                         
@@ -1864,7 +1863,7 @@ Public Sub Clear()
     m_SelEnd = UBound(m_byteText)
     m_CursorPos = m_SelEnd
     
-    AddCharAtCursor , True
+    AddCharAtCursor , True, True
     
     If Not m_bStarting Then Redraw
     
@@ -1872,7 +1871,7 @@ Public Sub Clear()
 End Sub
 
 
-Private Function parseConsoleColors(ByRef bytes() As Byte, ByRef styleArr() As MarkupStyles, ByRef byteText() As Byte) As String
+Private Function parseConsoleColors(ByRef bytes() As Byte, ByRef styleArr() As MarkupStyles, ByRef byteText() As Byte, ByRef commandType As Long, ByRef actualTextLength As Long) As String
 
     'Dim strSplit() As String
     Dim i As Long 'primary index
@@ -1890,20 +1889,34 @@ Private Function parseConsoleColors(ByRef bytes() As Byte, ByRef styleArr() As M
     'strSplit = Split(str, Chr(&H1B))
     
     Dim ATL As Long 'actual text length
+    Dim hasStyles As Boolean
+    
+    'search for [00m
     
     For i = 0 To UB
         
 check_for_next_color:
         
-        If bytes(i) = 27 Then
+        If bytes(i) = 27 Then 'escape char
             If i < UB Then
-                If bytes(i + 1) = 91 Then
-                    If i + 1 < UB Then
+                If bytes(i + 1) = 91 Then 'bracket char '['
+                    If i + 1 < UB Then 'we got at least one more char after this
                         CN = 0
                         CL = 0
                         CC = False
                         
-                        For j = i + 2 To UB 'just run to the end of the command
+                        If i + 2 < UB Then
+                            If bytes(i + 2) = 49 And bytes(i + 3) = 74 Then 'clear window
+                                commandType = 1
+                                i = i + 4
+                                For j = i To UB
+                                    parseConsoleColors = parseConsoleColors & ChrW(bytes(j))
+                                Next j
+                                GoTo end_of_parsing
+                            End If
+                        End If
+                        
+                        For j = i + 2 To UB 'just run to the end of the command or stop when the length is higher than 3
                             CL = CL + 1
                             Select Case bytes(j)
                                 Case 109 'm' end of command
@@ -1966,51 +1979,6 @@ process_as_normal_char:
         End If
         
         
-        'posCommand = InStr(1, strSplit(i), "m")
-        'isCommand = (Left$(strSplit(i), 1) = "[")
-        
-'        If i = UBound(strSplit) Then
-'            If Len(strSplit(i)) = 0 And (posCommand = 0 Or isCommand = False) Then
-'                parseAndAddText = Chr$(&H1B) & strSplit(i)
-'                Exit Function
-'            End If
-'        End If
-'
-'        If posCommand > 0 And isCommand Then
-'            lCommand = Val(Mid(strSplit(i), 2, posCommand))
-'
-'            Dim TL As Long
-'            TL = txtReceived.TextLength
-'            If TL < 0 Then TL = 0
-'
-'            Select Case lCommand
-'                Case 30 To 37
-'                    txtReceived.setCharForeColor TL, CLng(ConsoleColors(lCommand - 30))
-'
-'                Case 40 To 47
-'                    txtReceived.setCharBackColor TL, CLng(ConsoleColors(lCommand - 40))
-'
-'                Case 0
-'                    txtReceived.setCharForeColor TL, -1
-'            End Select
-'
-'            Dim strToAdd As String
-'
-'            strToAdd = Right(strSplit(i), Len(strSplit(i)) - posCommand)
-'
-'            txtReceived.AddCharAtCursor strToAdd
-'        Else
-'            If Len(strSplit(i)) > 0 Then
-'                txtReceived.AddCharAtCursor strSplit(i), True
-'            End If
-'        End If
-        
-        'If Len(strToAdd) <> 5 Then
-        '    Debug.Print strToAdd
-        'End If
-        
-        'Debug.Assert Len(strToAdd) = 5
-        
     Next i
     
     
@@ -2022,17 +1990,20 @@ end_of_parsing:
         ReDim Preserve styleArr(0 To ATL)
     Else
         ReDim byteText(0)
-        Erase styleArr 'way to check if there are no chars to add, only a buffer
+        'Erase styleArr 'way to check if there are no chars to add, only a buffer
     End If
     
-    
+    actualTextLength = ATL
 End Function
 
-Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents As Boolean = False) As Boolean
+Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents As Boolean = False, Optional noColorBuffer As Boolean = False) As Boolean
     Dim lLength As Long
     Dim i As Long
 
     Dim lInsertLength As Long
+    Dim lConsoleCommand As Long
+    Dim lActualTextLength As Long
+    
     Dim lLengthDifference As Long
     Dim reCalculateFromWhere As Long
     Dim distanceFromEnd As Long
@@ -2041,11 +2012,10 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
     Dim byteText() As Byte
     Dim newByteText() As Byte
     Dim newMarkupStyles() As MarkupStyles
-    
 
     'performance.StartTimer
     
-    If m_bConsoleColors Then
+    If m_bConsoleColors And noColorBuffer = False Then
         byteText = StrConv(m_sConsoleColorBuffer & sChar, vbFromUnicode)
         
         ReDim newMarkupStyles(0 To UBound(byteText) + 1)
@@ -2060,14 +2030,37 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
         End If
         
         'Debug.Print newMarkupStyles(0).lFontSize
+        m_sConsoleColorBuffer = parseConsoleColors(byteText, newMarkupStyles, newByteText, lConsoleCommand, lActualTextLength)
         
-        m_sConsoleColorBuffer = parseConsoleColors(byteText, newMarkupStyles, newByteText)
+        Debug.Print sChar
+        Debug.Print m_sConsoleColorBuffer
+        Debug.Print lConsoleCommand
+        Debug.Print "--------"
+        
+        Select Case lConsoleCommand
+            Case 1:
+                m_bStarting = True
+                Clear
+                AddCharAtCursor , True
+                m_bStarting = False
+                
+                Exit Function
+        End Select
         
         lInsertLength = UBound(newByteText) + 1
         
-        If (Not (Not newMarkupStyles)) = 0 Then
+        If lActualTextLength = 0 Then
             lInsertLength = 0
         End If
+        
+        If m_SelStart = 0 And m_SelEnd = 0 Then
+            MarkupS(UBound(MarkupS)) = newMarkupStyles(0)
+        ElseIf m_SelStart > 0 Then
+            MarkupS(m_SelStart) = newMarkupStyles(0)
+        Else
+            MarkupS(m_SelEnd) = newMarkupStyles(0)
+        End If
+        
         If lInsertLength = 0 And m_SelStart = m_SelEnd Then Exit Function
         
     Else
