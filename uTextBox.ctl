@@ -181,6 +181,7 @@ Private m_SelUpDownTheSame As Boolean
 Private m_bRefreshing As Boolean
 Private m_bRefreshedWhileBusy As Boolean
 
+Private m_bPrintNewlineCharacters As Boolean
 Private m_bConsoleColors As Boolean
 Private m_sConsoleColorBuffer As String
 
@@ -658,6 +659,19 @@ Public Property Let Border(ByVal bValue As Boolean)
     PropertyChanged "Border"
     If Not m_bStarting Then Redraw
 End Property
+
+
+
+Public Property Get PrintNewlineCharacters() As Boolean
+    PrintNewlineCharacters = m_bPrintNewlineCharacters
+End Property
+
+Public Property Let PrintNewlineCharacters(ByVal bValue As Boolean)
+    m_bPrintNewlineCharacters = bValue
+    PropertyChanged "PrintNewlineCharacters"
+    If Not m_bStarting Then Redraw
+End Property
+
 
 
 
@@ -1355,7 +1369,7 @@ Sub Redraw()
     Dim TextOffsetX As Long
     Dim TextOffsetY As Long
     Dim NRC As Long    'Number Row Count
-
+    Dim MP As Boolean  'May Print (for chars 13 and 10)
 
     Dim RH As Long    'row height
     Dim RD As Long    'row d height
@@ -1538,8 +1552,10 @@ Sub Redraw()
                 End If
                 
             End If
-    
             
+            
+            MP = m_bPrintNewlineCharacters Or m_byteText(CC) <> 10 And m_byteText(CC) <> 13
+            If Not MP Then GoTo NextChar
             
             If TextOffsetY - RowMap(i).Height < UH And TextOffsetX < UW And TextOffsetX + CharMap(CC).W > 0 And TextOffsetY >= 0 Then     '
                 Dim jj As Long
@@ -1610,8 +1626,12 @@ Sub Redraw()
                 End If
                 
                 
-                'If m_byteText(CC) <> 10 And m_byteText(CC) <> 13 Then
+                If MP Then
                     TextOut UserControl.hdc, TextOffsetX, TextOffsetY, ChrW(m_byteText(CC)), 1
+                End If
+                
+                'If m_byteText(CC) = 10 Or m_byteText(CC) = 13 Then
+                '    GoTo NextChar
                 'End If
                 
                 'UserControl.Print Chr(m_byteText(cc));
@@ -2032,10 +2052,10 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
         'Debug.Print newMarkupStyles(0).lFontSize
         m_sConsoleColorBuffer = parseConsoleColors(byteText, newMarkupStyles, newByteText, lConsoleCommand, lActualTextLength)
         
-        Debug.Print sChar
-        Debug.Print m_sConsoleColorBuffer
-        Debug.Print lConsoleCommand
-        Debug.Print "--------"
+        'Debug.Print sChar
+        'Debug.Print m_sConsoleColorBuffer
+        'Debug.Print lConsoleCommand
+        'Debug.Print "--------"
         
         Select Case lConsoleCommand
             Case 1:
@@ -3505,6 +3525,7 @@ Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
         .WriteProperty "LineNumberForeColor", m_OleLineNumberForeColor, vbWhite
         .WriteProperty "LineNumberBackground", m_OleLineNumberBackground, vbBlack
         .WriteProperty "ConsoleColors", m_bConsoleColors, True
+        .WriteProperty "PrintNewlineCharacters", m_bPrintNewlineCharacters, False
         
         .WriteProperty "RowLines", m_bRowLines, False
         .WriteProperty "RowLineColor", m_OleRowLineColor, &HEEEEEE
@@ -3533,7 +3554,8 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
         m_OleLineNumberForeColor = .ReadProperty("LineNumberForeColor", vbWhite)
         m_OleLineNumberBackground = .ReadProperty("LineNumberBackground", vbBlack)
         m_bConsoleColors = .ReadProperty("ConsoleColors", True)
-        
+        m_bPrintNewlineCharacters = .ReadProperty("PrintNewlineCharacters", False)
+    
         m_bRowLines = .ReadProperty("RowLines", False)
         m_OleRowLineColor = .ReadProperty("RowLineColor", &HEEEEEE)
         m_bRowNumberOnEveryLine = .ReadProperty("RowNumberOnEveryLine", False)
