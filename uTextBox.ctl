@@ -1895,6 +1895,7 @@ Public Sub Clear()
     m_SelStart = 0
     m_SelEnd = UBound(m_byteText)
     m_CursorPos = m_SelEnd
+    m_lScrollTop = 0
     
     AddCharAtCursor , True, True
     
