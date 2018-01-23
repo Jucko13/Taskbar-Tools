@@ -973,53 +973,54 @@ Sub RedrawMenu()
 
         tmpTextHeight = m_picMenu.TextHeight(Items(m_LonItemAtTop + i).Text)
         tmpSplit = Split(Items(m_LonItemAtTop + i).Text, vbCrLf)
+        
 
-
-
-
-
-        If tmpTextHeight < m_LonItemHeight Then
-            For tmpSplitLength = 0 To UBound(tmpSplit)
-                tmpShortText = ShortenText(tmpSplit(tmpSplitLength), m_picMenu.ScaleWidth - m_LonScrollBarWidth - 5)
-
+    
+        If Items(m_LonItemAtTop + i).Text <> "" Then
+    
+            If tmpTextHeight < m_LonItemHeight Then
+                For tmpSplitLength = 0 To UBound(tmpSplit)
+                    tmpShortText = ShortenText(tmpSplit(tmpSplitLength), m_picMenu.ScaleWidth - m_LonScrollBarWidth - 5)
+    
+                    Select Case Items(m_LonItemAtTop + i).TextAlignment
+                        Case AlignmentConstants.vbLeftJustify
+                            tmpLeft = 7
+    
+                        Case AlignmentConstants.vbCenter
+                            tmpLeft = (m_picMenu.ScaleWidth - m_LonScrollBarWidth - 5) / 2 - m_picMenu.TextWidth(tmpShortText) / 2 + 2
+    
+                        Case AlignmentConstants.vbRightJustify
+                            tmpLeft = (m_picMenu.ScaleWidth - m_LonScrollBarWidth - 2) - m_picMenu.TextWidth(tmpShortText)
+                    End Select
+    
+                    m_picMenu.CurrentX = tmpLeft
+                    m_picMenu.CurrentY = tmpPrintTop + m_LonItemHeight / 2 + (tmpTextHeight / (UBound(tmpSplit) + 1) * (tmpSplitLength - ((UBound(tmpSplit) + 1) / 2))) + 1
+    
+                    m_picMenu.Print tmpShortText
+                Next tmpSplitLength
+            Else
+    
+                tmpShortText = ShortenText(tmpSplit(0), m_picMenu.ScaleWidth - m_LonScrollBarWidth - 5)
+    
                 Select Case Items(m_LonItemAtTop + i).TextAlignment
                     Case AlignmentConstants.vbLeftJustify
                         tmpLeft = 7
-
+    
                     Case AlignmentConstants.vbCenter
-                        tmpLeft = (m_picMenu.ScaleWidth - m_LonScrollBarWidth - 5) / 2 - m_picMenu.TextWidth(tmpShortText) / 2 + 2
-
+                        tmpLeft = (m_picMenu.ScaleWidth - m_LonScrollBarWidth - 5) / 2 - m_picMenu.TextWidth(tmpShortText) / 2 + 3
+    
                     Case AlignmentConstants.vbRightJustify
                         tmpLeft = (m_picMenu.ScaleWidth - m_LonScrollBarWidth - 2) - m_picMenu.TextWidth(tmpShortText)
+    
                 End Select
-
+    
                 m_picMenu.CurrentX = tmpLeft
-                m_picMenu.CurrentY = tmpPrintTop + m_LonItemHeight / 2 + (tmpTextHeight / (UBound(tmpSplit) + 1) * (tmpSplitLength - ((UBound(tmpSplit) + 1) / 2))) + 1
-
+                m_picMenu.CurrentY = tmpPrintTop + m_LonItemHeight / 2 - m_picMenu.TextHeight(tmpSplit(0)) / 2
+    
                 m_picMenu.Print tmpShortText
-            Next tmpSplitLength
-        Else
-
-            tmpShortText = ShortenText(tmpSplit(0), m_picMenu.ScaleWidth - m_LonScrollBarWidth - 5)
-
-            Select Case Items(m_LonItemAtTop + i).TextAlignment
-                Case AlignmentConstants.vbLeftJustify
-                    tmpLeft = 7
-
-                Case AlignmentConstants.vbCenter
-                    tmpLeft = (m_picMenu.ScaleWidth - m_LonScrollBarWidth - 5) / 2 - m_picMenu.TextWidth(tmpShortText) / 2 + 3
-
-                Case AlignmentConstants.vbRightJustify
-                    tmpLeft = (m_picMenu.ScaleWidth - m_LonScrollBarWidth - 2) - m_picMenu.TextWidth(tmpShortText)
-
-            End Select
-
-            m_picMenu.CurrentX = tmpLeft
-            m_picMenu.CurrentY = tmpPrintTop + m_LonItemHeight / 2 - m_picMenu.TextHeight(tmpSplit(0)) / 2
-
-            m_picMenu.Print tmpShortText
+            End If
         End If
-
+        
         i = i + 1
         tmpPrintTop = tmpPrintTop + m_LonItemHeight
 
