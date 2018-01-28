@@ -306,8 +306,8 @@ Public Property Let BackgroundColor(ByVal OleValue As OLE_COLOR)
 End Property
 
 
-Public Property Get hWnd() As Long
-    hWnd = UserControl.hWnd
+Public Property Get hwnd() As Long
+    hwnd = UserControl.hwnd
 End Property
 
 Private Sub UserControl_Initialize()
@@ -455,8 +455,8 @@ Sub Redraw()
         If UserControl.ScaleWidth <> usercontrolWidth Then
             'Debug.Print Extender.Name; ScaleX(usercontrolWidth, vbPixels, UserControl.Parent.ScaleMode); UserControl.Parent.ScaleMode
             
-            UserControl.Width = ScaleX(usercontrolWidth, vbPixels, vbTwips)
-            If UserControl.Width = ScaleX(usercontrolWidth, vbPixels, vbTwips) Then
+            UserControl.width = ScaleX(usercontrolWidth, vbPixels, vbTwips)
+            If UserControl.width = ScaleX(usercontrolWidth, vbPixels, vbTwips) Then
                 m_bRefreshing = False
                 Redraw
                 Exit Sub
@@ -493,25 +493,25 @@ Sub Redraw()
     UserControl.FillColor = m_OleCheckSelectionColor
 
     If m_UChValue = u_Checked Then
-        pts(0).X = tmpX - tmpOffsetAdj1
+        pts(0).X = tmpX + tmpOffsetAdj1 + tmpWidth
         pts(0).Y = tmpY - tmpHeight - tmpOffsetAdj1
 
-        pts(1).X = tmpX + (tmpWidth / 2) + tmpOffsetAdj1
+        pts(1).X = tmpX + (tmpWidth / 2) - tmpOffsetAdj1
         pts(1).Y = tmpY + tmpOffsetAdj1
 
         '(IIf(UserControl.ScaleHeight Mod 4 = 0, 1, 0)) + IIf((UserControl.ScaleHeight - 1) Mod 4 = 0, 1, 0)
 
-        pts(2).X = tmpX + tmpWidth
+        pts(2).X = tmpX '- tmpWidth
         pts(2).Y = tmpY - tmpHeight + tmpOffsetAdj2
         If m_UChCheckSize = u_Smalllest Then pts(2).Y = pts(2).Y + 1
 
-        pts(3).X = pts(2).X + tmpOffsetAdj3
+        pts(3).X = pts(2).X - tmpOffsetAdj3
         pts(3).Y = pts(2).Y + tmpOffsetAdj3
 
         pts(4).X = pts(1).X
         pts(4).Y = pts(1).Y + (tmpOffsetAdj1 * 3)
 
-        pts(5).X = pts(0).X - tmpOffsetAdj3
+        pts(5).X = pts(0).X + tmpOffsetAdj3
         pts(5).Y = tmpY - tmpHeight + (tmpHeight / 10)
 
         Polygon UserControl.hdc, pts(0), 6
