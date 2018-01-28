@@ -18,15 +18,15 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-Private Declare Function GetWindowRect Lib "user32" (ByVal hWnd As Long, lpRect As RECT) As Long
+Private Declare Function GetWindowRect Lib "user32" (ByVal hwnd As Long, lpRect As RECT) As Long
 Private Declare Function CreatePen& Lib "gdi32" (ByVal nPenStyle As Long, ByVal nWidth As Long, ByVal crColor As Long)
 Private Declare Function GetForegroundWindow Lib "user32.dll" () As Long
 
 
 Private Declare Function GetLastError Lib "kernel32" () As Long
 
-Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long) As Long
-Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long) As Long
+Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
 Private Const WS_EX_APPWINDOW As Long = &H40000
 Private Const GWL_EXSTYLE As Long = (-20)
 Private Const SW_HIDE As Long = 0
@@ -71,8 +71,8 @@ Private Type Item
 End Type
 
 
-Public Event ItemChange(ItemIndex As Long)
-Public Event OnDropdown(ByRef cancel As Boolean)
+Public Event ItemChange(itemIndex As Long)
+Public Event OnDropdown(ByRef Cancel As Boolean)
 
 Private m_lPicMenuHeight As Long
 
@@ -601,6 +601,7 @@ Private Sub m_picMenu_MouseUp(Button As Integer, Shift As Integer, X As Single, 
 End Sub
 
 Private Sub setItemByIndex()
+    If m_LonItemCount = 0 Then Exit Sub
     m_StrText = Items(m_LonListIndex).Text
     RaiseEvent ItemChange(m_LonListIndex)
 End Sub
@@ -608,14 +609,14 @@ End Sub
 Private Sub m_tmrFocus_Timer()
     On Error GoTo Not_Supported
     
-    If GetForegroundWindow() <> m_ObjParent.hWnd Then
+    If GetForegroundWindow() <> m_ObjParent.hwnd Then
         CloseMenu
     End If
 
     If TypeOf m_ObjParent Is Form Then
         Dim lastPos As Long
         
-        lastPos = m_ObjParent.Left + m_ObjParent.Top + m_ObjParent.Width + m_ObjParent.Height
+        lastPos = m_ObjParent.Left + m_ObjParent.Top + m_ObjParent.width + m_ObjParent.Height
         
         If m_LonLastFormPosition <> lastPos Then
             CloseMenu
@@ -631,8 +632,8 @@ Not_Supported:
     
 End Sub
 
-Public Property Get hWnd() As Long
-    hWnd = UserControl.hWnd
+Public Property Get hwnd() As Long
+    hwnd = UserControl.hwnd
 End Property
 
 Private Sub m_tmrFoldOpenClose_Timer()
@@ -679,6 +680,7 @@ Private Sub m_tmrScroll_Timer()
 End Sub
 
 Private Sub m_uMouseWheel_onMouseWheel(direction As Long)
+    If m_bEnabled = False Then Exit Sub
     m_LonListIndex = m_LonListIndex - direction
     If m_LonListIndex < 0 Then m_LonListIndex = 0
     If m_LonListIndex > m_LonItemCount - 1 Then m_LonListIndex = m_LonItemCount - 1
@@ -733,7 +735,7 @@ Private Sub UserControl_Initialize()
     Set m_tmrScroll = UserControl.Controls.Add("VB.Timer", "m_tmrScroll")
     Set m_tmrFoldOpenClose = UserControl.Controls.Add("VB.Timer", "m_tmrFoldOpenClose")
     Set m_uMouseWheel = New uMouseWheel
-    m_uMouseWheel.hWnd = UserControl.hWnd
+    m_uMouseWheel.hwnd = UserControl.hwnd
     
     m_tmrFoldOpenClose.Interval = 1
     m_tmrFoldOpenClose.Enabled = False
@@ -749,9 +751,9 @@ Private Sub UserControl_Initialize()
     m_StdFontWebdings.Name = "Webdings"
     m_StdFontWebdings.Size = 8
     
-    SetParent m_picMenu.hWnd, GetParent(0)
+    SetParent m_picMenu.hwnd, GetParent(0)
 
-    SetWindowLong m_picMenu.hWnd, -20, GetWindowLong(m_picMenu.hWnd, -20) Or &H80&
+    SetWindowLong m_picMenu.hwnd, -20, GetWindowLong(m_picMenu.hwnd, -20) Or &H80&
 
 
 
@@ -794,7 +796,7 @@ End Sub
 Private Function CalculatePosition() As POINTAPI
     Dim tmpMenuPosition As RECT
 
-    GetWindowRect UserControl.hWnd, tmpMenuPosition
+    GetWindowRect UserControl.hwnd, tmpMenuPosition
 
     CalculatePosition.X = tmpMenuPosition.Left * Screen.TwipsPerPixelX
     CalculatePosition.Y = tmpMenuPosition.Top * Screen.TwipsPerPixelY
@@ -926,7 +928,7 @@ Sub RedrawMenu()
     If m_bRefreshingMenu Then Exit Sub
     m_bRefreshingMenu = True
 
-    m_picMenu.Width = UserControl.Width
+    m_picMenu.width = UserControl.width
 
     ReDim pts(0 To 3)
     m_picMenu.DrawStyle = 0
@@ -1114,14 +1116,14 @@ Sub OpenMenu()
 
     m_bScrollHandleVisible = m_LonScrollHeight < m_LonScrollMax
 
-    SetTopMostWindow m_picMenu.hWnd, True
+    SetTopMostWindow m_picMenu.hwnd, True
     m_tmrFocus.Interval = 100
     m_tmrFocus.Enabled = True
     m_bMenuDown = True
     
     
     Set m_ObjParent = UserControl.Parent
-    m_LonLastFormPosition = m_ObjParent.Left + m_ObjParent.Top + m_ObjParent.Width + m_ObjParent.Height
+    m_LonLastFormPosition = m_ObjParent.Left + m_ObjParent.Top + m_ObjParent.width + m_ObjParent.Height
     
     m_tmrFoldOpenClose.Enabled = True
 End Sub
@@ -1157,7 +1159,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
 End Sub
 
 Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    Dim cancel As Boolean
+    Dim Cancel As Boolean
     
     If Not m_bEnabled Then
         Redraw
@@ -1169,8 +1171,8 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Sing
     'If Not m_bPicButtonDown Then
         'If m_bGotFocus Then
     If m_bMenuDown = False Then
-        RaiseEvent OnDropdown(cancel)
-        If Not cancel Then OpenMenu
+        RaiseEvent OnDropdown(Cancel)
+        If Not Cancel Then OpenMenu
     Else
         CloseMenu
     End If
@@ -1262,7 +1264,7 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
 End Sub
 
 Private Sub UserControl_Terminate()
-    SetParent m_picMenu.hWnd, GetParent(UserControl.hWnd)
+    SetParent m_picMenu.hwnd, GetParent(UserControl.hwnd)
 End Sub
 
 Private Sub UserControl_WriteProperties(PropBag As PropertyBag)
