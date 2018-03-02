@@ -580,6 +580,7 @@ Public Function ByteArrayToString(ByRef bytArray() As Byte) As String
     Dim sAns As String
     Dim iPos As Long
     
+    On Error Resume Next
     sAns = Left$(StrConv(bytArray, vbUnicode), UBound(bytArray))
     ByteArrayToString = sAns
     
@@ -1758,7 +1759,7 @@ DoneRefreshing:
     
     If m_bAutoResize Then
         'If m_lScrollLeftMax <> 0 Then
-            UserControl.Width = ScaleX(MTW + TSP, vbPixels, vbTwips)
+            UserControl.width = ScaleX(MTW + TSP, vbPixels, vbTwips)
         'End If
     End If
     
