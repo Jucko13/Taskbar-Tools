@@ -181,7 +181,7 @@ Private Sub SetOtherControls()
         If TypeName(m_Control) = "uOptionBox" Then
             If m_Control.Name = UserControl.Extender.Name Then
                 If UserControl.Extender.index <> m_Control.index Then
-                    If Err.number <> 0 Then Exit Sub
+                    If err.Number <> 0 Then Exit Sub
                     m_Control.Value = 0
                 End If
                 
@@ -296,6 +296,10 @@ Public Property Let BackgroundColor(ByVal OleValue As OLE_COLOR)
     PropertyChanged "BackgroundColor"
     If Not m_bStarting Then Redraw
 End Property
+
+Function hWnd() As Long
+    hWnd = UserControl.hWnd
+End Function
 
 Private Sub UserControl_Initialize()
     m_bStarting = True

@@ -22,6 +22,12 @@ Private Declare Function GetWindowRect Lib "user32" (ByVal hWnd As Long, lpRect 
 Private Declare Function CreatePen& Lib "gdi32" (ByVal nPenStyle As Long, ByVal nWidth As Long, ByVal crColor As Long)
 Private Declare Function GetForegroundWindow Lib "user32.dll" () As Long
 
+Private Declare Function GetCursorPos Lib "user32" (lpPoint As POINTAPI) As Long
+Private Declare Function WindowFromPoint Lib "user32" (ByVal xPoint As Long, ByVal yPoint As Long) As Long
+Private Type POINTAPI
+    X As Long
+    Y As Long
+End Type
 
 Private Declare Function GetLastError Lib "kernel32" () As Long
 
@@ -77,9 +83,12 @@ Private Type Item
 End Type
 
 
-Public Event ItemChange(ItemIndex As Long)
+Public Event ItemChange(itemIndex As Long)
 Public Event DblClick()
-Public Event ItemAdded(ItemIndex As Long)
+Public Event ItemAdded(itemIndex As Long)
+Public Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single, itemIndex As Long)
+Public Event MouseEnter()
+Public Event MouseLeave()
 
 'Private WithEvents m_picMenu As PictureBox
 'Private WithEvents m_tmrFocus As Timer
@@ -135,6 +144,12 @@ Private m_StdFont As StdFont
 Private m_StdStandardFont As New StdFont
 Private m_StdFontWebdings As New StdFont
 Private m_LonDotsTextWidth As Long
+
+Private WithEvents m_tmrMouseOver As Timer
+Attribute m_tmrMouseOver.VB_VarHelpID = -1
+Private m_PoiMousePosition As POINTAPI
+Private m_bMouseOver As Boolean
+
 
 Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal length As Long)
 
@@ -226,9 +241,9 @@ Public Property Get ListIndex() As Long
     ListIndex = m_LonListIndex
 End Property
 
-Public Property Let ListIndex(Index As Long)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    m_LonListIndex = Index
+Public Property Let ListIndex(index As Long)
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    m_LonListIndex = index
     
     If m_LonListIndex < m_LonItemAtTop Then m_LonItemAtTop = m_LonListIndex
     
@@ -246,63 +261,63 @@ Public Property Let ListIndex(Index As Long)
 End Property
 
 
-Public Property Get List(Index As Long) As String
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    List = Items(Index).Text
+Public Property Get List(index As Long) As String
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    List = Items(index).Text
 End Property
 
-Public Property Let List(Index As Long, ByVal StrValue As String)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(Index).Text = StrValue
+Public Property Let List(index As Long, ByVal StrValue As String)
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(index).Text = StrValue
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get ItemData(Index As Long) As Long
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemData = Items(Index).ItemData
+Public Property Get ItemData(index As Long) As Long
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemData = Items(index).ItemData
 End Property
 
-Public Property Let ItemData(Index As Long, ByVal LonValue As Long)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(Index).ItemData = LonValue
+Public Property Let ItemData(index As Long, ByVal LonValue As Long)
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(index).ItemData = LonValue
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get ItemAlignment(Index As Long) As Long
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemAlignment = Items(Index).TextAlignment
+Public Property Get ItemAlignment(index As Long) As Long
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemAlignment = Items(index).TextAlignment
 End Property
 
-Public Property Let ItemAlignment(Index As Long, ByVal AliValue As AlignmentConstants)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(Index).TextAlignment = AliValue
+Public Property Let ItemAlignment(index As Long, ByVal AliValue As AlignmentConstants)
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(index).TextAlignment = AliValue
     If Not m_bStarting Then Redraw
 End Property
 
 
-Public Property Get ItemBackColor(Index As Long) As OLE_COLOR
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemBackColor = Items(Index).ItemBackColor
+Public Property Get ItemBackColor(index As Long) As OLE_COLOR
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemBackColor = Items(index).ItemBackColor
 End Property
 
-Public Property Let ItemBackColor(Index As Long, ByVal OleValue As OLE_COLOR)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(Index).ItemBackColor = OleValue
+Public Property Let ItemBackColor(index As Long, ByVal OleValue As OLE_COLOR)
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(index).ItemBackColor = OleValue
     If Not m_bStarting Then Redraw
 End Property
 
 
 
-Public Property Get ItemForeColor(Index As Long) As OLE_COLOR
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    ItemForeColor = Items(Index).ItemForeColor
+Public Property Get ItemForeColor(index As Long) As OLE_COLOR
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    ItemForeColor = Items(index).ItemForeColor
 End Property
 
-Public Property Let ItemForeColor(Index As Long, ByVal OleValue As OLE_COLOR)
-    If Index < 0 Or Index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
-    Items(Index).ItemForeColor = OleValue
+Public Property Let ItemForeColor(index As Long, ByVal OleValue As OLE_COLOR)
+    If index < 0 Or index > m_LonItemCount - 1 Then Err.Raise 19444, "", "Array Out of Bound": Exit Property
+    Items(index).ItemForeColor = OleValue
     If Not m_bStarting Then Redraw
 End Property
 
@@ -437,9 +452,9 @@ Sub RedrawResume()
     Redraw
 End Sub
 
-Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optional Index As Long = -1, Optional lItemBackColor As OLE_COLOR = -1, Optional lItemForeColor As OLE_COLOR = -1, Optional lAlignment As AlignmentConstants = vbLeftJustify) As Long
+Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optional index As Long = -1, Optional lItemBackColor As OLE_COLOR = -1, Optional lItemForeColor As OLE_COLOR = -1, Optional lAlignment As AlignmentConstants = vbLeftJustify) As Long
 
-    If Index = -1 Or m_LonItemCount = 0 Then
+    If index = -1 Or m_LonItemCount = 0 Then
         ReDim Preserve Items(0 To m_LonItemCount) As Item
         With Items(m_LonItemCount)
             .Text = sText
@@ -454,16 +469,16 @@ Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optiona
 
         ' We let VB evaluate the size of each item using LenB().
         ReDim Preserve Items(0 To m_LonItemCount) As Item
-        If Index < UBound(Items) Then
+        If index < UBound(Items) Then
             'CopyMemory ByVal VarPtr(Items(Index + 1)), ByVal VarPtr(Items(Index)), (UBound(Items) - Index) * LenB(Items(Index))
             
             Dim i As Long
             
-            For i = UBound(Items) To Index + 1 Step -1
+            For i = UBound(Items) To index + 1 Step -1
                 Items(i) = Items(i - 1)
             Next i
             
-            With Items(Index)
+            With Items(index)
                 .Text = sText
                 .ItemData = lItemData
                 .ItemBackColor = lItemBackColor
@@ -484,24 +499,24 @@ Public Function AddItem(sText As String, Optional lItemData As Long = 0, Optiona
     
 End Function
 
-Public Sub RemoveItem(Index As Long)
+Public Sub RemoveItem(index As Long)
 
-    If Index < 0 Or Index >= m_LonItemCount Then Err.Raise 19444, "", "Array Out of Bound": Exit Sub
+    If index < 0 Or index >= m_LonItemCount Then Err.Raise 19444, "", "Array Out of Bound": Exit Sub
 
     ' We let VB evaluate the size of each item using LenB().
     'm_LonItemCount = m_LonItemCount - 1
     Dim i As Long
     
-    If Index < m_LonItemCount - 1 Then
+    If index < m_LonItemCount - 1 Then
         'CopyMemory ByVal VarPtr(Items(Index)), ByVal VarPtr(Items(Index + 1)), (UBound(Items) - Index) * LenB(Items(Index)) + 1
         
-        For i = Index To UBound(Items) - 1
+        For i = index To UBound(Items) - 1
             Items(i) = Items(i + 1)
         Next i
         
         ReDim Preserve Items(0 To UBound(Items) - 1)
     Else
-        ReDim Preserve Items(0 To Index) As Item
+        ReDim Preserve Items(0 To index) As Item
         
     End If
 
@@ -604,6 +619,15 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Sing
     If m_bMouseMoving Then Exit Sub
     m_bMouseMoving = True
     
+    If X >= 0 And Y >= 0 And X <= UserControl.ScaleWidth And Y < UserControl.ScaleHeight Then
+        If m_bMouseOver = False Then
+            m_bMouseOver = True
+            m_tmrMouseOver.Interval = 40
+            m_tmrMouseOver.Enabled = True
+            RaiseEvent MouseEnter
+        End If
+    End If
+    
     CheckScrollButtons Button, Shift, X, Y
 
     If m_bScrollHandleDown Then
@@ -625,8 +649,13 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Sing
         
         
     End If
-
     
+    Dim mouseOverIndex As Long
+    mouseOverIndex = Fix(Y / m_LonItemHeight) + m_LonItemAtTop
+    If mouseOverIndex > m_LonItemCount - 1 Then mouseOverIndex = -1
+    If mouseOverIndex < 0 Then mouseOverIndex = -1
+    
+    RaiseEvent MouseMove(Button, Shift, X, Y, mouseOverIndex)
     m_bMouseMoving = False
 End Sub
 
@@ -682,10 +711,10 @@ Private Sub UserControl_ExitFocus()
     Redraw
 End Sub
 
-Public Sub setTabStop(Index As Long, lLeft As Long, Optional lAlignment As AlignmentConstants = AlignmentConstants.vbLeftJustify)
-    If Index > 20 Or Index < 0 Then Exit Sub
-    m_tTabStops(Index).Alignment = lAlignment
-    m_tTabStops(Index).xPos = lLeft
+Public Sub setTabStop(index As Long, lLeft As Long, Optional lAlignment As AlignmentConstants = AlignmentConstants.vbLeftJustify)
+    If index > 20 Or index < 0 Then Exit Sub
+    m_tTabStops(index).Alignment = lAlignment
+    m_tTabStops(index).xPos = lLeft
 
     If m_bStarting = False Then Redraw
 End Sub
@@ -709,6 +738,7 @@ Private Sub UserControl_Initialize()
     
     'Set m_picMenu = UserControl.Controls.Add("VB.PictureBox", "m_picMenu")
     'Set m_tmrFocus = UserControl.Controls.Add("VB.Timer", "m_tmrFocus")
+    Set m_tmrMouseOver = UserControl.Controls.Add("VB.Timer", "m_tmrMouseOver")
     Set m_tmrScroll = UserControl.Controls.Add("VB.Timer", "m_tmrScroll")
     Set m_uMouseWheel = New uMouseWheel
     m_uMouseWheel.hWnd = UserControl.hWnd
@@ -1195,6 +1225,20 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
 
     Redraw
     DoEvents
+End Sub
+
+Function isMouseOverControl() As Boolean
+    GetCursorPos m_PoiMousePosition
+    isMouseOverControl = CBool(WindowFromPoint(m_PoiMousePosition.X, m_PoiMousePosition.Y) = UserControl.hWnd)
+End Function
+
+Private Sub m_tmrMouseOver_Timer()
+    If Not isMouseOverControl Then
+        m_tmrMouseOver.Enabled = False
+        m_bMouseOver = False
+        RaiseEvent MouseLeave
+        Redraw
+    End If
 End Sub
 
 'Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
