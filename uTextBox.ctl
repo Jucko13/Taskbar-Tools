@@ -2441,6 +2441,7 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
     'm_bMarkupCalculated = False
     
     If m_lRefreshFromCharAt <> -1 Then
+        On Error GoTo refreshFromStart
         If m_lRefreshFromCharAt > reCalculateFromWhere Then
             m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt).r
             m_lRefreshFromCharAt = RowMap(m_lRefreshFromRowAt).startChar
@@ -2474,7 +2475,10 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
     If Not noevents Then RaiseEvent Changed
     
     'performance.StopTimer
-    
+    Exit Function
+refreshFromStart:
+    m_lRefreshFromRowAt = 0
+    m_lRefreshFromCharAt = 0
     'Debug.Print performance.TimeElapsed(pvMilliSecond)
 End Function
 
@@ -3111,7 +3115,52 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
                 End Select
 
             End If
-
+        
+        Case vbKeyTab
+            If Abs(m_SelStart - m_SelEnd) > 0 Then
+                Dim tmpSelStartRow As Long
+                Dim tmpSelEndRow As Long
+                Dim tmpSelLength As Long
+                Dim removedFirstChar As Long
+                
+                tmpSelStartRow = CharMap(m_SelStart).r
+                tmpSelEndRow = CharMap(m_SelEnd).r
+                tmpSelLength = (RowMap(tmpSelEndRow).startChar + RowMap(tmpSelEndRow).NumChars) - RowMap(tmpSelStartRow).startChar
+                
+                
+                For i = tmpSelEndRow To tmpSelStartRow Step -1
+                    If Shift = 1 Then
+                        m_SelStart = RowMap(i).startChar
+                        If m_byteText(m_SelStart) = Asc(vbTab) Then
+                            m_SelEnd = m_SelStart + 1
+                            m_CursorPos = m_SelStart
+                            AddCharAtCursor "", True
+                            
+                            removedFirstChar = removedFirstChar + 1
+                        End If
+                    Else
+                        m_SelStart = RowMap(i).startChar
+                        m_SelEnd = m_SelStart
+                        m_CursorPos = m_SelStart
+                        AddCharAtCursor vbTab, True
+                    End If
+                    
+                Next i
+                
+                m_lRefreshFromRowAt = tmpSelStartRow
+                m_bRowMapCalculated = False
+                m_bWordsCalculated = False
+                
+                mustRedraw = True
+                m_SelStart = RowMap(tmpSelStartRow).startChar
+                m_SelEnd = m_SelStart + tmpSelLength - removedFirstChar - 1
+                
+                m_bBlockNextKeyPress = True
+            End If
+                        
+                        
+                        
+                        
         'Case vbKey0 To vbKey9
             'If (Shift And 1) Then
             '
