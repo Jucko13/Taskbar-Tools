@@ -640,13 +640,14 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Sing
         Redraw
         DoEvents
     ElseIf Button = 1 And m_LonListIndexMouseOver <> -1 Then
-        m_LonListIndex = m_LonListIndexMouseOver
-        m_StrText = Items(m_LonListIndex).Text
-        
+        If m_LonListIndexMouseOver <> m_LonListIndex Then
+            m_LonListIndex = m_LonListIndexMouseOver
+            m_StrText = Items(m_LonListIndex).Text
+            
+            RaiseEvent ItemChange(m_LonListIndex)
+        End If
         Redraw
         DoEvents
-        RaiseEvent ItemChange(m_LonListIndex)
-        
         
     End If
     
@@ -1010,16 +1011,33 @@ Sub Redraw()
                     
                     For tmpTabSplitLength = 0 To UBound(tmpTabSplit)
                         If tmpTabSplitLength > 20 Then Exit For
-
+                        Dim tmpWidth As Long
+                        
                         Select Case m_tTabStops(tmpSplitLength).Alignment
                             Case AlignmentConstants.vbLeftJustify
+                                tmpWidth = m_tTabStops(tmpSplitLength + 1).xPos - m_tTabStops(tmpSplitLength).xPos
+                                tmpTabSplit(tmpTabSplitLength) = ShortenText(tmpTabSplit(tmpTabSplitLength), tmpWidth - 3)
                                 tmpLeft = 3 + m_tTabStops(tmpSplitLength).xPos
 
                             Case AlignmentConstants.vbCenter
+                                If (tmpSplitLength = 0) Then
+                                    tmpWidth = (m_tTabStops(tmpSplitLength).xPos) + (m_tTabStops(tmpSplitLength + 1).xPos - m_tTabStops(tmpSplitLength).xPos)
+                                Else
+                                    tmpWidth = m_tTabStops(tmpSplitLength).xPos - m_tTabStops(tmpSplitLength - 1).xPos
+                                End If
+                                tmpTabSplit(tmpTabSplitLength) = ShortenText(tmpTabSplit(tmpTabSplitLength), tmpWidth - 3)
                                 tmpLeft = m_tTabStops(tmpSplitLength).xPos - UserControl.TextWidth(tmpTabSplit(tmpTabSplitLength)) / 2 + 2
 
                             Case AlignmentConstants.vbRightJustify
+                                If (tmpSplitLength = 0) Then
+                                    tmpWidth = UserControl.Width - m_tTabStops(tmpSplitLength).xPos
+                                Else
+                                    tmpWidth = m_tTabStops(tmpSplitLength).xPos - m_tTabStops(tmpSplitLength - 1).xPos
+                                End If
+                                tmpTabSplit(tmpTabSplitLength) = ShortenText(tmpTabSplit(tmpTabSplitLength), tmpWidth - 3)
                                 tmpLeft = m_tTabStops(tmpSplitLength).xPos - UserControl.TextWidth(tmpTabSplit(tmpTabSplitLength))
+                                
+                                
                         End Select
 
                         'tmpLeft = m_tTabStops(tmpTabSplitLength).xPos + 3

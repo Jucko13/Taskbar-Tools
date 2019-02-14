@@ -117,7 +117,7 @@ Private Type WH
     X As Long 'x position
     Y As Long 'y position
     r As Long 'belongs to what row?
-    p As Long 'part of word
+    P As Long 'part of word
 End Type
 
 Private Type WHSL
@@ -318,10 +318,54 @@ Public Property Get ScrollTop() As Long
 End Property
 
 Public Property Let ScrollTop(val As Long)
-    If val < 0 Or val > m_lScrollTopMax Then Exit Property
-    m_lScrollTop = val
+    'If val < 0 Or val > m_lScrollTopMax Then Exit Property
+    If val < 0 Then
+        m_lScrollTop = 0
+    ElseIf val > m_lScrollTopMax Then
+        m_lScrollTop = m_lScrollTopMax
+    Else
+        m_lScrollTop = val
+    End If
+    
     If Not m_bStarting Then Redraw
 End Property
+
+Public Property Get RealRowAtCursor() As Long
+    Dim r As Long
+    r = CharMap(m_SelStart).r
+    
+    RealRowAtCursor = RowMap(r).RealRowNumber
+End Property
+
+
+Public Property Get ScrollTopReal() As Long
+    ScrollTopReal = RowMap(m_lScrollTop).RealRowNumber
+End Property
+
+Public Property Let ScrollTopReal(val As Long)
+    If val < 0 Then
+        m_lScrollTop = 0
+    ElseIf val > m_lScrollTopMax Then
+        m_lScrollTop = m_lScrollTopMax
+    Else
+    
+        Dim i As Long
+        m_lScrollTop = val
+        
+        For i = val To m_lScrollTopMax
+            
+            If RowMap(i).RealRowNumber >= val Then
+                Exit For
+            End If
+            
+            m_lScrollTop = i + 1
+        Next i
+        
+    End If
+
+    If Not m_bStarting Then Redraw
+End Property
+
 
 
 Public Property Get RawText() As Byte()
@@ -329,7 +373,7 @@ Public Property Get RawText() As Byte()
 End Property
 
 Public Function getWordFromChar(Char As Long) As Long
-    getWordFromChar = CharMap(Char).p
+    getWordFromChar = CharMap(Char).P
 End Function
 
 Public Function getWordLength(word As Long) As Long
@@ -446,7 +490,10 @@ Sub updateCaretPos()
     setCaretPos CharMap(m_CursorPos).X, CharMap(m_CursorPos).Y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d - SYT
     ShowCaret UserControl.hWnd
     
-    RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).r, m_CursorPos - RowMap(CharMap(m_CursorPos).r).startChar, m_byteText(m_CursorPos))
+    If (CharMap(m_CursorPos).r <= UBound(RowMap)) Then
+        RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).r, m_CursorPos - RowMap(CharMap(m_CursorPos).r).startChar, m_byteText(m_CursorPos))
+    End If
+        
 End Sub
 
 
@@ -809,9 +856,10 @@ End Sub
 
 Sub RedrawResume(Optional bDoNotRedraw As Boolean = False)
     m_bStarting = False
-    If Not bDoNotRedraw Then Redraw
-    
-    updateCaretPos
+    If Not bDoNotRedraw Then
+        Redraw
+        updateCaretPos
+    End If
 End Sub
 
 Function hWnd() As Long
@@ -842,10 +890,10 @@ End Sub
 Private Sub UserControl_DblClick()
     Dim word As Long
     
-    word = CharMap(m_CursorPos).p
+    word = CharMap(m_CursorPos).P
     
     If word = -1 And m_CursorPos > 0 Then
-        word = CharMap(m_CursorPos - 1).p
+        word = CharMap(m_CursorPos - 1).P
     End If
         
     If word <> -1 Then
@@ -1250,9 +1298,9 @@ checkNextChar:
 
         
         
-        If CharMap(cc).p <> -1 Then
-            If POWC <> CharMap(cc).p Then
-                POWC = CharMap(cc).p
+        If CharMap(cc).P <> -1 Then
+            If POWC <> CharMap(cc).P Then
+                POWC = CharMap(cc).P
                 'Debug.Print RowMap(NRC).startChar; WordMap(POWC).s
                 
                 Dim startedOnPreviousRow As Boolean
@@ -1984,7 +2032,7 @@ Sub ReCalculateWords(Optional fromWhere As Long = 0)
         ReDim WordMap(0)
         fromWhere = 0
     Else
-        POW = CharMap(fromWhere).p
+        POW = CharMap(fromWhere).P
         If POW <> -1 Then
             fromWhere = WordMap(POW).s
             WC = POW
@@ -2032,7 +2080,7 @@ FinallyANewWord:
             WL = 1
 
             WordMap(WC).s = TL '+ 1
-            CharMap(TL).p = WC
+            CharMap(TL).P = WC
 
 
         Else
@@ -2042,7 +2090,7 @@ FinallyANewWord:
             End If
 
 ContinueNewWord:
-            CharMap(TL).p = WC
+            CharMap(TL).P = WC
             If CharMap(TL).H > WH Then
                 WH = CharMap(TL).H
             End If
@@ -2894,12 +2942,12 @@ Function getNextCharUpDown(U As Boolean, STS As Boolean) As Long 'up, selectionT
 End Function
 
 
-Function getSelectionChanged(Optional init As Boolean = False) As Boolean
+Function getSelectionChanged(Optional Init As Boolean = False) As Boolean
     Static tmpSelStart As Long
     Static tmpSelEnd As Long
     Static tmpCursorPos As Long
     
-    If init Then
+    If Init Then
         tmpSelStart = m_SelStart
         tmpSelEnd = m_SelEnd
         tmpCursorPos = m_CursorPos
@@ -3273,10 +3321,10 @@ Function getNextWordFromCursor() As Long
     Dim i As Long
     Dim WordPart As Long
 
-    WordPart = CharMap(m_CursorPos).p
+    WordPart = CharMap(m_CursorPos).P
     If WordPart = -1 Then
         For i = m_CursorPos To UBound(CharMap)
-            WordPart = CharMap(i).p
+            WordPart = CharMap(i).P
             If WordPart <> -1 Then
                 getNextWordFromCursor = WordMap(WordPart).s
                 Exit Function
@@ -3304,10 +3352,10 @@ Function getPreviousWordFromCursor() As Long
     Dim i As Long
     Dim WordPart As Long
 
-    WordPart = CharMap(m_CursorPos).p
+    WordPart = CharMap(m_CursorPos).P
     If WordPart = -1 Then
         For i = m_CursorPos To 0 Step -1
-            WordPart = CharMap(i).p
+            WordPart = CharMap(i).P
             If WordPart <> -1 Then
                 getPreviousWordFromCursor = WordMap(WordPart).s
                 Exit Function
