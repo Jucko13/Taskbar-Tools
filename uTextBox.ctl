@@ -2771,6 +2771,7 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Sing
         
         If getSelectionChanged Then
             RaiseEvent SelectionChanged
+            m_SelUpDownTheSame = False
             mustRedraw = True
         End If
         
@@ -2918,16 +2919,16 @@ Function getNextCharUpDown(U As Boolean, STS As Boolean) As Long 'up, selectionT
             CR = UB
         End If
     End If
-'
+
     
-    For i = RowMap(CR).startChar To RowMap(CR).NumChars + RowMap(CR).startChar
+    For i = RowMap(CR).startChar To RowMap(CR).NumChars + RowMap(CR).startChar - 1
         If i > TL Then
             getNextCharUpDown = i
             Exit Function
         End If
         
         TTW = TTW + CharMap(i).W
-        If (TTW > CTW Or i = RowMap(CR).NumChars + RowMap(CR).startChar) Then
+        If (TTW > CTW Or i = RowMap(CR).NumChars + RowMap(CR).startChar - 1) Then
             If m_byteText(i) <> 10 Then  'And m_byteText(i) <> 13
                 getNextCharUpDown = i
             Else
@@ -2995,7 +2996,7 @@ End Sub
 
 Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
 
-    Dim i As Long
+    Dim i As Long, j As Long
     Dim tmpswap As Long
     Dim mustRedraw As Boolean
     Dim tmpCursor As Long
@@ -3165,7 +3166,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
             End If
         
         Case vbKeyTab
-            If Abs(m_SelStart - m_SelEnd) > 0 Then
+            If Abs(m_SelStart - m_SelEnd) > 0 Or Shift = 1 Then
                 Dim tmpSelStartRow As Long
                 Dim tmpSelEndRow As Long
                 Dim tmpSelLength As Long
@@ -3222,7 +3223,25 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
 
         Case vbKeyReturn
             If Locked Then Exit Sub
-            If m_bMultiLine Then mustRedraw = AddCharAtCursor(vbCrLf)
+            Dim tmpRow As Long, tmpAddTabCount As Long
+            
+            tmpRow = CharMap(m_SelStart).r
+            'For i = tmpRow - 1 To 0 Step -1
+                'If RowMap(i).RealRowNumber < RowMap(tmpRow).RealRowNumber Then
+                    For j = RowMap(tmpRow).startChar To RowMap(tmpRow).startChar + RowMap(tmpRow).NumChars - 1
+                        If m_byteText(j) = 9 Then 'vbtab
+                            tmpAddTabCount = tmpAddTabCount + 1
+                        Else
+                            Exit For
+                        End If
+                    Next j
+            '        Exit For
+            '    End If
+           ' Next i
+            
+            
+            
+            If m_bMultiLine Then mustRedraw = AddCharAtCursor(vbCrLf & String$(tmpAddTabCount, vbTab))
 
         Case vbKeyBack
             If Locked Then Exit Sub
