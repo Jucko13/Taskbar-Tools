@@ -116,7 +116,7 @@ Private Type WH
     d As Long 'divider height
     X As Long 'x position
     Y As Long 'y position
-    r As Long 'belongs to what row?
+    R As Long 'belongs to what row?
     P As Long 'part of word
 End Type
 
@@ -331,10 +331,10 @@ Public Property Let ScrollTop(val As Long)
 End Property
 
 Public Property Get RealRowAtCursor() As Long
-    Dim r As Long
-    r = CharMap(m_SelStart).r
+    Dim R As Long
+    R = CharMap(m_SelStart).R
     
-    RealRowAtCursor = RowMap(r).RealRowNumber
+    RealRowAtCursor = RowMap(R).RealRowNumber
 End Property
 
 
@@ -423,7 +423,7 @@ Public Sub setCharBold(Char As Long, bValue As Byte)
         m_lRefreshFromCharAt = Char
     End If
     
-    m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt).r
+    m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt).R
     
     m_bWordsCalculated = False
     m_bRowMapCalculated = False
@@ -490,8 +490,8 @@ Sub updateCaretPos()
     setCaretPos CharMap(m_CursorPos).X, CharMap(m_CursorPos).Y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d - SYT
     ShowCaret UserControl.hWnd
     
-    If (CharMap(m_CursorPos).r <= UBound(RowMap)) Then
-        RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).r, m_CursorPos - RowMap(CharMap(m_CursorPos).r).startChar, m_byteText(m_CursorPos))
+    If (CharMap(m_CursorPos).R <= UBound(RowMap)) Then
+        RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).R, m_CursorPos - RowMap(CharMap(m_CursorPos).R).startChar, m_byteText(m_CursorPos))
     End If
         
 End Sub
@@ -1287,7 +1287,7 @@ checkNextChar:
                 If m_bMultiLine Then NLNR = True
                 CharMap(cc).X = TextOffsetX
                 CharMap(cc).Y = TextOffsetY
-                CharMap(cc).r = NRC
+                CharMap(cc).R = NRC
                 ' GoTo NextChar
             Case 32
                 'If TL = CC Then GoTo NextChar
@@ -1401,7 +1401,7 @@ MakeNewRule:
         
         CharMap(cc).X = TextOffsetX
         CharMap(cc).Y = TextOffsetY
-        CharMap(cc).r = NRC
+        CharMap(cc).R = NRC
         TextOffsetX = TextOffsetX + CharMap(cc).W
         
 NextChar:
@@ -2491,7 +2491,7 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
     If m_lRefreshFromCharAt <> -1 Then
         On Error GoTo refreshFromStart
         If m_lRefreshFromCharAt > reCalculateFromWhere Then
-            m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt).r
+            m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt).R
             m_lRefreshFromCharAt = RowMap(m_lRefreshFromRowAt).startChar
         End If
         
@@ -2500,7 +2500,7 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
         'm_lRefreshFromCharAt = reCalculateFromWhere - 1
         'If m_lRefreshFromCharAt < 0 Then m_lRefreshFromCharAt = 0
         
-        m_lRefreshFromRowAt = CharMap(reCalculateFromWhere).r
+        m_lRefreshFromRowAt = CharMap(reCalculateFromWhere).R
         m_lRefreshFromCharAt = RowMap(m_lRefreshFromRowAt).startChar
         
         'If m_lRefreshFromRowAt < 0 Then m_lRefreshFromRowAt = 0
@@ -2778,7 +2778,7 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Sing
     End If
     
     updateCaretPos
-    RaiseEvent Click(m_SelStart, CharMap(m_SelStart).r)
+    RaiseEvent Click(m_SelStart, CharMap(m_SelStart).R)
     
     
     If Not m_bStarting And mustRedraw Then Redraw
@@ -3143,7 +3143,11 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
                         tmpString = GetSelectionText()
                         If LenB(tmpString) > 0 Then
                             Clipboard.Clear
+                            Clipboard.SetText GetSelectionTextRTF(), vbCFRTF
                             Clipboard.SetText tmpString
+                            
+                            
+                            
                         Else
                             Exit Sub
                         End If
@@ -3172,8 +3176,8 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
                 Dim tmpSelLength As Long
                 Dim removedFirstChar As Long
                 
-                tmpSelStartRow = CharMap(m_SelStart).r
-                tmpSelEndRow = CharMap(m_SelEnd).r
+                tmpSelStartRow = CharMap(m_SelStart).R
+                tmpSelEndRow = CharMap(m_SelEnd).R
                 tmpSelLength = (RowMap(tmpSelEndRow).startChar + RowMap(tmpSelEndRow).NumChars) - RowMap(tmpSelStartRow).startChar
                 
                 
@@ -3225,7 +3229,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
             If Locked Then Exit Sub
             Dim tmpRow As Long, tmpAddTabCount As Long
             
-            tmpRow = CharMap(m_SelStart).r
+            tmpRow = CharMap(m_SelStart).R
             'For i = tmpRow - 1 To 0 Step -1
                 'If RowMap(i).RealRowNumber < RowMap(tmpRow).RealRowNumber Then
                     For j = RowMap(tmpRow).startChar To RowMap(tmpRow).startChar + RowMap(tmpRow).NumChars - 1
@@ -3306,6 +3310,140 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     'DoEvents
 End Sub
 
+Sub LongToRGB(lVal As Long, ByRef R As Byte, ByRef G As Byte, ByRef B As Byte)
+    B = lVal \ 65536
+    G = (lVal - B * 65536) \ 256
+    R = lVal - (B * 65536) - (256& * G)
+End Sub
+
+Function GetSelectionTextRTF() As String
+    Dim strOutput As String
+    
+    Dim strFontTableResult As String, strFontTable() As String
+    Dim strColorTableResult As String, lngColorTable() As Long
+    
+    Dim i As Long, j As Long, count As Long, mustAdd As Boolean, current As String
+    Dim lCurrentColor As Long, lPrevious As Long
+    Dim lCurrentFontSize As Long
+    
+    Dim R As Byte, G As Byte, B As Byte
+    
+    'Build the font table
+    'strFontTableResult = "{\fonttbl"
+    'count = 0
+    'mustAdd = True
+    'For i = m_SelStart To m_SelEnd
+        
+    '    current = IIf(MarkupS(i).)
+        
+     '   If count = 0 Or mustAdd = True Then
+     '       strFontTableResult = strFontTableResult & "{\f" & count & " " & IIf() & ";}"
+    '        count = count + 1
+    '        mustAdd = False
+    '    End If
+    'Next i
+    'strFontTableResult = strFontTableResult & "}"
+    
+    
+    'Build the color table
+    strColorTableResult = "{\colortbl;"
+    count = 0
+    lPrevious = UserControl.ForeColor
+    mustAdd = True
+    For i = m_SelStart To m_SelEnd
+        
+        lCurrentColor = IIf(MarkupS(i).lForeColor = -1, UserControl.ForeColor, MarkupS(i).lForeColor)
+        
+        If lCurrentColor <> lPrevious Then mustAdd = True
+        
+        If count = 0 Or mustAdd = True Then
+            LongToRGB lCurrentColor, R, G, B
+            
+            strColorTableResult = strColorTableResult & "\red" & R & "\green" & G & "\blue" & B & ";"
+            ReDim Preserve lngColorTable(0 To count) As Long
+            
+            lngColorTable(count) = lCurrentColor
+            
+            count = count + 1
+            mustAdd = False
+        End If
+        
+        lPrevious = lCurrentColor
+    Next i
+    strColorTableResult = strColorTableResult & "}"
+    
+    
+    
+    strFontTableResult = "{\fonttbl"
+    strFontTableResult = strFontTableResult & "{\f0 " & UserControl.Font.Name & ";}"
+    strFontTableResult = strFontTableResult & "}"
+    
+    strOutput = "{\rtf1\ansi\ansicpg1252\deff0\deftab720" & strFontTableResult
+    
+    'colortable here
+    strOutput = strOutput & strColorTableResult
+    
+    'paragraph start
+    strOutput = strOutput & "\pard"
+    
+    'text here
+    lCurrentColor = UserControl.ForeColor
+    lCurrentFontSize = UserControl.FontSize
+    
+    strOutput = strOutput & "\plain\f0\cf0\fs" & lCurrentFontSize * 2 & " "
+    
+    
+
+    For i = m_SelStart To m_SelEnd
+        
+        If lCurrentColor <> MarkupS(i).lForeColor Then
+            lCurrentColor = MarkupS(i).lForeColor
+            
+            For j = 0 To UBound(lngColorTable)
+                If lngColorTable(j) = IIf(MarkupS(i).lForeColor = -1, UserControl.ForeColor, MarkupS(i).lForeColor) Then
+                    strOutput = strOutput & "\cf" & j + 1 & " "
+                    Exit For
+                End If
+            Next j
+            
+        End If
+        
+        If lCurrentFontSize <> MarkupS(i).lFontSize Then
+            lCurrentFontSize = MarkupS(i).lFontSize
+            strOutput = strOutput & "\fs" & IIf(MarkupS(i).lFontSize = -1, UserControl.FontSize, MarkupS(i).lFontSize) * 2 & " "
+        End If
+        
+        If m_byteText(i) = 10 Then
+            strOutput = strOutput & "\line "
+        ElseIf m_byteText(i) = 13 Then
+        
+        Else
+        
+            strOutput = strOutput & Chr(m_byteText(i))
+        End If
+        
+        
+        
+        
+    Next i
+    
+    
+    'end here
+    strOutput = strOutput & "\par }"
+    
+    Debug.Print strOutput
+    
+'    strOutput = "{\rtf1\ansi\ansicpg1252\deff0\deftab720{\fonttbl" & _
+'       "{\f0 MS Sans Serif;}{\f1\froman\fcharset2 Symbol;}" & _
+'       "{\f2\froman\fprq2 Times New Roman;}}" & _
+'       "{\colortbl\red0\green0\blue0;\red255\green0\blue0;}" & _
+'       "\deflang1033\horzdoc{\*\fchars }{\*\lchars }" & _
+'       "\pard\plain\f2\fs24 Line 1 of \plain\f2\fs24\cf1" & _
+'       "inserted\plain\f0\fs24  file.\par }"
+    
+    
+    GetSelectionTextRTF = strOutput
+End Function
 
 Function GetSelectionText() As String
     If m_SelStart = m_SelEnd Then Exit Function
