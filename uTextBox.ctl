@@ -116,7 +116,7 @@ Private Type WH
     d As Long 'divider height
     X As Long 'x position
     Y As Long 'y position
-    R As Long 'belongs to what row?
+    r As Long 'belongs to what row?
     P As Long 'part of word
 End Type
 
@@ -331,10 +331,10 @@ Public Property Let ScrollTop(val As Long)
 End Property
 
 Public Property Get RealRowAtCursor() As Long
-    Dim R As Long
-    R = CharMap(m_SelStart).R
+    Dim r As Long
+    r = CharMap(m_SelStart).r
     
-    RealRowAtCursor = RowMap(R).RealRowNumber
+    RealRowAtCursor = RowMap(r).RealRowNumber
 End Property
 
 
@@ -349,17 +349,17 @@ Public Property Let ScrollTopReal(val As Long)
         m_lScrollTop = m_lScrollTopMax
     Else
     
-        Dim i As Long
+        Dim I As Long
         m_lScrollTop = val
         
-        For i = val To m_lScrollTopMax
+        For I = val To m_lScrollTopMax
             
-            If RowMap(i).RealRowNumber >= val Then
+            If RowMap(I).RealRowNumber >= val Then
                 Exit For
             End If
             
-            m_lScrollTop = i + 1
-        Next i
+            m_lScrollTop = I + 1
+        Next I
         
     End If
 
@@ -385,10 +385,10 @@ Public Function getWordStart(word As Long) As Long
 End Function
 
 Public Sub ClearMarkup()
-    Dim i As Long
+    Dim I As Long
     
-    For i = 0 To UBound(MarkupS)
-        With MarkupS(i)
+    For I = 0 To UBound(MarkupS)
+        With MarkupS(I)
             .lBold = 255
             .lFontSize = -1
             .lForeColor = -1
@@ -399,7 +399,7 @@ Public Sub ClearMarkup()
             .lStrikeThrough = 255
             .lUnderline = 255
         End With
-    Next i
+    Next I
     'MarkupS(Char).lItalic = bValue
 End Sub
 
@@ -423,7 +423,7 @@ Public Sub setCharBold(Char As Long, bValue As Byte)
         m_lRefreshFromCharAt = Char
     End If
     
-    m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt).R
+    m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt).r
     
     m_bWordsCalculated = False
     m_bRowMapCalculated = False
@@ -490,8 +490,8 @@ Sub updateCaretPos()
     setCaretPos CharMap(m_CursorPos).X, CharMap(m_CursorPos).Y - CharMap(m_CursorPos).H + CharMap(m_CursorPos).d - SYT
     ShowCaret UserControl.hWnd
     
-    If (CharMap(m_CursorPos).R <= UBound(RowMap)) Then
-        RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).R, m_CursorPos - RowMap(CharMap(m_CursorPos).R).startChar, m_byteText(m_CursorPos))
+    If (CharMap(m_CursorPos).r <= UBound(RowMap)) Then
+        RaiseEvent OnCursorPositionChanged(m_CursorPos, CharMap(m_CursorPos).r, m_CursorPos - RowMap(CharMap(m_CursorPos).r).startChar, m_byteText(m_CursorPos))
     End If
         
 End Sub
@@ -937,7 +937,7 @@ Private Sub UserControl_Initialize()
     'Dim lrand As Long
     Dim newChar As String
 
-    Dim i As Long
+    Dim I As Long
     'Dim MS As String 'mid string
 
     Dim constString As String
@@ -952,10 +952,10 @@ Private Sub UserControl_Initialize()
 
 
     If randomMarkup Then
-        For i = 1 To Len(constString)
+        For I = 1 To Len(constString)
             newChar = ""
             '{\c FFFF00 hoi {\c FF00FF hallo dit is magenta gekleurde text} hoi}
-            If Mid$(constString, i, 1) <> " " And Mid$(constString, i, 1) <> vbCr And Mid$(constString, i, 1) <> vbLf Then
+            If Mid$(constString, I, 1) <> " " And Mid$(constString, I, 1) <> vbCr And Mid$(constString, I, 1) <> vbLf Then
                 newChar = "{\c " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
                 newChar = newChar & "{\fb " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
                 newChar = newChar & "{\m " & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & Fmat(Hex(CLng(Rnd * 255)), 2) & " "
@@ -974,12 +974,12 @@ Private Sub UserControl_Initialize()
                 '                    newChar = newChar & "{\s "
                 '            End Select
 
-                Select Case Mid$(constString, i, 1)
+                Select Case Mid$(constString, I, 1)
                     Case "}", "{", "\"
-                        newChar = newChar & "\" & Mid$(constString, i, 1)
+                        newChar = newChar & "\" & Mid$(constString, I, 1)
 
                     Case Else
-                        newChar = newChar & Mid$(constString, i, 1)
+                        newChar = newChar & Mid$(constString, I, 1)
                 End Select
 
                 'SnewChar = newChar & "}"
@@ -991,14 +991,14 @@ Private Sub UserControl_Initialize()
 
                 m_StrMarkupText = m_StrMarkupText & newChar
             Else
-                m_StrMarkupText = m_StrMarkupText & Mid$(constString, i, 1)
+                m_StrMarkupText = m_StrMarkupText & Mid$(constString, I, 1)
 
             End If
 
 
 
 
-        Next i
+        Next I
     Else
         m_StrMarkupText = constString
 
@@ -1179,7 +1179,7 @@ Sub growWordMap()
 End Sub
 
 Sub ReCalculateRowMap(Optional fromWhere As Long = 0)
-    Dim i As Long
+    Dim I As Long
     'Dim WC As Long 'word count
     Dim TL As Long 'text length
     Dim cc As Long
@@ -1287,7 +1287,7 @@ checkNextChar:
                 If m_bMultiLine Then NLNR = True
                 CharMap(cc).X = TextOffsetX
                 CharMap(cc).Y = TextOffsetY
-                CharMap(cc).R = NRC
+                CharMap(cc).r = NRC
                 ' GoTo NextChar
             Case 32
                 'If TL = CC Then GoTo NextChar
@@ -1401,7 +1401,7 @@ MakeNewRule:
         
         CharMap(cc).X = TextOffsetX
         CharMap(cc).Y = TextOffsetY
-        CharMap(cc).R = NRC
+        CharMap(cc).r = NRC
         TextOffsetX = TextOffsetX + CharMap(cc).W
         
 NextChar:
@@ -1479,18 +1479,18 @@ End Sub
 
 Sub ScrollToEnd()
     Dim RH As Long 'row height
-    Dim i As Long
+    Dim I As Long
     
     If m_bScrollingTopBar Then Exit Sub
     
-    For i = UBound(RowMap) To 0 Step -1
-        RH = RH + RowMap(i).Height
+    For I = UBound(RowMap) To 0 Step -1
+        RH = RH + RowMap(I).Height
         If RH > UH Then
-            m_lScrollTop = i + 1
+            m_lScrollTop = I + 1
             Exit For
         End If
         
-    Next i
+    Next I
     
     If Not m_bStarting Then Redraw
 End Sub
@@ -1505,7 +1505,7 @@ Sub Redraw()
     
     'Dim m_timer As PerformanceTimer
    
-    Dim i As Long
+    Dim I As Long
     Dim j As Long
     Dim cc As Long    'Char Count
     Dim TL As Long    'text length
@@ -1595,12 +1595,12 @@ Sub Redraw()
     
     If m_bWordsCalculated = False Or m_bRowMapCalculated = False Then
         If m_lRefreshFromRowAt > 0 Then
-            For i = m_lRefreshFromRowAt To 1 Step -1
-                m_lRefreshFromRowAt = i - 1
-                If RowMap(i).RealRowNumber <> RowMap(i - 1).RealRowNumber Then
+            For I = m_lRefreshFromRowAt To 1 Step -1
+                m_lRefreshFromRowAt = I - 1
+                If RowMap(I).RealRowNumber <> RowMap(I - 1).RealRowNumber Then
                     Exit For
                 End If
-            Next i
+            Next I
             m_lRefreshFromCharAt = RowMap(m_lRefreshFromRowAt).startChar
         End If
     End If
@@ -1648,12 +1648,12 @@ Sub Redraw()
     TL = UBound(m_byteText)
     
 
-    For i = m_lScrollTop To NRC
+    For I = m_lScrollTop To NRC
         'Debug.Print m_byteText(CC);
         'If i > UBound(RowMap) Then GoTo DoneRefreshing
         
         
-        TextOffsetY = CharMap(RowMap(i).startChar).Y - SYT 'RowMap(i).StartY
+        TextOffsetY = CharMap(RowMap(I).startChar).Y - SYT 'RowMap(i).StartY
         
         If m_bRowLines Then
             If TextOffsetY < UH Then
@@ -1668,7 +1668,7 @@ Sub Redraw()
         '    UserControl.Line (LNW, TextOffsetY)-(UW - UWS - TSP, TextOffsetY), vbRed
         'End If
         
-        For cc = RowMap(i).startChar To RowMap(i).startChar + RowMap(i).NumChars - 1
+        For cc = RowMap(I).startChar To RowMap(I).startChar + RowMap(I).NumChars - 1
             If cc = TL Then GoTo DoneRefreshing 'do not draw the last character
             
             TextOffsetX = CharMap(cc).X
@@ -1734,7 +1734,7 @@ Sub Redraw()
             MP = m_bPrintNewlineCharacters Or (m_byteText(cc) <> 10 And m_byteText(cc) <> 13 And m_byteText(cc) <> 9)
             
             
-            If TextOffsetY - RowMap(i).Height < UH And TextOffsetX < UW And TextOffsetX + CharMap(cc).W > 0 And TextOffsetY >= 0 Then     '
+            If TextOffsetY - RowMap(I).Height < UH And TextOffsetX < UW And TextOffsetX + CharMap(cc).W > 0 And TextOffsetY >= 0 Then     '
 '>>>>>>> 6dc6b6097b383fc3fdfe936980c2eb01ba24cca4
                 Dim jj As Long
                 Dim kk As Long
@@ -1884,7 +1884,7 @@ Sub Redraw()
                     pts(1).Y = pts(0).Y
     
                     pts(2).X = pts(1).X
-                    pts(2).Y = TextOffsetY - RowMap(i).Height + IIf(m_bMultiLine, CharMap(cc).d, 0)
+                    pts(2).Y = TextOffsetY - RowMap(I).Height + IIf(m_bMultiLine, CharMap(cc).d, 0)
     
                     pts(3).X = TextOffsetX
                     pts(3).Y = pts(2).Y
@@ -1895,14 +1895,14 @@ Sub Redraw()
                 End If
     
             
-            ElseIf TextOffsetY - RowMap(i).Height >= UH Then
+            ElseIf TextOffsetY - RowMap(I).Height >= UH Then
                 GoTo DoneRefreshing
             End If
             
     
 NextChar:
         Next cc
-    Next i
+    Next I
 DoneRefreshing:
     
 
@@ -1941,33 +1941,33 @@ DoneRefreshing:
         pts(3).X = 0:         pts(3).Y = UH
         Polygon UserControl.hdc, pts(0), 4
         
-        For i = m_lScrollTop To NRC
+        For I = m_lScrollTop To NRC
             If m_bLineNumberOnEveryLine Then
-                TW = UserControl.TextWidth(i + 1)
+                TW = UserControl.TextWidth(I + 1)
             Else
-                TW = UserControl.TextWidth(RowMap(i).RealRowNumber + 1)
+                TW = UserControl.TextWidth(RowMap(I).RealRowNumber + 1)
             End If
             
             UserControl.CurrentX = LNR - TW
-            If RowMap(i).StartY - RowMap(i).Height - SYT < UH Then
-                UserControl.CurrentY = RowMap(i).StartY - SYT    ' - TH
+            If RowMap(I).StartY - RowMap(I).Height - SYT < UH Then
+                UserControl.CurrentY = RowMap(I).StartY - SYT    ' - TH
                 
                 If m_bLineNumberOnEveryLine Then
-                    UserControl.Print CStr(i + 1)
+                    UserControl.Print CStr(I + 1)
                 Else
-                    If i > 0 Then
-                        If RowMap(i - 1).RealRowNumber <> RowMap(i).RealRowNumber Then
-                            UserControl.Print CStr(RowMap(i).RealRowNumber + 1)
+                    If I > 0 Then
+                        If RowMap(I - 1).RealRowNumber <> RowMap(I).RealRowNumber Then
+                            UserControl.Print CStr(RowMap(I).RealRowNumber + 1)
                         End If
                     Else
-                        UserControl.Print CStr(RowMap(i).RealRowNumber + 1)
+                        UserControl.Print CStr(RowMap(I).RealRowNumber + 1)
                     End If
                 End If
                 'UserControl.Line (TSP, RowMap(i).StartY - SYT)-(LNR, RowMap(i).StartY - SYT), m_OleRowLineColor
             Else
                 Exit For
             End If
-        Next i
+        Next I
     End If
     
     UserControl.FillColor = m_OleBackgroundColor
@@ -2157,32 +2157,32 @@ End Sub
 
 
 Function InstrByte(lStart As Long, ByRef lBytes() As Byte, lSearch As Byte) As Long
-    Dim i As Long
+    Dim I As Long
 
-    For i = lStart To UBound(lBytes)
-        If lBytes(i) = lSearch Then
-            InstrByte = i
+    For I = lStart To UBound(lBytes)
+        If lBytes(I) = lSearch Then
+            InstrByte = I
             Exit Function
         End If
-    Next i
+    Next I
 End Function
 
 Function RGBByte(lStart As Long, ByRef lBytes() As Byte) As Long
-    Dim i As Long
+    Dim I As Long
     Dim c(0 To 8) As Byte
 
-    For i = 0 To 5
-        Select Case lBytes(lStart + i)
+    For I = 0 To 5
+        Select Case lBytes(lStart + I)
             Case 48 To 57
-                c(i) = (lBytes(lStart + i) - 48) And 255
+                c(I) = (lBytes(lStart + I) - 48) And 255
 
             Case 65 To 70
-                c(i) = (lBytes(lStart + i) - 55) And 255
+                c(I) = (lBytes(lStart + I) - 55) And 255
 
             Case 97 To 102
-                c(i) = (lBytes(lStart + i) - 85) And 255
+                c(I) = (lBytes(lStart + I) - 85) And 255
         End Select
-    Next i
+    Next I
 
     RGBByte = RGB(c(0) * 16 + c(1), c(2) * 16 + c(3), c(4) * 16 + c(5))
 End Function
@@ -2205,7 +2205,7 @@ End Sub
 Private Function parseConsoleColors(ByRef bytes() As Byte, ByRef styleArr() As MarkupStyles, ByRef byteText() As Byte, ByRef commandType As Long, ByRef actualTextLength As Long) As String
 
     'Dim strSplit() As String
-    Dim i As Long 'primary index
+    Dim I As Long 'primary index
     Dim j As Long 'to check what the rest of the command contains
     
     Dim lCommand As Long
@@ -2224,30 +2224,30 @@ Private Function parseConsoleColors(ByRef bytes() As Byte, ByRef styleArr() As M
     
     'search for [00m
     
-    For i = 0 To UB
+    For I = 0 To UB
         
 check_for_next_color:
         
-        If bytes(i) = 27 Then 'escape char
-            If i < UB Then
-                If bytes(i + 1) = 91 Then 'bracket char '['
-                    If i + 1 < UB Then 'we got at least one more char after this
+        If bytes(I) = 27 Then 'escape char
+            If I < UB Then
+                If bytes(I + 1) = 91 Then 'bracket char '['
+                    If I + 1 < UB Then 'we got at least one more char after this
                         CN = 0
                         CL = 0
                         cc = False
                         
-                        If i + 2 < UB Then
-                            If bytes(i + 2) = 49 And bytes(i + 3) = 74 Then 'clear window
+                        If I + 2 < UB Then
+                            If bytes(I + 2) = 49 And bytes(I + 3) = 74 Then 'clear window
                                 commandType = 1
-                                i = i + 4
-                                For j = i To UB
+                                I = I + 4
+                                For j = I To UB
                                     parseConsoleColors = parseConsoleColors & ChrW(bytes(j))
                                 Next j
                                 GoTo end_of_parsing
                             End If
                         End If
                         
-                        For j = i + 2 To UB 'just run to the end of the command or stop when the length is higher than 3
+                        For j = I + 2 To UB 'just run to the end of the command or stop when the length is higher than 3
                             CL = CL + 1
                             Select Case bytes(j)
                                 Case 109 'm' end of command
@@ -2273,22 +2273,22 @@ check_for_next_color:
                                 Case 40 To 47
                                     styleArr(ATL).lMarking = m_OleConsoleColors(CN - 40)
                             End Select
-                            i = i + CL + 2
-                            If i <= UB Then
+                            I = I + CL + 2
+                            If I <= UB Then
                                 GoTo check_for_next_color
                             Else
                                 GoTo end_of_parsing
                             End If
                             
                         Else 'this happens if the command was not finnished before the ubound of bytes
-                            For j = i To UB
+                            For j = I To UB
                                 parseConsoleColors = parseConsoleColors & ChrW(bytes(j))
                             Next j
                             GoTo end_of_parsing
                         End If
                         
                     Else
-                        parseConsoleColors = ChrW(bytes(i)) & ChrW(bytes(i + 1))
+                        parseConsoleColors = ChrW(bytes(I)) & ChrW(bytes(I + 1))
                         GoTo end_of_parsing
                     End If
                 Else
@@ -2296,7 +2296,7 @@ check_for_next_color:
                 End If
                 
             Else
-                parseConsoleColors = ChrW(bytes(i))
+                parseConsoleColors = ChrW(bytes(I))
                 GoTo end_of_parsing
             End If
             
@@ -2304,13 +2304,13 @@ check_for_next_color:
             
 process_as_normal_char:
             
-            byteText(ATL) = bytes(i)
+            byteText(ATL) = bytes(I)
             ATL = ATL + 1
             styleArr(ATL) = styleArr(ATL - 1)
         End If
         
         
-    Next i
+    Next I
     
     
     parseConsoleColors = ""
@@ -2329,7 +2329,7 @@ End Function
 
 Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents As Boolean = False, Optional noColorBuffer As Boolean = False) As Boolean
     Dim lLength As Long
-    Dim i As Long
+    Dim I As Long
 
     Dim lInsertLength As Long
     Dim lConsoleCommand As Long
@@ -2444,20 +2444,20 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
             CopyMemory MarkupS(m_SelStart), newMarkupStyles(0), (lInsertLength + 1) * LenB(MarkupS(0))
         Else
             If distanceFromEnd = 0 Then
-                For i = 0 To lInsertLength - 1
+                For I = 0 To lInsertLength - 1
                     'm_byteText(m_SelStart + i) = newByteText(i) 'Asc(Mid$(sChar, i, 1))
-                    MarkupS((m_SelStart + i)) = MarkupS(UBound(MarkupS))
-                Next i
+                    MarkupS((m_SelStart + I)) = MarkupS(UBound(MarkupS))
+                Next I
             Else
-                For i = 0 To lInsertLength - 1
+                For I = 0 To lInsertLength - 1
                     'm_byteText(m_SelStart + i) = newByteText(i) 'Asc(Mid$(sChar, i, 1))
                     
-                    If m_SelStart + i - 1 >= 0 Then
-                        MarkupS((m_SelStart + i)) = MarkupS((m_SelStart + i - 1))
+                    If m_SelStart + I - 1 >= 0 Then
+                        MarkupS((m_SelStart + I)) = MarkupS((m_SelStart + I - 1))
                     ElseIf m_SelStart = 0 And m_SelEnd = 0 Then
                         MarkupS(0) = MarkupS(UBound(MarkupS))
                     Else
-                        With MarkupS(m_SelStart + i)
+                        With MarkupS(m_SelStart + I)
                             .lStrikeThrough = m_StdFont.Strikethrough
                             .lFontSize = -1
                             .lUnderline = 255
@@ -2470,7 +2470,7 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
                         End With
                     End If
             
-                 Next i
+                 Next I
             End If
         End If
     End If
@@ -2491,7 +2491,7 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
     If m_lRefreshFromCharAt <> -1 Then
         On Error GoTo refreshFromStart
         If m_lRefreshFromCharAt > reCalculateFromWhere Then
-            m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt).R
+            m_lRefreshFromRowAt = CharMap(m_lRefreshFromCharAt).r
             m_lRefreshFromCharAt = RowMap(m_lRefreshFromRowAt).startChar
         End If
         
@@ -2500,7 +2500,7 @@ Function AddCharAtCursor(Optional ByRef sChar As String = "", Optional noevents 
         'm_lRefreshFromCharAt = reCalculateFromWhere - 1
         'If m_lRefreshFromCharAt < 0 Then m_lRefreshFromCharAt = 0
         
-        m_lRefreshFromRowAt = CharMap(reCalculateFromWhere).R
+        m_lRefreshFromRowAt = CharMap(reCalculateFromWhere).r
         m_lRefreshFromCharAt = RowMap(m_lRefreshFromRowAt).startChar
         
         'If m_lRefreshFromRowAt < 0 Then m_lRefreshFromRowAt = 0
@@ -2532,7 +2532,7 @@ End Function
 
 
 Sub CheckCharSize(lStart As Long, lLength As Long)
-    Dim i As Long
+    Dim I As Long
     Dim uSize As Long
     
     Dim cForeColor As Long
@@ -2569,8 +2569,8 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
     
     'uSize = UBound(MarkupS)
     
-    For i = lStart To lStart + lLength
-        With MarkupS(i)
+    For I = lStart To lStart + lLength
+        With MarkupS(I)
             If .lFontSize <> cFontSize Then
                 cFontSize = .lFontSize
                 If .lFontSize = -1 Then
@@ -2632,33 +2632,33 @@ Sub CheckCharSize(lStart As Long, lLength As Long)
 '            '    GetTextSize " ", CharMap(i)
 '            'End If
 '=======
-            If m_byteText(i) = 13 Or m_byteText(i) = 10 Then
-                GetTextSize " ", CharMap(i)
+            If m_byteText(I) = 13 Or m_byteText(I) = 10 Then
+                GetTextSize " ", CharMap(I)
                 If Not m_bPrintNewlineCharacters Then
-                    CharMap(i).W = 0
+                    CharMap(I).W = 0
                 End If
             Else
-                GetTextSize Chr(m_byteText(i)), CharMap(i)
+                GetTextSize Chr(m_byteText(I)), CharMap(I)
                 
-                If m_byteText(i) = 9 Then
-                    CharMap(i).W = CharMap(i).W * 4
+                If m_byteText(I) = 9 Then
+                    CharMap(I).W = CharMap(I).W * 4
                 End If
             
             End If
 '>>>>>>> 6dc6b6097b383fc3fdfe936980c2eb01ba24cca4
 
-            CharMap(i).d = cDescendHeight
+            CharMap(I).d = cDescendHeight
 
         End With
 
-    Next i
+    Next I
 
 
 
 End Sub
 
 Function getCharAtCursor(X As Long, Y As Long) As Long
-Dim i As Long
+Dim I As Long
 
     Dim TTW     As Long    'total text width
     Dim CTW  As Long    'current text width
@@ -2670,12 +2670,12 @@ Dim i As Long
     UB = UBound(RowMap)
     CR = UB
     
-    For i = m_lScrollTop To UB    'number of rows
-        If Y < RowMap(i).StartY - SYT Then 'And RowMap(i).NumChars <> 1
-            CR = i
+    For I = m_lScrollTop To UB    'number of rows
+        If Y < RowMap(I).StartY - SYT Then 'And RowMap(i).NumChars <> 1
+            CR = I
             Exit For
         End If
-    Next i
+    Next I
 
     If CR = UB Then
         EOR = UBound(CharMap)
@@ -2697,23 +2697,23 @@ Dim i As Long
     End If
     
     'TS = CharMap(RowMap(CR).StartChar).X
-    For i = RowMap(CR).startChar To EOR
-        If m_byteText(i) <> 10 And m_byteText(i) <> 13 Then
-            If X >= CharMap(i).X And X <= CharMap(i).X + CharMap(i).W Then
-                If X < CharMap(i).X + CharMap(i).W / 2 Then
-                    getCharAtCursor = i
+    For I = RowMap(CR).startChar To EOR
+        If m_byteText(I) <> 10 And m_byteText(I) <> 13 Then
+            If X >= CharMap(I).X And X <= CharMap(I).X + CharMap(I).W Then
+                If X < CharMap(I).X + CharMap(I).W / 2 Then
+                    getCharAtCursor = I
                 Else
-                    getCharAtCursor = i + 1
+                    getCharAtCursor = I + 1
                     If getCharAtCursor > UBound(m_byteText) Then getCharAtCursor = UBound(m_byteText)
                 End If
                 Exit Function
-            ElseIf CharMap(i).X > X Then
-                getCharAtCursor = i
+            ElseIf CharMap(I).X > X Then
+                getCharAtCursor = I
                 Exit Function
             End If
         End If
 
-    Next i
+    Next I
     
     getCharAtCursor = getPreviousChar(EOR)
     
@@ -2778,7 +2778,7 @@ Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Sing
     End If
     
     updateCaretPos
-    RaiseEvent Click(m_SelStart, CharMap(m_SelStart).R)
+    RaiseEvent Click(m_SelStart, CharMap(m_SelStart).r)
     
     
     If Not m_bStarting And mustRedraw Then Redraw
@@ -2880,7 +2880,7 @@ End Sub
 
 
 Function getNextCharUpDown(U As Boolean, STS As Boolean) As Long 'up, selectionTheSame
-    Dim i As Long
+    Dim I As Long
 
     Dim TTW     As Long    'total text width
     Static CTW  As Long    'current text width
@@ -2892,19 +2892,19 @@ Function getNextCharUpDown(U As Boolean, STS As Boolean) As Long 'up, selectionT
     TL = UBound(CharMap)
     CR = UB
     
-    For i = 0 To UB    'number of rows
-        If m_CursorPos < RowMap(i).startChar Then
-            CR = i - 1
+    For I = 0 To UB    'number of rows
+        If m_CursorPos < RowMap(I).startChar Then
+            CR = I - 1
             Exit For
         End If
-    Next i
+    Next I
     
     
     If Not STS Then
         CTW = 0
-        For i = RowMap(CR).startChar To m_CursorPos - 1
-            CTW = CTW + CharMap(i).W
-        Next i
+        For I = RowMap(CR).startChar To m_CursorPos - 1
+            CTW = CTW + CharMap(I).W
+        Next I
     End If
 
     If U Then
@@ -2921,22 +2921,22 @@ Function getNextCharUpDown(U As Boolean, STS As Boolean) As Long 'up, selectionT
     End If
 
     
-    For i = RowMap(CR).startChar To RowMap(CR).NumChars + RowMap(CR).startChar - 1
-        If i > TL Then
-            getNextCharUpDown = i
+    For I = RowMap(CR).startChar To RowMap(CR).NumChars + RowMap(CR).startChar - 1
+        If I > TL Then
+            getNextCharUpDown = I
             Exit Function
         End If
         
-        TTW = TTW + CharMap(i).W
-        If (TTW > CTW Or i = RowMap(CR).NumChars + RowMap(CR).startChar - 1) Then
-            If m_byteText(i) <> 10 Then  'And m_byteText(i) <> 13
-                getNextCharUpDown = i
+        TTW = TTW + CharMap(I).W
+        If (TTW > CTW Or I = RowMap(CR).NumChars + RowMap(CR).startChar - 1) Then
+            If m_byteText(I) <> 10 Then  'And m_byteText(i) <> 13
+                getNextCharUpDown = I
             Else
-                getNextCharUpDown = getPreviousChar(i)
+                getNextCharUpDown = getPreviousChar(I)
             End If
             Exit Function
         End If
-    Next i
+    Next I
 
     getNextCharUpDown = RowMap(CR).startChar
 
@@ -2996,7 +2996,7 @@ End Sub
 
 Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
 
-    Dim i As Long, j As Long
+    Dim I As Long, j As Long
     Dim tmpswap As Long
     Dim mustRedraw As Boolean
     Dim tmpCursor As Long
@@ -3176,14 +3176,14 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
                 Dim tmpSelLength As Long
                 Dim removedFirstChar As Long
                 
-                tmpSelStartRow = CharMap(m_SelStart).R
-                tmpSelEndRow = CharMap(m_SelEnd).R
+                tmpSelStartRow = CharMap(m_SelStart).r
+                tmpSelEndRow = CharMap(m_SelEnd).r
                 tmpSelLength = (RowMap(tmpSelEndRow).startChar + RowMap(tmpSelEndRow).NumChars) - RowMap(tmpSelStartRow).startChar
                 
                 
-                For i = tmpSelEndRow To tmpSelStartRow Step -1
+                For I = tmpSelEndRow To tmpSelStartRow Step -1
                     If Shift = 1 Then
-                        m_SelStart = RowMap(i).startChar
+                        m_SelStart = RowMap(I).startChar
                         If m_byteText(m_SelStart) = Asc(vbTab) Then
                             m_SelEnd = m_SelStart + 1
                             m_CursorPos = m_SelStart
@@ -3192,13 +3192,13 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
                             removedFirstChar = removedFirstChar + 1
                         End If
                     Else
-                        m_SelStart = RowMap(i).startChar
+                        m_SelStart = RowMap(I).startChar
                         m_SelEnd = m_SelStart
                         m_CursorPos = m_SelStart
                         AddCharAtCursor vbTab, True
                     End If
                     
-                Next i
+                Next I
                 
                 m_lRefreshFromRowAt = tmpSelStartRow
                 m_bRowMapCalculated = False
@@ -3229,7 +3229,7 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
             If Locked Then Exit Sub
             Dim tmpRow As Long, tmpAddTabCount As Long
             
-            tmpRow = CharMap(m_SelStart).R
+            tmpRow = CharMap(m_SelStart).r
             'For i = tmpRow - 1 To 0 Step -1
                 'If RowMap(i).RealRowNumber < RowMap(tmpRow).RealRowNumber Then
                     For j = RowMap(tmpRow).startChar To RowMap(tmpRow).startChar + RowMap(tmpRow).NumChars - 1
@@ -3310,10 +3310,10 @@ Private Sub UserControl_KeyDown(KeyCode As Integer, Shift As Integer)
     'DoEvents
 End Sub
 
-Sub LongToRGB(lVal As Long, ByRef R As Byte, ByRef G As Byte, ByRef B As Byte)
-    B = lVal \ 65536
-    G = (lVal - B * 65536) \ 256
-    R = lVal - (B * 65536) - (256& * G)
+Sub LongToRGB(lVal As Long, ByRef r As Byte, ByRef g As Byte, ByRef b As Byte)
+    b = lVal \ 65536
+    g = (lVal - b * 65536) \ 256
+    r = lVal - (b * 65536) - (256& * g)
 End Sub
 
 Function GetSelectionTextRTF() As String
@@ -3322,11 +3322,11 @@ Function GetSelectionTextRTF() As String
     Dim strFontTableResult As String, strFontTable() As String
     Dim strColorTableResult As String, lngColorTable() As Long
     
-    Dim i As Long, j As Long, count As Long, mustAdd As Boolean, current As String
+    Dim I As Long, j As Long, count As Long, mustAdd As Boolean, current As String
     Dim lCurrentColor As Long, lPrevious As Long
     Dim lCurrentFontSize As Long
     
-    Dim R As Byte, G As Byte, B As Byte
+    Dim r As Byte, g As Byte, b As Byte
     
     'Build the font table
     'strFontTableResult = "{\fonttbl"
@@ -3348,18 +3348,27 @@ Function GetSelectionTextRTF() As String
     'Build the color table
     strColorTableResult = "{\colortbl;"
     count = 0
-    lPrevious = UserControl.ForeColor
+    lPrevious = m_OleForeColor
     mustAdd = True
-    For i = m_SelStart To m_SelEnd
+    For I = m_SelStart To m_SelEnd
         
-        lCurrentColor = IIf(MarkupS(i).lForeColor = -1, UserControl.ForeColor, MarkupS(i).lForeColor)
+        lCurrentColor = IIf(MarkupS(I).lForeColor = -1, m_OleForeColor, MarkupS(I).lForeColor)
         
         If lCurrentColor <> lPrevious Then mustAdd = True
         
+        If mustAdd And count > 0 Then
+            For j = 0 To count - 1
+                If lngColorTable(j) = lCurrentColor Then
+                    mustAdd = False
+                    Exit For
+                End If
+            Next j
+        End If
+        
         If count = 0 Or mustAdd = True Then
-            LongToRGB lCurrentColor, R, G, B
+            LongToRGB lCurrentColor, r, g, b
             
-            strColorTableResult = strColorTableResult & "\red" & R & "\green" & G & "\blue" & B & ";"
+            strColorTableResult = strColorTableResult & "\red" & r & "\green" & g & "\blue" & b & ";"
             ReDim Preserve lngColorTable(0 To count) As Long
             
             lngColorTable(count) = lCurrentColor
@@ -3369,7 +3378,7 @@ Function GetSelectionTextRTF() As String
         End If
         
         lPrevious = lCurrentColor
-    Next i
+    Next I
     strColorTableResult = strColorTableResult & "}"
     
     
@@ -3387,20 +3396,20 @@ Function GetSelectionTextRTF() As String
     strOutput = strOutput & "\pard"
     
     'text here
-    lCurrentColor = UserControl.ForeColor
+    lCurrentColor = m_OleForeColor
     lCurrentFontSize = UserControl.FontSize
     
     strOutput = strOutput & "\plain\f0\cf0\fs" & lCurrentFontSize * 2 & " "
     
     
 
-    For i = m_SelStart To m_SelEnd
+    For I = m_SelStart To m_SelEnd
         
-        If lCurrentColor <> MarkupS(i).lForeColor Then
-            lCurrentColor = MarkupS(i).lForeColor
+        If lCurrentColor <> MarkupS(I).lForeColor Then
+            lCurrentColor = MarkupS(I).lForeColor
             
             For j = 0 To UBound(lngColorTable)
-                If lngColorTable(j) = IIf(MarkupS(i).lForeColor = -1, UserControl.ForeColor, MarkupS(i).lForeColor) Then
+                If lngColorTable(j) = IIf(MarkupS(I).lForeColor = -1, m_OleForeColor, MarkupS(I).lForeColor) Then
                     strOutput = strOutput & "\cf" & j + 1 & " "
                     Exit For
                 End If
@@ -3408,24 +3417,24 @@ Function GetSelectionTextRTF() As String
             
         End If
         
-        If lCurrentFontSize <> MarkupS(i).lFontSize Then
-            lCurrentFontSize = MarkupS(i).lFontSize
-            strOutput = strOutput & "\fs" & IIf(MarkupS(i).lFontSize = -1, UserControl.FontSize, MarkupS(i).lFontSize) * 2 & " "
+        If lCurrentFontSize <> MarkupS(I).lFontSize Then
+            lCurrentFontSize = MarkupS(I).lFontSize
+            strOutput = strOutput & "\fs" & IIf(MarkupS(I).lFontSize = -1, UserControl.FontSize, MarkupS(I).lFontSize) * 2 & " "
         End If
         
-        If m_byteText(i) = 10 Then
+        If m_byteText(I) = 10 Then
             strOutput = strOutput & "\line "
-        ElseIf m_byteText(i) = 13 Then
+        ElseIf m_byteText(I) = 13 Then
         
         Else
         
-            strOutput = strOutput & Chr(m_byteText(i))
+            strOutput = strOutput & Chr(m_byteText(I))
         End If
         
         
         
         
-    Next i
+    Next I
     
     
     'end here
@@ -3448,15 +3457,15 @@ End Function
 Function GetSelectionText() As String
     If m_SelStart = m_SelEnd Then Exit Function
 
-    Dim i As Long
+    Dim I As Long
     Dim tmpBuffer As String
     Dim tmpBufferLen As Long
     Dim TotalLen As Long
 
-    For i = m_SelStart To m_SelEnd - 1
+    For I = m_SelStart To m_SelEnd - 1
         tmpBufferLen = tmpBufferLen + 1
 
-        tmpBuffer = tmpBuffer & ChrW(m_byteText(i))
+        tmpBuffer = tmpBuffer & ChrW(m_byteText(I))
 
         If tmpBufferLen > TotalLen Then
             TotalLen = tmpBufferLen
@@ -3465,7 +3474,7 @@ Function GetSelectionText() As String
             tmpBuffer = ""
         End If
 
-    Next i
+    Next I
 
     GetSelectionText = GetSelectionText & tmpBuffer
 
@@ -3475,18 +3484,18 @@ End Function
 
 
 Function getNextWordFromCursor() As Long
-    Dim i As Long
+    Dim I As Long
     Dim WordPart As Long
 
     WordPart = CharMap(m_CursorPos).P
     If WordPart = -1 Then
-        For i = m_CursorPos To UBound(CharMap)
-            WordPart = CharMap(i).P
+        For I = m_CursorPos To UBound(CharMap)
+            WordPart = CharMap(I).P
             If WordPart <> -1 Then
                 getNextWordFromCursor = WordMap(WordPart).s
                 Exit Function
             End If
-        Next i
+        Next I
         getNextWordFromCursor = UBound(CharMap)
     Else
         WordPart = WordPart + 1
@@ -3494,30 +3503,30 @@ Function getNextWordFromCursor() As Long
             getNextWordFromCursor = WordMap(WordCount).s + WordMap(WordCount).L
         Else
             getNextWordFromCursor = WordMap(WordPart).s
-            For i = WordMap(WordPart).s To UBound(CharMap)
-                If m_byteText(i) <> 10 And m_byteText(i) <> 32 Then    'm_byteText(i) <> 13 And
-                    getNextWordFromCursor = i
+            For I = WordMap(WordPart).s To UBound(CharMap)
+                If m_byteText(I) <> 10 And m_byteText(I) <> 32 Then    'm_byteText(i) <> 13 And
+                    getNextWordFromCursor = I
                     Exit Function
                 End If
-            Next i
+            Next I
         End If
     End If
 
 End Function
 
 Function getPreviousWordFromCursor() As Long
-    Dim i As Long
+    Dim I As Long
     Dim WordPart As Long
 
     WordPart = CharMap(m_CursorPos).P
     If WordPart = -1 Then
-        For i = m_CursorPos To 0 Step -1
-            WordPart = CharMap(i).P
+        For I = m_CursorPos To 0 Step -1
+            WordPart = CharMap(I).P
             If WordPart <> -1 Then
                 getPreviousWordFromCursor = WordMap(WordPart).s
                 Exit Function
             End If
-        Next i
+        Next I
     Else
         If WordMap(WordPart).s = m_CursorPos Then
             WordPart = WordPart - 1
@@ -3526,12 +3535,12 @@ Function getPreviousWordFromCursor() As Long
         If WordPart < 0 Then
             getPreviousWordFromCursor = 0
         Else
-            For i = WordMap(WordPart).s To 0 Step -1
-                If m_byteText(i) <> 10 And m_byteText(i) <> 32 Then    'm_byteText(i) <> 13 And
-                    getPreviousWordFromCursor = i
+            For I = WordMap(WordPart).s To 0 Step -1
+                If m_byteText(I) <> 10 And m_byteText(I) <> 32 Then    'm_byteText(i) <> 13 And
+                    getPreviousWordFromCursor = I
                     Exit Function
                 End If
-            Next i
+            Next I
         End If
 
         'getNextWord = getNextChar(
@@ -3542,30 +3551,30 @@ End Function
 
 
 Function getNextChar(lStart As Long) As Long
-    Dim i As Long
+    Dim I As Long
 
     getNextChar = lStart
 
-    For i = getNextChar To UBound(CharMap)
-        If m_byteText(i) <> 10 Then    'm_byteText(i) <> 13 And
-            getNextChar = i
+    For I = getNextChar To UBound(CharMap)
+        If m_byteText(I) <> 10 Then    'm_byteText(i) <> 13 And
+            getNextChar = I
             Exit Function
         End If
-    Next i
+    Next I
 End Function
 
 
 Function getPreviousChar(lStart As Long) As Long
-    Dim i As Long
+    Dim I As Long
 
     getPreviousChar = lStart
 
-    For i = getPreviousChar To 0 Step -1
-        If m_byteText(i) <> 10 Then     'm_byteText(i) <> 13 And
-            getPreviousChar = i
+    For I = getPreviousChar To 0 Step -1
+        If m_byteText(I) <> 10 Then     'm_byteText(i) <> 13 And
+            getPreviousChar = I
             Exit Function
         End If
-    Next i
+    Next I
 End Function
 
 
@@ -3614,25 +3623,25 @@ End Sub
 Function SizeByte(ByRef lStart As Long, ByRef lBytes() As Byte) As Long
     Dim c(0 To 10) As Long
     Dim lCount As Long
-    Dim i As Long
+    Dim I As Long
 
-    For i = 0 To 10
-        Select Case lBytes(lStart + i)
+    For I = 0 To 10
+        Select Case lBytes(lStart + I)
             Case 32
                 Exit For
 
             Case 48 To 57
-                c(lCount) = lBytes(lStart + i) - 48
+                c(lCount) = lBytes(lStart + I) - 48
         End Select
 
         lCount = lCount + 1
-    Next i
+    Next I
 
     'SizeByte = 0
 
-    For i = 0 To lCount - 1
-        SizeByte = SizeByte + c(i) * (10 ^ (lCount - i - 1))
-    Next i
+    For I = 0 To lCount - 1
+        SizeByte = SizeByte + c(I) * (10 ^ (lCount - I - 1))
+    Next I
     lStart = lCount
 End Function
 
