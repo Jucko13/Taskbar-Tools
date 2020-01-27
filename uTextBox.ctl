@@ -1870,6 +1870,27 @@ Sub Redraw()
 '
 '                If CC >= m_SelStart And CC < m_SelEnd Then  'And m_byteText(CC) <> 10
 '=======
+
+                If m_byteText(cc) = 9 And RowMap(I).startChar <> cc Then
+                    pts(0).X = TextOffsetX
+                    pts(0).Y = TextOffsetY + CharMap(cc).d
+
+                    pts(1).X = TextOffsetX
+                    pts(1).Y = TextOffsetY - WordMap(CharMap(cc).P).H + CharMap(cc).d + 1
+                    UserControl.DrawMode = 13
+                    UserControl.DrawStyle = vbDot
+                    UserControl.DrawWidth = 1
+                    'Dim tmpColor As Long
+                    'tmpColor = UserControl.ForeColor
+                    'UserControl.ForeColor = m_OleRowLineColor
+                    'Polygon UserControl.hdc, pts(0), 2
+                    UserControl.Line (pts(0).X, pts(0).Y)-(pts(1).X, pts(1).Y), m_OleRowLineColor
+                    'UserControl.ForeColor = tmpColor
+                    UserControl.DrawStyle = 5
+                    UserControl.DrawMode = 15
+                    
+                End If
+                
                 If MP Then
                     TextOut UserControl.hdc, TextOffsetX, TextOffsetY, ChrW(m_byteText(cc)), 1
                 End If
