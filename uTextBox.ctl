@@ -4167,4 +4167,5 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
     m_bStarting = False
     
     Redraw
-End Sub
+end sub
+
