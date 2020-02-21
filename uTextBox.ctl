@@ -235,6 +235,8 @@ Public Event KeyDown(ByRef KeyCode As Integer, ByRef Shift As Integer)
 Public Event KeyUp(ByRef KeyCode As Integer, ByRef Shift As Integer)
 Public Event Click(ByVal charIndex As Long, ByVal charRow As Long)
 Public Event OnCursorPositionChanged(ByVal charIndex As Long, ByVal charRow As Long, ByVal charCol As Long, ByVal charVal As Byte)
+Public Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+
 
 Private m_lUsercontrolHeight As Long
 Private m_lUsercontrolWidth As Long
@@ -2877,6 +2879,8 @@ Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Sing
         
         If Not m_bStarting And mustRedraw Then Redraw
     End If
+    
+    RaiseEvent MouseMove(Button, Shift, X, Y)
 End Sub
 
 Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -4167,5 +4171,5 @@ Private Sub UserControl_ReadProperties(PropBag As PropertyBag)
     m_bStarting = False
     
     Redraw
-end sub
+End Sub
 
